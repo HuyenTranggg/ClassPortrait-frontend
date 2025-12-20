@@ -18,7 +18,7 @@
 - **Performance**: Custom hooks và memoization
 - **UI/UX**: Bootstrap 5 với animations mượt mà
 
-![alt text](https://github.com/user-attachments/assets/6ef153d4-c4c4-4917-a349-1aff14c9e214)
+![alt text](images/image-1.png)
 
 - Các hình ảnh khuôn mặt trong tài liệu chỉ mang tính minh họa và đã được làm mờ nhằm đảm bảo quyền riêng tư cá nhân
 ---
@@ -335,15 +335,15 @@ export const studentService = {
 ### Screenshots
 
 #### Desktop View (4×4 Layout)
-![Desktop](https://github.com/user-attachments/assets/6ef153d4-c4c4-4917-a349-1aff14c9e214)
+![alt text](images/image-1.png)
 *Giao diện hiển thị 4 cột ảnh sinh viên, phù hợp cho màn hình rộng*
 
 #### Desktop View (5×4 Layout)
-![Desktop](https://github.com/user-attachments/assets/27befcae-8f1e-4942-9e02-fef12f92bd55)
+![alt text](images/image-2.png)
 *Layout 5 cột giúp tối ưu số lượng ảnh trên mỗi trang in*
 
 #### Print Preview (A4)
-![Print](https://github.com/user-attachments/assets/53a65d64-74a0-4a03-b827-e67cde60d968)
+![alt text](images/image-3.png)
 
 ---
 
