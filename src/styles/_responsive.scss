@@ -1,0 +1,86 @@
+// ===== RESPONSIVE DESIGN =====
+
+// Desktop - giữ nguyên layout đã chọn
+@media (min-width: 1200px) {
+  body[data-layout="4"] .student-gallery {
+    @include data-layout-columns(4);
+  }
+  
+  body[data-layout="5"] .student-gallery {
+    @include data-layout-columns(5);
+  }
+}
+
+// Laptop (992px - 1199px) - 4 ảnh/hàng
+@media (min-width: 992px) and (max-width: 1199px) {
+  .student-gallery {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: $gap-laptop;
+  }
+}
+
+// Tablet (768px - 991px) - 3 ảnh/hàng
+@media (min-width: 768px) and (max-width: 991px) {
+  .student-gallery {
+    @include data-layout-columns(3);
+    gap: $gap-tablet;
+  }
+  
+  .student-card {
+    max-width: $card-max-width-tablet;
+
+    img {
+      height: $card-img-height-tablet;
+    }
+  }
+}
+
+// Mobile (576px - 767px) - 2 ảnh/hàng
+@media (min-width: 576px) and (max-width: 767px) {
+  .student-gallery {
+    @include data-layout-columns(2);
+    gap: $gap-mobile;
+    padding: 15px;
+  }
+  
+  .student-card {
+    max-width: $card-max-width-mobile;
+
+    img {
+      height: $card-img-height-mobile;
+    }
+  }
+  
+  h1.display-4 {
+    font-size: 2.2rem;
+  }
+}
+
+// Small Mobile (<576px) - 2 ảnh/hàng
+@media (max-width: 575px) {
+  .student-gallery {
+    @include data-layout-columns(2);
+    gap: $gap-small-mobile;
+    padding: $gap-small-mobile;
+  }
+  
+  .student-card {
+    max-width: $card-max-width-small;
+
+    img {
+      height: $card-img-height-small;
+    }
+  }
+  
+  .card-body {
+    padding: $card-body-padding-small;
+  }
+  
+  .card-title {
+    font-size: 0.9rem;
+  }
+  
+  h1.display-4 {
+    font-size: 1.8rem;
+  }
+}

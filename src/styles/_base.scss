@@ -1,0 +1,35 @@
+// ===== GENERAL STYLES =====
+
+.App {
+  text-align: center;
+}
+
+.container {
+  max-width: 1400px;
+}
+
+// Header compact styles
+.no-print {
+  h3 {
+    color: $primary-color;
+    font-weight: 600;
+  }
+}
+
+// Responsive header cho mobile
+@media (max-width: 576px) {
+  .no-print {
+    h3 {
+      font-size: 1.25rem;
+    }
+    
+    small {
+      font-size: 0.75rem;
+    }
+    
+    .btn {
+      font-size: 0.875rem;
+      padding: 0.375rem 0.75rem;
+    }
+  }
+}
