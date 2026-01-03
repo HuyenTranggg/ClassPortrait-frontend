@@ -1,0 +1,54 @@
+// ===== STUDENT GALLERY =====
+
+.student-gallery {
+  display: grid;
+  gap: $gap-desktop;
+  padding: $gap-desktop;
+  justify-items: center;
+  // KHÔNG set grid-template-columns mặc định - chỉ set qua body[data-layout]
+}
+
+// Layout động dựa trên data-layout attribute
+body[data-layout="4"] .student-gallery {
+  @include data-layout-columns(4);
+}
+
+body[data-layout="5"] .student-gallery {
+  @include data-layout-columns(5);
+}
+
+.student-card {
+  width: 100%;
+  max-width: $card-max-width;
+  border: 1px solid $border-color;
+  border-radius: $card-border-radius;
+  overflow: hidden;
+  background: $white;
+  @include card-hover;
+
+  img {
+    width: 100%;
+    height: $card-img-height;
+    object-fit: cover;
+    background-color: $bg-light;
+  }
+}
+
+.card-body {
+  padding: $card-body-padding;
+  text-align: center;
+}
+
+.card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: $primary-color;
+  margin: 0;
+}
+
+.student-name {
+  display: block;
+  font-size: 0.85rem;
+  color: $secondary-color;
+  margin-top: 4px;
+}

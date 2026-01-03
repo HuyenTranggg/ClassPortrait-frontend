@@ -1,16 +1,27 @@
 // src/App.tsx
 import React, { useEffect } from 'react';
-import './App.css';
+import './App.scss';
 import StudentCard from './components/StudentCard';
-import { useStudents, usePagination } from './hooks';
+import ImportButton from './components/ImportButton';
+import { useClasses, usePagination } from './hooks';
 
 /**
  * Component chính của ứng dụng Sổ ảnh sinh viên
  */
 function App() {
   // Custom hooks để tách logic
-  const { students, loading, error } = useStudents();
+  const { classes, selectedClass, students, loading, error, selectClass, refetchClasses } = useClasses();
   const { photosPerRow, photosPerPage, totalPages, paginatedPages } = usePagination(students);
+
+  // Helper function để hiển thị tên lớp
+  const getClassDisplayName = (cls: typeof selectedClass) => {
+    if (!cls) return '';
+    const parts = [];
+    if (cls.classCode) parts.push(cls.classCode);
+    if (cls.courseCode) parts.push(cls.courseCode);
+    if (cls.courseName) parts.push(cls.courseName);
+    return parts.join(' - ') || cls.id;
+  };
 
   // Set layout attribute vào body để CSS sử dụng
   useEffect(() => {
@@ -29,18 +40,45 @@ function App() {
     window.print();
   };
 
+  const handleClassChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const classId = event.target.value;
+    if (classId) {
+      selectClass(classId);
+    }
+  };
+
   return (
     <div className="container mt-4">
       {/* Header - compact */}
       <div className="no-print mb-3">
         <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
           <div>
-            <h3 className="mb-1">Sổ ảnh Sinh viên - IT-E6 04 K67</h3>
+            <h3 className="mb-1">Sổ ảnh Sinh viên {selectedClass && `- ${getClassDisplayName(selectedClass)}`}</h3>
             <small className="text-muted">
               {students.length} sinh viên | Layout {photosPerRow} ảnh/hàng | In: {photosPerPage} ảnh/trang ({totalPages} trang)
             </small>
           </div>
-          <div className="d-flex gap-2 align-items-center">
+          <div className="d-flex gap-2 align-items-center flex-wrap">
+            {/* Dropdown chọn lớp */}
+            <select 
+              className="form-select form-select-sm"
+              value={selectedClass?.id || ''}
+              onChange={handleClassChange}
+              disabled={loading || classes.length === 0}
+              style={{ width: 'auto', minWidth: '150px' }}
+            >
+              {classes.length === 0 ? (
+                <option value="">Chưa có lớp</option>
+              ) : (
+                classes.map((cls) => (
+                  <option key={cls.id} value={cls.id}>
+                    {getClassDisplayName(cls)}
+                  </option>
+                ))
+              )}
+            </select>
+            
+            <ImportButton onImportSuccess={refetchClasses} />
             <div className="btn-group btn-group-sm" role="group">
               <a 
                 href="?layout=4" 
@@ -61,7 +99,7 @@ function App() {
               className="btn btn-primary" 
               onClick={handlePrint}
             >
-              🖨️ In
+              In
             </button>
           </div>
         </div>
@@ -91,14 +129,15 @@ function App() {
         <>
           {paginatedPages.map(({ pageIndex, students: pageStudents }) => (
             <React.Fragment key={pageIndex}>
-              {pageIndex === 0 && (
-                <div className="print-only print-first-header">
-                  <h2>SỔ ẢNH SINH VIÊN - IT-E6 04 K67</h2>
-                  <p>Tổng số: {students.length} sinh viên</p>
-                </div>
-              )}
-
               <div className={`page-content ${pageIndex > 0 ? 'page-break-before' : ''}`}>
+                {pageIndex === 0 && (
+                  <div className="print-only print-first-header">
+                    <h2>SỔ ẢNH SINH VIÊN</h2>
+                    {selectedClass && <p>Lớp: {getClassDisplayName(selectedClass)}</p>}
+                    <p>Tổng số: {students.length} sinh viên</p>
+                  </div>
+                )}
+
                 <div className="student-gallery">
                   {pageStudents.map((student) => (
                     <StudentCard

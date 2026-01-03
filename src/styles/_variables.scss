@@ -1,0 +1,63 @@
+// ===== SCSS VARIABLES =====
+
+// Colors
+$primary-color: #212529;
+$secondary-color: #6c757d;
+$border-color: #dee2e6;
+$bg-light: #f8f9fa;
+$white: white;
+$black: #000;
+$dark-gray: #333;
+$medium-gray: #666;
+$light-gray: #f0f0f0;
+
+// Spacing
+$gap-desktop: 20px;
+$gap-laptop: 18px;
+$gap-tablet: 15px;
+$gap-mobile: 12px;
+$gap-small-mobile: 10px;
+
+// Card dimensions - Desktop
+$card-max-width: 220px;
+$card-border-radius: 8px;
+$card-img-height: 250px;
+
+// Card dimensions - Responsive
+$card-max-width-tablet: 200px;
+$card-img-height-tablet: 220px;
+$card-max-width-mobile: 180px;
+$card-img-height-mobile: 200px;
+$card-max-width-small: 160px;
+$card-img-height-small: 180px;
+
+// Card body padding
+$card-body-padding: 12px;
+$card-body-padding-small: 8px;
+
+// Print dimensions (mm)
+$print-gap: 4mm;
+$print-border-radius: 4px;
+$print-card-border: 1.5px;
+$print-card-padding: 2mm;
+$print-img-height-4col: 44mm;
+$print-img-height-5col: 38mm;
+
+// Print font sizes (pt)
+$print-header-size: 13pt;
+$print-subheader-size: 9pt;
+$print-title-size: 8pt;
+$print-name-size: 7pt;
+$print-page-number-size: 10pt;
+
+// Breakpoints
+$screen-xl: 1200px;
+$screen-lg: 992px;
+$screen-md: 768px;
+$screen-sm: 576px;
+
+// Breakpoint max values
+$screen-lg-max: 1199px;
+$screen-md-max: 991px;
+$screen-sm-max: 767px;
+$screen-xs-max: 575px;
