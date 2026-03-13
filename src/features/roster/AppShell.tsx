@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 import StudentCard from './StudentCard';
 import ImportButton from './ImportButton';
-import { useClasses, usePagination } from '../hooks';
-import { useAuth } from '../contexts/AuthContext';
+import { useClasses, usePagination } from './hooks';
+import { useAuth } from '../auth';
 
 function AppShell() {
   const { logout } = useAuth();

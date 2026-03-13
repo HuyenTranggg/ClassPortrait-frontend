@@ -1,5 +1,5 @@
-import api from './api';
-import { AUTH_CONFIG } from '../config/constants';
+import api from '../../lib/api';
+import { AUTH_CONFIG } from '../../config/constants';
 
 interface LoginPayload {
   email: string;

@@ -1,10 +1,9 @@
 // src/App.tsx
 import React, { useMemo, useState } from 'react';
 import './App.scss';
-import AppShell from './components/AppShell';
-import LandingPage from './components/LandingPage';
-import LoginModal from './components/LoginModal';
-import { useAuth } from './contexts/AuthContext';
+import { AppShell } from './features/roster';
+import { LandingPage } from './features/landing';
+import { LoginModal, useAuth } from './features/auth';
 
 const loginMessages: Record<string, string> = {
   default: 'hệ thống',
@@ -21,7 +20,7 @@ const loginMessages: Record<string, string> = {
  * Component chính của ứng dụng Sổ ảnh sinh viên
  */
 function App() {
-  const { isAuthenticated, login, logout } = useAuth();
+  const { isAuthenticated, login } = useAuth();
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [loginContext, setLoginContext] = useState('default');
 

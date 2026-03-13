@@ -1,9 +1,9 @@
 // frontend/src/hooks/useClasses.ts
 
 import { useState, useEffect, useCallback } from 'react';
-import { Class } from '../types/Class';
-import { Student } from '../types/Student';
-import { classService } from '../services';
+import { Class } from '../../../types/Class';
+import { Student } from '../../../types/Student';
+import { classService } from '../classService';
 
 interface UseClassesReturn {
   classes: Class[];
