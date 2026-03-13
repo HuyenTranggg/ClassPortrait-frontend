@@ -1,7 +1,7 @@
 // frontend/src/services/api.ts
 
 import axios, { AxiosInstance, AxiosError } from 'axios';
-import { API_CONFIG } from '../config/constants';
+import { API_CONFIG, AUTH_CONFIG } from '../config/constants';
 
 /**
  * Axios instance với cấu hình mặc định
@@ -19,11 +19,12 @@ const api: AxiosInstance = axios.create({
  */
 api.interceptors.request.use(
   (config) => {
-    // Có thể thêm authentication token ở đây sau này
-    // const token = localStorage.getItem('token');
-    // if (token) {
-    //   config.headers.Authorization = `Bearer ${token}`;
-    // }
+    const token = window.localStorage.getItem(AUTH_CONFIG.TOKEN_STORAGE_KEY);
+
+    if (token && config.headers) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
     return config;
   },
   (error: AxiosError) => {
@@ -41,6 +42,11 @@ api.interceptors.response.use(
     if (error.response) {
       // Server trả về lỗi
       console.error('API Error:', error.response.status, error.response.data);
+
+      if (error.response.status === 401) {
+        window.localStorage.removeItem(AUTH_CONFIG.TOKEN_STORAGE_KEY);
+        window.dispatchEvent(new CustomEvent('auth:unauthorized'));
+      }
     } else if (error.request) {
       // Request được gửi nhưng không nhận được response
       console.error('Network Error:', error.message);

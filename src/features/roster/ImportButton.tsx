@@ -1,6 +1,6 @@
 // src/components/ImportButton.tsx
 import React, { useRef, useState } from 'react';
-import { classService } from '../services';
+import { classService } from './classService';
 
 interface ImportButtonProps {
   onImportSuccess: () => void;

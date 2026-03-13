@@ -1,8 +1,8 @@
 // frontend/src/hooks/usePagination.ts
 
 import { useMemo } from 'react';
-import { Student } from '../types/Student';
-import { PAGINATION_CONFIG } from '../config/constants';
+import { Student } from '../../../types/Student';
+import { PAGINATION_CONFIG } from '../../../config/constants';
 
 interface PageData {
   pageIndex: number;

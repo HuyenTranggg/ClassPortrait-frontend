@@ -1,6 +1,6 @@
 // frontend/src/services/studentService.ts
 
-import api from './api';
+import api from '../../lib/api';
 
 /**
  * Service để tương tác với Student API

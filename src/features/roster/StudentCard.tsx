@@ -1,7 +1,7 @@
 // src/components/StudentCard.tsx
 import React, { useState } from 'react';
-import { studentService } from '../services';
-import { PHOTO_CONFIG } from '../config/constants';
+import { studentService } from './studentService';
+import { PHOTO_CONFIG } from '../../config/constants';
 
 interface StudentCardProps {
   mssv: string;
