@@ -9,6 +9,13 @@ export const API_CONFIG = {
 } as const;
 
 /**
+ * Authentication Configuration
+ */
+export const AUTH_CONFIG = {
+  TOKEN_STORAGE_KEY: 'classportrait-access-token',
+} as const;
+
+/**
  * Pagination Configuration
  */
 export const PAGINATION_CONFIG = {
