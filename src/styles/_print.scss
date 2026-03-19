@@ -28,6 +28,35 @@
     background: $white;
     counter-reset: page;
   }
+
+  .app-shell {
+    display: block !important;
+    grid-template-columns: 1fr !important;
+    min-height: auto !important;
+    width: 100% !important;
+  }
+
+  .app-main {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .gallery-panel {
+    width: 100% !important;
+    max-width: none !important;
+    border: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  .page-content {
+    width: 100% !important;
+    max-width: none !important;
+  }
   
   .container {
     max-width: 100% !important;
@@ -41,6 +70,9 @@
     grid-auto-rows: auto;
     gap: $print-gap !important;
     padding: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    justify-items: stretch !important;
     page-break-inside: auto !important; // Cho phép break trong gallery nếu cần
   }
   

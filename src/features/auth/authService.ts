@@ -20,16 +20,22 @@ export const authService = {
     }
 
     window.localStorage.setItem(AUTH_CONFIG.TOKEN_STORAGE_KEY, token);
+    window.localStorage.setItem(AUTH_CONFIG.USER_EMAIL_STORAGE_KEY, payload.email);
 
     return token;
   },
 
   logout: (): void => {
     window.localStorage.removeItem(AUTH_CONFIG.TOKEN_STORAGE_KEY);
+    window.localStorage.removeItem(AUTH_CONFIG.USER_EMAIL_STORAGE_KEY);
   },
 
   getToken: (): string | null => {
     return window.localStorage.getItem(AUTH_CONFIG.TOKEN_STORAGE_KEY);
+  },
+
+  getUserEmail: (): string | null => {
+    return window.localStorage.getItem(AUTH_CONFIG.USER_EMAIL_STORAGE_KEY);
   },
 
   isAuthenticated: (): boolean => {

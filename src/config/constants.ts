@@ -13,6 +13,7 @@ export const API_CONFIG = {
  */
 export const AUTH_CONFIG = {
   TOKEN_STORAGE_KEY: 'classportrait-access-token',
+  USER_EMAIL_STORAGE_KEY: 'classportrait-user-email',
 } as const;
 
 /**
