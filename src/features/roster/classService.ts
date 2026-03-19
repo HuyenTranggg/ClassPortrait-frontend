@@ -35,17 +35,21 @@ export const classService = {
   /**
    * Import lớp học mới từ file
    * @param file File Excel, CSV hoặc JSON
-   * @returns Promise với thông báo kết quả
+   * @returns Promise với kết quả import
    */
-  importClass: async (file: File): Promise<{ message: string }> => {
+  importClass: async (file: File): Promise<{ success: boolean; classId: string; message: string }> => {
     const formData = new FormData();
     formData.append('file', file);
-    
-    const response = await api.post<{ message: string }>('/classes/import', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+
+    const response = await api.post<{ success: boolean; classId: string; message: string }>(
+      '/classes/import',
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
     return response.data;
   },
 

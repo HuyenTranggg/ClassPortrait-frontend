@@ -1,25 +1,26 @@
 // src/components/StudentCard.tsx
 import React, { useState } from 'react';
-import { studentService } from './studentService';
 import { PHOTO_CONFIG } from '../../config/constants';
 
 interface StudentCardProps {
   mssv: string;
   name?: string;
+  photoUrl?: string;
 }
 
 /**
  * Component hiển thị thẻ sinh viên với ảnh và thông tin
+ * Dùng photoUrl từ API (đã có chữ ký), không tự ghép URL.
  */
-function StudentCard({ mssv, name }: StudentCardProps) {
+function StudentCard({ mssv, name, photoUrl }: StudentCardProps) {
   const [imageError, setImageError] = useState(false);
-  const imageUrl = studentService.getPhotoUrl(mssv);
+  const effectiveSrc = !imageError && photoUrl ? photoUrl : PHOTO_CONFIG.PLACEHOLDER_URL;
 
   return (
     <div className="card student-card">
-      <img 
-        src={imageError ? PHOTO_CONFIG.PLACEHOLDER_URL : imageUrl}
-        className="card-img-top" 
+      <img
+        src={effectiveSrc}
+        className="card-img-top"
         alt={`Ảnh của sinh viên ${mssv}`}
         onError={() => setImageError(true)}
       />

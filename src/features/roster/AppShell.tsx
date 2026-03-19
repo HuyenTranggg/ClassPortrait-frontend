@@ -188,7 +188,12 @@ function AppShell() {
 
                     <div className="student-gallery">
                       {pageStudents.map((student) => (
-                        <StudentCard key={student.mssv} mssv={student.mssv} name={student.name} />
+                        <StudentCard
+                          key={student.mssv}
+                          mssv={student.mssv}
+                          name={student.name}
+                          photoUrl={student.photoUrl}
+                        />
                       ))}
                     </div>
 
