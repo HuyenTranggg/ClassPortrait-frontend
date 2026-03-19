@@ -1,13 +1,30 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import StudentCard from './StudentCard';
 import ImportButton from './ImportButton';
 import { useClasses, usePagination } from './hooks';
 import { useAuth } from '../auth';
 
 function AppShell() {
-  const { logout } = useAuth();
+  const headerRef = useRef<HTMLElement | null>(null);
+  const { logout, userEmail } = useAuth();
   const { classes, selectedClass, students, loading, error, selectClass, refetchClasses } = useClasses();
   const { photosPerRow, photosPerPage, totalPages, paginatedPages } = usePagination(students);
+
+  const getDisplayNameFromEmail = (email: string | null) => {
+    if (!email) {
+      return 'Giangvien';
+    }
+
+    const localPart = email.split('@')[0]?.trim() || '';
+    const firstPart = localPart.split('.')[0]?.trim() || '';
+    const baseName = firstPart || localPart;
+
+    if (!baseName) {
+      return 'Giangvien';
+    }
+
+    return baseName.charAt(0).toUpperCase() + baseName.slice(1).toLowerCase();
+  };
 
   const getClassDisplayName = (cls: typeof selectedClass) => {
     if (!cls) return '';
@@ -31,6 +48,20 @@ function AppShell() {
     document.documentElement.style.setProperty('--total-pages', totalPages.toString());
   }, [totalPages]);
 
+  useEffect(() => {
+    const updateHeaderHeight = () => {
+      const headerHeight = headerRef.current?.offsetHeight || 0;
+      document.documentElement.style.setProperty('--shell-header-height', `${headerHeight}px`);
+    };
+
+    updateHeaderHeight();
+    window.addEventListener('resize', updateHeaderHeight);
+
+    return () => {
+      window.removeEventListener('resize', updateHeaderHeight);
+    };
+  }, []);
+
   const handlePrint = () => {
     window.print();
   };
@@ -42,6 +73,21 @@ function AppShell() {
       selectClass(classId);
     }
   };
+
+  const handleLayoutChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const layout = event.target.value === '5' ? '5' : '4';
+    const urlParams = new URLSearchParams(window.location.search);
+    urlParams.set('layout', layout);
+    window.location.search = urlParams.toString();
+  };
+
+  const lecturerDisplayName = getDisplayNameFromEmail(userEmail);
+  const courseLabel = selectedClass
+    ? [selectedClass.courseCode, selectedClass.courseName].filter(Boolean).join(' - ') || 'Chưa có dữ liệu học phần'
+    : 'Chưa import dữ liệu';
+  const classCodeLabel = selectedClass?.classCode || 'Chưa import dữ liệu';
+  const semesterLabel = selectedClass?.semester || 'Chưa import dữ liệu';
+  const studentCountLabel = selectedClass ? `${students.length}` : '0';
 
   return (
     <div className="app-shell">
@@ -74,39 +120,50 @@ function AppShell() {
         </nav>
 
         <div className="sidebar-footer">
-          <div className="user-dot" aria-hidden="true" />
-          <div>
-            <strong>Đã đăng nhập</strong>
-            <span>Sẵn sàng quản lý sổ ảnh</span>
+          <div className="sidebar-avatar" aria-hidden="true">GV</div>
+          <div className="sidebar-user-meta">
+            <strong>{lecturerDisplayName}</strong>
+            <span>Giảng viên</span>
           </div>
+          <button type="button" className="sidebar-logout" onClick={logout}>Đăng xuất</button>
         </div>
       </aside>
 
       <main className="app-main">
-        <header className="shell-header no-print">
-          <div>
-            <p className="shell-eyebrow">Không gian làm việc</p>
-            <h1>Sổ ảnh thí sinh dự thi</h1>
-            <span>
-              {selectedClass ? getClassDisplayName(selectedClass) : 'Chọn lớp để xem và in danh sách ảnh'}
-            </span>
+        <header className="shell-header no-print" ref={headerRef}>
+          <div className="shell-header-content">
+            <p className="roster-school">ĐẠI HỌC BÁCH KHOA HÀ NỘI</p>
+            <h1>DANH SÁCH THÍ SINH DỰ THI</h1>
+
+            <div className="roster-meta" role="list" aria-label="Thông tin lớp học">
+              <div className="roster-meta-item" role="listitem">
+                <span>Học phần:</span>
+                <strong>{courseLabel}</strong>
+              </div>
+              <div className="roster-meta-item" role="listitem">
+                <span>Mã lớp:</span>
+                <strong>{classCodeLabel}</strong>
+              </div>
+              <div className="roster-meta-item" role="listitem">
+                <span>Học kỳ:</span>
+                <strong>{semesterLabel}</strong>
+              </div>
+              <div className="roster-meta-item" role="listitem">
+                <span>Sĩ số:</span>
+                <strong>{studentCountLabel}</strong>
+              </div>
+            </div>
           </div>
 
           <div className="shell-actions">
-            <button type="button" className="btn btn-outline-secondary" onClick={logout}>
-              Đăng xuất
+            <button type="button" className="btn btn-outline-secondary btn-share" disabled={!selectedClass}>
+              Chia sẻ
             </button>
+            <ImportButton onImportSuccess={refetchClasses} />
           </div>
         </header>
 
         <section className="workspace-panel no-print">
-          <div className="workspace-overview">
-            <strong>Tổng quan</strong>
-            <span>
-              {students.length} sinh viên | Layout {photosPerRow} ảnh/hàng | In {photosPerPage} ảnh/trang ({totalPages} trang)
-            </span>
-          </div>
-
           <div className="workspace-toolbar">
             <select
               className="form-select"
@@ -125,28 +182,21 @@ function AppShell() {
               )}
             </select>
 
-            <ImportButton onImportSuccess={refetchClasses} />
+            <select
+              className="form-select layout-select"
+              value={String(photosPerRow)}
+              onChange={handleLayoutChange}
+              aria-label="Chọn layout"
+            >
+              <option value="4">Lưới 4 cột</option>
+              <option value="5">Lưới 5 cột</option>
+            </select>
 
-            <div className="btn-group" role="group" aria-label="Chọn layout">
-              <a
-                href="?layout=4"
-                className={`btn ${photosPerRow === 4 ? 'btn-primary' : 'btn-outline-secondary'}`}
-                title="4 ảnh/hàng"
-              >
-                4x4
-              </a>
-              <a
-                href="?layout=5"
-                className={`btn ${photosPerRow === 5 ? 'btn-primary' : 'btn-outline-secondary'}`}
-                title="5 ảnh/hàng"
-              >
-                5x4
-              </a>
-            </div>
-
-            <button type="button" className="btn btn-primary" onClick={handlePrint}>
+            <button type="button" className="btn btn-primary btn-print" onClick={handlePrint}>
               In sổ ảnh
             </button>
+
+            <span className="workspace-student-count">{students.length} sinh viên</span>
           </div>
         </section>
 

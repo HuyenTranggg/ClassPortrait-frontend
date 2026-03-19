@@ -58,6 +58,13 @@
 	flex-direction: column;
 }
 
+.app-sidebar {
+	position: sticky;
+	top: 0;
+	height: 100vh;
+	overflow-y: auto;
+}
+
 .brand-block {
 	display: flex;
 	align-items: center;
@@ -140,11 +147,12 @@
 
 .sidebar-footer {
 	margin-top: auto;
-	padding-top: 20px;
+	padding-top: 16px;
 	display: flex;
 	align-items: center;
 	gap: 14px;
 	border-top: 1px solid $shell-border;
+	min-height: 72px;
 
 	strong,
 	span {
@@ -162,6 +170,55 @@
 
 	&.is-muted strong {
 		color: $text-strong;
+	}
+}
+
+.sidebar-user-meta {
+	flex: 1;
+	min-width: 0;
+
+	strong {
+		font-size: 1rem;
+		font-weight: 600;
+		color: $text-strong;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	span {
+		font-size: 0.92rem;
+		color: $text-muted-strong;
+		margin-top: 2px;
+	}
+}
+
+.sidebar-avatar {
+	width: 42px;
+	height: 42px;
+	border-radius: 50%;
+	display: grid;
+	place-items: center;
+	background: $accent-strong;
+	color: $white;
+	font-size: 1.05rem;
+	font-weight: 700;
+	flex-shrink: 0;
+}
+
+.sidebar-logout {
+	border: 0;
+	background: transparent;
+	color: #9ca3af;
+	font-size: 1.05rem;
+	font-weight: 500;
+	padding: 0;
+	line-height: 1;
+	white-space: nowrap;
+
+	&:hover,
+	&:focus {
+		color: #6b7280;
 	}
 }
 
@@ -230,7 +287,7 @@
 	margin: 0 auto;
 	text-align: center;
 }
-
+	
 .shell-eyebrow {
 	margin-bottom: 10px;
 	font-size: 0.92rem;
@@ -285,11 +342,103 @@
 }
 
 .shell-header {
-	padding: 18px 0;
+	padding: 20px 0 14px;
+	align-items: flex-start;
+	border: 0;
+	border-bottom: 1px solid $shell-border;
+	position: sticky;
+	top: 0;
+	z-index: 30;
+	background: $white;
 
 	h1 {
 		margin: 0;
-		font-size: clamp(2rem, 3vw, 2.7rem);
+		font-size: clamp(1.75rem, 2.5vw, 2.25rem);
+		line-height: 1.2;
+	}
+}
+
+.shell-header-content {
+	min-width: 0;
+	flex: 1;
+}
+
+.roster-school {
+	margin: 0 0 8px;
+	color: $accent-strong;
+	font-size: 1.28rem;
+	font-weight: 700;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+}
+
+.roster-meta {
+	margin-top: 12px;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0;
+}
+
+.roster-meta-item {
+	display: flex;
+	align-items: baseline;
+	gap: 8px;
+	font-size: 1.1rem;
+	color: $text-strong;
+
+	span {
+		color: $text-strong;
+		font-weight: 500;
+	}
+
+	strong {
+		font-weight: 700;
+		color: #111827;
+	}
+
+	&:not(:last-child)::after {
+		content: '|';
+		color: #d1d5db;
+		margin: 0 16px;
+		font-weight: 400;
+	}
+}
+
+.shell-actions {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding-top: 0;
+	align-self: center;
+
+	.btn-share {
+		min-width: 110px;
+		min-height: 46px;
+		font-size: 1.2rem;
+	}
+
+	.switch-actions,
+	.import-container {
+		flex-shrink: 0;
+	}
+
+	.import-container .btn {
+		min-width: 110px;
+		min-height: 46px;
+		font-size: 1.2rem;
+		border-radius: 12px;
+		background: $accent-strong;
+		border-color: $accent-dark;
+		color: $white;
+
+		&:hover,
+		&:focus,
+		&:active {
+			background: $accent-dark !important;
+			border-color: $accent-dark !important;
+			color: $white !important;
+		}
 	}
 }
 
@@ -301,8 +450,11 @@
 }
 
 .workspace-panel {
-	margin: 26px 0 20px;
-	padding: 22px;
+	margin: 0 0 14px;
+	padding: 10px 12px;
+	position: sticky;
+	top: var(--shell-header-height, 132px);
+	z-index: 20;
 }
 
 .workspace-overview {
@@ -323,16 +475,42 @@
 
 .workspace-toolbar {
 	display: flex;
-	gap: 12px;
+	gap: 10px;
 	align-items: center;
 	flex-wrap: wrap;
 
 	.form-select {
 		width: min(100%, 360px);
-		min-height: 48px;
+		min-height: 44px;
 		border-radius: 14px;
 		border-color: #d1d5db;
 		background-color: $white;
+	}
+
+	.layout-select {
+		width: 170px;
+	}
+
+	.btn-print {
+		min-height: 44px;
+		background: $accent-strong;
+		border-color: $accent-dark;
+		color: $white;
+
+		&:hover,
+		&:focus,
+		&:active {
+			background: $accent-dark !important;
+			border-color: $accent-dark !important;
+			color: $white !important;
+		}
+	}
+
+	.workspace-student-count {
+		margin-left: auto;
+		color: $text-muted-strong;
+		font-size: 1.22rem;
+		white-space: nowrap;
 	}
 }
 
