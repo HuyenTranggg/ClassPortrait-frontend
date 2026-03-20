@@ -43,15 +43,76 @@
 
 .landing-shell,
 .app-shell {
+	--sidebar-width: 252px;
 	min-height: 100vh;
 	display: grid;
-	grid-template-columns: 280px minmax(0, 1fr);
+	grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
 	background: $white;
+}
+
+.app-shell.sidebar-collapsed {
+	grid-template-columns: minmax(0, 1fr);
+}
+
+.app-shell.sidebar-collapsed .app-sidebar {
+	display: none;
+}
+
+.sidebar-edge-toggle {
+	position: fixed;
+	top: 50%;
+	left: calc(var(--sidebar-width) - 1px);
+	transform: translateY(-50%);
+	width: 12px;
+	height: 40px;
+	border: 1px solid #d9dde3;
+	border-left: 0;
+	border-radius: 0 8px 8px 0;
+	background: #ffffff;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0;
+	cursor: pointer;
+	z-index: 40;
+	box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+	transition: background-color 0.2s ease, border-color 0.2s ease, left 0.2s ease, box-shadow 0.2s ease;
+
+	&:hover,
+	&:focus {
+		background: #f8fafc;
+		border-color: #b8c0cc;
+		box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
+	}
+}
+
+.app-shell.sidebar-collapsed .sidebar-edge-toggle {
+	left: 0;
+	border-left: 1px solid #d1d5db;
+}
+
+.sidebar-edge-toggle-icon {
+	position: relative;
+	width: 7px;
+	height: 7px;
+
+	&::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		border-right: 1.5px solid #7a8797;
+		border-bottom: 1.5px solid #7a8797;
+		transform: rotate(135deg);
+	}
+
+	&.is-collapsed::before {
+		transform: rotate(-45deg);
+	}
 }
 
 .landing-sidebar,
 .app-sidebar {
-	padding: 26px 20px 18px;
+	padding: 20px 16px 14px;
 	border-right: 1px solid $shell-border;
 	background: $white;
 	display: flex;
@@ -68,8 +129,8 @@
 .brand-block {
 	display: flex;
 	align-items: center;
-	gap: 14px;
-	padding-bottom: 22px;
+	gap: 10px;
+	padding-bottom: 16px;
 	border-bottom: 1px solid $shell-border;
 
 	strong,
@@ -78,43 +139,43 @@
 	}
 
 	strong {
-		font-size: 1.5rem;
+		font-size: 1.28rem;
 		color: $accent-strong;
 		text-transform: uppercase;
 		letter-spacing: 0.04em;
 	}
 
 	span {
-		margin-top: 4px;
+		margin-top: 2px;
 		color: $text-muted-strong;
-		font-size: 1rem;
+		font-size: 0.9rem;
 	}
 }
 
 .brand-mark,
 .login-badge {
-	width: 44px;
-	height: 44px;
-	border-radius: 12px;
+	width: 38px;
+	height: 38px;
+	border-radius: 10px;
 	display: grid;
 	place-items: center;
 	background: $accent-strong;
 	color: $white;
-	font-size: 1.5rem;
+	font-size: 1.2rem;
 	font-weight: 700;
 }
 
 .sidebar-nav {
 	display: grid;
-	gap: 12px;
-	margin-top: 28px;
+	gap: 9px;
+	margin-top: 18px;
 }
 
 .sidebar-link {
 	text-align: left;
 	border: 0;
-	border-radius: 18px;
-	padding: 14px 16px;
+	border-radius: 14px;
+	padding: 11px 12px;
 	background: transparent;
 	color: $text-strong;
 	transition: background-color 0.2s ease;
@@ -126,14 +187,14 @@
 
 	span {
 		font-weight: 600;
-		font-size: 1.15rem;
+		font-size: 1rem;
 	}
 
 	small {
-		margin-top: 5px;
+		margin-top: 3px;
 		color: $text-muted-strong;
-		font-size: 1rem;
-		line-height: 1.45;
+		font-size: 0.88rem;
+		line-height: 1.35;
 	}
 
 	&:hover {
@@ -147,12 +208,12 @@
 
 .sidebar-footer {
 	margin-top: auto;
-	padding-top: 16px;
+	padding-top: 12px;
 	display: flex;
 	align-items: center;
-	gap: 14px;
+	gap: 10px;
 	border-top: 1px solid $shell-border;
-	min-height: 72px;
+	min-height: 58px;
 
 	strong,
 	span {
@@ -178,7 +239,7 @@
 	min-width: 0;
 
 	strong {
-		font-size: 1rem;
+		font-size: 0.9rem;
 		font-weight: 600;
 		color: $text-strong;
 		white-space: nowrap;
@@ -187,21 +248,21 @@
 	}
 
 	span {
-		font-size: 0.92rem;
+		font-size: 0.82rem;
 		color: $text-muted-strong;
 		margin-top: 2px;
 	}
 }
 
 .sidebar-avatar {
-	width: 42px;
-	height: 42px;
+	width: 34px;
+	height: 34px;
 	border-radius: 50%;
 	display: grid;
 	place-items: center;
 	background: $accent-strong;
 	color: $white;
-	font-size: 1.05rem;
+	font-size: 0.9rem;
 	font-weight: 700;
 	flex-shrink: 0;
 }
@@ -210,7 +271,7 @@
 	border: 0;
 	background: transparent;
 	color: #9ca3af;
-	font-size: 1.05rem;
+	font-size: 0.92rem;
 	font-weight: 500;
 	padding: 0;
 	line-height: 1;
@@ -232,7 +293,7 @@
 .landing-main,
 .app-main {
 	min-width: 0;
-	padding: 0 28px 28px;
+	padding: 0 22px 22px;
 	background: $white;
 }
 
@@ -342,20 +403,25 @@
 }
 
 .shell-header {
-	padding: 20px 0 14px;
+	padding: 14px 0 10px;
 	align-items: flex-start;
 	border: 0;
 	border-bottom: 1px solid $shell-border;
-	position: sticky;
-	top: 0;
-	z-index: 30;
 	background: $white;
 
 	h1 {
 		margin: 0;
-		font-size: clamp(1.75rem, 2.5vw, 2.25rem);
+		font-size: clamp(1.5rem, 2.1vw, 1.95rem);
 		line-height: 1.2;
 	}
+}
+
+.sticky-controls {
+	position: sticky;
+	top: 0;
+	z-index: 30;
+	background: $white;
+	padding-bottom: 8px;
 }
 
 .shell-header-content {
@@ -364,16 +430,16 @@
 }
 
 .roster-school {
-	margin: 0 0 8px;
+	margin: 0 0 6px;
 	color: $accent-strong;
-	font-size: 1.28rem;
+	font-size: 1.08rem;
 	font-weight: 700;
-	letter-spacing: 0.12em;
+	letter-spacing: 0.1em;
 	text-transform: uppercase;
 }
 
 .roster-meta {
-	margin-top: 12px;
+	margin-top: 8px;
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
@@ -384,7 +450,7 @@
 	display: flex;
 	align-items: baseline;
 	gap: 8px;
-	font-size: 1.1rem;
+	font-size: 0.98rem;
 	color: $text-strong;
 
 	span {
@@ -408,14 +474,14 @@
 .shell-actions {
 	display: flex;
 	align-items: center;
-	gap: 12px;
+	gap: 8px;
 	padding-top: 0;
 	align-self: center;
 
 	.btn-share {
-		min-width: 110px;
-		min-height: 46px;
-		font-size: 1.2rem;
+		min-width: 98px;
+		min-height: 40px;
+		font-size: 1.02rem;
 	}
 
 	.switch-actions,
@@ -424,10 +490,10 @@
 	}
 
 	.import-container .btn {
-		min-width: 110px;
-		min-height: 46px;
-		font-size: 1.2rem;
-		border-radius: 12px;
+		min-width: 98px;
+		min-height: 40px;
+		font-size: 1.02rem;
+		border-radius: 10px;
 		background: $accent-strong;
 		border-color: $accent-dark;
 		color: $white;
@@ -451,10 +517,7 @@
 
 .workspace-panel {
 	margin: 0 0 14px;
-	padding: 10px 12px;
-	position: sticky;
-	top: var(--shell-header-height, 132px);
-	z-index: 20;
+	padding: 8px 10px;
 }
 
 .workspace-overview {
@@ -475,24 +538,27 @@
 
 .workspace-toolbar {
 	display: flex;
-	gap: 10px;
+	gap: 8px;
 	align-items: center;
 	flex-wrap: wrap;
 
 	.form-select {
 		width: min(100%, 360px);
-		min-height: 44px;
-		border-radius: 14px;
+		min-height: 40px;
+		border-radius: 12px;
 		border-color: #d1d5db;
 		background-color: $white;
+		font-size: 0.96rem;
 	}
 
 	.layout-select {
-		width: 170px;
+		width: 156px;
 	}
 
 	.btn-print {
-		min-height: 44px;
+		min-height: 40px;
+		padding: 0 14px;
+		font-size: 0.98rem;
 		background: $accent-strong;
 		border-color: $accent-dark;
 		color: $white;
@@ -509,7 +575,7 @@
 	.workspace-student-count {
 		margin-left: auto;
 		color: $text-muted-strong;
-		font-size: 1.22rem;
+		font-size: 1.05rem;
 		white-space: nowrap;
 	}
 }

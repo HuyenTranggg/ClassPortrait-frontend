@@ -34,6 +34,15 @@
     position: static;
     top: auto;
   }
+
+  .sticky-controls {
+    position: static;
+    top: auto;
+  }
+
+  .sidebar-edge-toggle {
+    display: none;
+  }
 }
 
 @media (max-width: 767px) {

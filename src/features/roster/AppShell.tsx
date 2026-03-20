@@ -1,11 +1,12 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import StudentCard from './StudentCard';
 import ImportButton from './ImportButton';
 import { useClasses, usePagination } from './hooks';
 import { useAuth } from '../auth';
 
 function AppShell() {
-  const headerRef = useRef<HTMLElement | null>(null);
+  const headerRef = useRef<HTMLDivElement | null>(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { logout, userEmail } = useAuth();
   const { classes, selectedClass, students, loading, error, selectClass, refetchClasses } = useClasses();
   const { photosPerRow, photosPerPage, totalPages, paginatedPages } = usePagination(students);
@@ -90,7 +91,21 @@ function AppShell() {
   const studentCountLabel = selectedClass ? `${students.length}` : '0';
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+      <button
+        type="button"
+        className="sidebar-edge-toggle no-print"
+        onClick={() => setSidebarCollapsed((prev) => !prev)}
+        aria-expanded={!sidebarCollapsed}
+        aria-label={sidebarCollapsed ? 'Hiện sidebar' : 'Ẩn sidebar'}
+        title={sidebarCollapsed ? 'Hiện sidebar' : 'Ẩn sidebar'}
+      >
+        <span
+          className={`sidebar-edge-toggle-icon ${sidebarCollapsed ? 'is-collapsed' : ''}`}
+          aria-hidden="true"
+        />
+      </button>
+
       <aside className="app-sidebar no-print">
         <div className="brand-block">
           <div className="brand-mark">S</div>
@@ -130,75 +145,77 @@ function AppShell() {
       </aside>
 
       <main className="app-main">
-        <header className="shell-header no-print" ref={headerRef}>
-          <div className="shell-header-content">
-            <p className="roster-school">ĐẠI HỌC BÁCH KHOA HÀ NỘI</p>
-            <h1>DANH SÁCH THÍ SINH DỰ THI</h1>
+        <div className="sticky-controls no-print" ref={headerRef}>
+          <header className="shell-header">
+            <div className="shell-header-content">
+              <p className="roster-school">ĐẠI HỌC BÁCH KHOA HÀ NỘI</p>
+              <h1>DANH SÁCH THÍ SINH DỰ THI</h1>
 
-            <div className="roster-meta" role="list" aria-label="Thông tin lớp học">
-              <div className="roster-meta-item" role="listitem">
-                <span>Học phần:</span>
-                <strong>{courseLabel}</strong>
-              </div>
-              <div className="roster-meta-item" role="listitem">
-                <span>Mã lớp:</span>
-                <strong>{classCodeLabel}</strong>
-              </div>
-              <div className="roster-meta-item" role="listitem">
-                <span>Học kỳ:</span>
-                <strong>{semesterLabel}</strong>
-              </div>
-              <div className="roster-meta-item" role="listitem">
-                <span>Sĩ số:</span>
-                <strong>{studentCountLabel}</strong>
+              <div className="roster-meta" role="list" aria-label="Thông tin lớp học">
+                <div className="roster-meta-item" role="listitem">
+                  <span>Học phần:</span>
+                  <strong>{courseLabel}</strong>
+                </div>
+                <div className="roster-meta-item" role="listitem">
+                  <span>Mã lớp:</span>
+                  <strong>{classCodeLabel}</strong>
+                </div>
+                <div className="roster-meta-item" role="listitem">
+                  <span>Học kỳ:</span>
+                  <strong>{semesterLabel}</strong>
+                </div>
+                <div className="roster-meta-item" role="listitem">
+                  <span>Sĩ số:</span>
+                  <strong>{studentCountLabel}</strong>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="shell-actions">
-            <button type="button" className="btn btn-outline-secondary btn-share" disabled={!selectedClass}>
-              Chia sẻ
-            </button>
-            <ImportButton onImportSuccess={refetchClasses} />
-          </div>
-        </header>
+            <div className="shell-actions">
+              <button type="button" className="btn btn-outline-secondary btn-share" disabled={!selectedClass}>
+                Chia sẻ
+              </button>
+              <ImportButton onImportSuccess={refetchClasses} />
+            </div>
+          </header>
 
-        <section className="workspace-panel no-print">
-          <div className="workspace-toolbar">
-            <select
-              className="form-select"
-              value={selectedClass?.id || ''}
-              onChange={handleClassChange}
-              disabled={loading || classes.length === 0}
-            >
-              {classes.length === 0 ? (
-                <option value="">Chưa có lớp</option>
-              ) : (
-                classes.map((cls) => (
-                  <option key={cls.id} value={cls.id}>
-                    {getClassDisplayName(cls)}
-                  </option>
-                ))
-              )}
-            </select>
+          <section className="workspace-panel">
+            <div className="workspace-toolbar">
+              <select
+                className="form-select"
+                value={selectedClass?.id || ''}
+                onChange={handleClassChange}
+                disabled={loading || classes.length === 0}
+              >
+                {classes.length === 0 ? (
+                  <option value="">Chưa có lớp</option>
+                ) : (
+                  classes.map((cls) => (
+                    <option key={cls.id} value={cls.id}>
+                      {getClassDisplayName(cls)}
+                    </option>
+                  ))
+                )}
+              </select>
 
-            <select
-              className="form-select layout-select"
-              value={String(photosPerRow)}
-              onChange={handleLayoutChange}
-              aria-label="Chọn layout"
-            >
-              <option value="4">Lưới 4 cột</option>
-              <option value="5">Lưới 5 cột</option>
-            </select>
+              <select
+                className="form-select layout-select"
+                value={String(photosPerRow)}
+                onChange={handleLayoutChange}
+                aria-label="Chọn layout"
+              >
+                <option value="4">Lưới 4 cột</option>
+                <option value="5">Lưới 5 cột</option>
+              </select>
 
-            <button type="button" className="btn btn-primary btn-print" onClick={handlePrint}>
-              In sổ ảnh
-            </button>
+              <button type="button" className="btn btn-primary btn-print" onClick={handlePrint}>
+                In sổ ảnh
+              </button>
 
-            <span className="workspace-student-count">{students.length} sinh viên</span>
-          </div>
-        </section>
+              <span className="workspace-student-count">{students.length} sinh viên</span>
+            </div>
+          </section>
+        </div>
 
         {loading && (
           <div className="state-panel">
