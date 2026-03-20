@@ -37,9 +37,33 @@ export const classService = {
    * @param file File Excel, CSV hoặc JSON
    * @returns Promise với kết quả import
    */
-  importClass: async (file: File): Promise<{ success: boolean; classId: string; message: string }> => {
+  importClass: async (
+    file: File,
+    options?: {
+      mssvColumn?: string;
+      nameColumn?: string;
+      startRow?: number;
+      mappingMode?: 'auto' | 'manual';
+    }
+  ): Promise<{ success: boolean; classId: string; message: string }> => {
     const formData = new FormData();
     formData.append('file', file);
+
+    if (options?.mssvColumn) {
+      formData.append('mssvColumn', options.mssvColumn);
+    }
+
+    if (options?.nameColumn) {
+      formData.append('nameColumn', options.nameColumn);
+    }
+
+    if (typeof options?.startRow === 'number') {
+      formData.append('startRow', String(options.startRow));
+    }
+
+    if (options?.mappingMode) {
+      formData.append('mappingMode', options.mappingMode);
+    }
 
     const response = await api.post<{ success: boolean; classId: string; message: string }>(
       '/classes/import',
