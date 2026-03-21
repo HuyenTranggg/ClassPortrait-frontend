@@ -78,6 +78,29 @@ export const classService = {
   },
 
   /**
+   * Import lớp học mới từ link Google Sheet
+   */
+  importClassFromSheet: async (payload: {
+    googleSheetUrl: string;
+    mappingMode: 'auto' | 'manual';
+    startRow?: number;
+    mssvColumn?: string;
+    nameColumn?: string;
+  }): Promise<{ success: boolean; classId: string; message: string }> => {
+    const response = await api.post<{ success: boolean; classId: string; message: string }>(
+      '/classes/import-from-sheet',
+      payload,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    return response.data;
+  },
+
+  /**
    * Xóa một lớp
    */
   delete: async (id: string): Promise<{ message: string }> => {

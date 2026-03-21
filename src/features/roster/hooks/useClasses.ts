@@ -1,6 +1,6 @@
 // frontend/src/hooks/useClasses.ts
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Class } from '../../../types/Class';
 import { Student } from '../../../types/Student';
 import { classService } from '../classService';
@@ -12,7 +12,7 @@ interface UseClassesReturn {
   loading: boolean;
   error: string | null;
   selectClass: (classId: string) => Promise<void>;
-  refetchClasses: () => Promise<void>;
+  refetchClasses: (preferredClassId?: string) => Promise<void>;
 }
 
 /**
@@ -24,37 +24,20 @@ export const useClasses = (): UseClassesReturn => {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Lấy danh sách tất cả các lớp
-  const fetchClasses = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await classService.getAll();
-      setClasses(data);
-      
-      // Tự động chọn lớp đầu tiên nếu có
-      if (data.length > 0 && !selectedClass) {
-        await selectClassInternal(data[0].id, data);
-      }
-    } catch (err) {
-      console.error('Lỗi khi tải danh sách lớp:', err);
-      setError('Không thể tải danh sách lớp. Vui lòng kiểm tra backend đang chạy.');
-    } finally {
-      setLoading(false);
-    }
-  }, [selectedClass]);
+  const classesRef = useRef<Class[]>([]);
+  const selectedClassIdRef = useRef<string | null>(null);
 
   // Chọn một lớp và lấy danh sách sinh viên
-  const selectClassInternal = async (classId: string, classList?: Class[]) => {
+  const selectClassInternal = useCallback(async (classId: string, classList?: Class[]) => {
     try {
       setLoading(true);
       setError(null);
       
       // Tìm thông tin lớp từ danh sách hiện có
-      const classData = (classList || classes).find(c => c.id === classId);
+      const classData = (classList || classesRef.current).find(c => c.id === classId);
       if (classData) {
         setSelectedClass(classData);
+        selectedClassIdRef.current = classData.id;
       }
       
       // Lấy danh sách sinh viên của lớp
@@ -67,19 +50,53 @@ export const useClasses = (): UseClassesReturn => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  // Lấy danh sách tất cả các lớp
+  const fetchClasses = useCallback(async (preferredClassId?: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await classService.getAll();
+      setClasses(data);
+      classesRef.current = data;
+
+      if (data.length === 0) {
+        setSelectedClass(null);
+        selectedClassIdRef.current = null;
+        setStudents([]);
+        return;
+      }
+
+      const preferredExists = preferredClassId && data.some((cls) => cls.id === preferredClassId);
+      const currentSelectedClassId = selectedClassIdRef.current;
+      const currentExists = currentSelectedClassId && data.some((cls) => cls.id === currentSelectedClassId);
+      const classIdToSelect = preferredExists
+        ? preferredClassId
+        : currentExists
+          ? currentSelectedClassId!
+          : data[0].id;
+
+      await selectClassInternal(classIdToSelect, data);
+    } catch (err) {
+      console.error('Lỗi khi tải danh sách lớp:', err);
+      setError('Không thể tải danh sách lớp. Vui lòng kiểm tra backend đang chạy.');
+    } finally {
+      setLoading(false);
+    }
+  }, [selectClassInternal]);
 
   const selectClass = useCallback(async (classId: string) => {
     await selectClassInternal(classId);
-  }, [classes]);
+  }, [selectClassInternal]);
 
-  const refetchClasses = useCallback(async () => {
-    await fetchClasses();
+  const refetchClassesWithPreferred = useCallback(async (preferredClassId?: string) => {
+    await fetchClasses(preferredClassId);
   }, [fetchClasses]);
 
   useEffect(() => {
     fetchClasses();
-  }, []);
+  }, [fetchClasses]);
 
   return {
     classes,
@@ -88,7 +105,7 @@ export const useClasses = (): UseClassesReturn => {
     loading,
     error,
     selectClass,
-    refetchClasses,
+    refetchClasses: refetchClassesWithPreferred,
   };
 };
 

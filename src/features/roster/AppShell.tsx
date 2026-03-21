@@ -9,6 +9,10 @@ function AppShell() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { logout, userEmail } = useAuth();
   const { classes, selectedClass, students, loading, error, selectClass, refetchClasses } = useClasses();
+    const handleImportSuccess = async (importedClassId?: string) => {
+      await refetchClasses(importedClassId);
+    };
+
   const { photosPerRow, photosPerPage, totalPages, paginatedPages } = usePagination(students);
 
   const getDisplayNameFromEmail = (email: string | null) => {
@@ -175,7 +179,7 @@ function AppShell() {
               <button type="button" className="btn btn-outline-secondary btn-share" disabled={!selectedClass}>
                 Chia sẻ
               </button>
-              <ImportButton onImportSuccess={refetchClasses} />
+              <ImportButton onImportSuccess={handleImportSuccess} />
             </div>
           </header>
 
