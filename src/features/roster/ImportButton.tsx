@@ -3,7 +3,7 @@ import * as XLSX from 'xlsx';
 import { classService } from './classService';
 
 interface ImportButtonProps {
-  onImportSuccess: () => void;
+  onImportSuccess: (importedClassId?: string) => Promise<void> | void;
 }
 
 type ImportStep = 1 | 2 | 3;
@@ -13,6 +13,8 @@ interface ParsedExcelInfo {
   mssvColumn?: string;
   nameColumn?: string;
 }
+
+type SourceType = 'excel' | 'gsheet' | 'onedrive';
 
 const SOURCE_OPTIONS = [
   {
@@ -27,7 +29,7 @@ const SOURCE_OPTIONS = [
     title: 'Google Sheet',
     subtitle: 'Nhập link',
     icon: 'G',
-    isEnabled: false,
+    isEnabled: true,
   },
   {
     key: 'onedrive',
@@ -131,6 +133,100 @@ const parseExcelFile = async (file: File): Promise<ParsedExcelInfo> => {
   };
 };
 
+const extractSheetMetaFromUrl = (url: string): { spreadsheetId: string; gid: string } => {
+  const spreadsheetIdMatch = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/i);
+
+  if (!spreadsheetIdMatch?.[1]) {
+    throw new Error('Link Google Sheet không hợp lệ. Vui lòng kiểm tra lại URL.');
+  }
+
+  let gid = '0';
+
+  try {
+    const parsedUrl = new URL(url);
+    gid = parsedUrl.searchParams.get('gid') || '0';
+  } catch {
+    gid = '0';
+  }
+
+  return {
+    spreadsheetId: spreadsheetIdMatch[1],
+    gid,
+  };
+};
+
+const parseGoogleSheetFromUrl = async (url: string): Promise<ParsedExcelInfo> => {
+  const { spreadsheetId, gid } = extractSheetMetaFromUrl(url);
+  const csvUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=csv&gid=${encodeURIComponent(gid)}`;
+
+  let response: Response;
+
+  try {
+    response = await fetch(csvUrl);
+  } catch {
+    throw new Error('Không thể truy cập Google Sheet. Vui lòng kiểm tra link, quyền chia sẻ (public) hoặc kết nối mạng.');
+  }
+
+  if (response.status === 403 || response.status === 401) {
+    throw new Error('Không thể truy cập Google Sheet. Hãy kiểm tra quyền chia sẻ (public hoặc cấp quyền phù hợp).');
+  }
+
+  if (!response.ok) {
+    throw new Error('Không thể truy cập Google Sheet. Vui lòng kiểm tra lại link và quyền truy cập.');
+  }
+
+  const csvContent = await response.text();
+
+  if (!csvContent.trim()) {
+    throw new Error('Google Sheet đang trống hoặc không có dữ liệu hợp lệ để import.');
+  }
+
+  const workbook = XLSX.read(csvContent, { type: 'string' });
+  const firstSheetName = workbook.SheetNames[0];
+
+  if (!firstSheetName) {
+    throw new Error('Google Sheet không có sheet dữ liệu.');
+  }
+
+  const worksheet = workbook.Sheets[firstSheetName];
+  const rows = XLSX.utils.sheet_to_json<unknown[]>(worksheet, {
+    header: 1,
+    blankrows: false,
+    defval: '',
+  });
+
+  if (!rows.length) {
+    throw new Error('Google Sheet đang trống hoặc không có dữ liệu hợp lệ để import.');
+  }
+
+  const headerIndex = detectHeaderRow(rows);
+  const rawColumns = rows[headerIndex] || [];
+  const columns = rawColumns
+    .map((column) => String(column ?? '').trim())
+    .map((column, index) => column || `Cột ${index + 1}`);
+
+  const mssvColumn = findColumnByKeywords(columns, [
+    'mssv',
+    'ma so sinh vien',
+    'ma sinh vien',
+    'student id',
+  ]);
+
+  const nameColumn = findColumnByKeywords(columns, [
+    'ho va ten',
+    'ho ten',
+    'ten sinh vien',
+    'full name',
+    'name',
+  ]);
+
+  return {
+    columns,
+    mssvColumn,
+    nameColumn,
+  };
+};
+
 /**
  * Component nút Import file sinh viên
  * Hỗ trợ file Excel (.xlsx, .xls), CSV (.csv) và JSON (.json)
@@ -140,8 +236,9 @@ function ImportButton({ onImportSuccess }: ImportButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState<ImportStep>(1);
   const [stepThreeMode, setStepThreeMode] = useState<'manual' | 'success'>('manual');
-  const [selectedSource, setSelectedSource] = useState<'excel' | 'gsheet' | 'onedrive'>('excel');
+  const [selectedSource, setSelectedSource] = useState<SourceType>('excel');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [googleSheetUrl, setGoogleSheetUrl] = useState('');
   const [columns, setColumns] = useState<string[]>([]);
   const [autoMssvColumn, setAutoMssvColumn] = useState<string>('');
   const [autoNameColumn, setAutoNameColumn] = useState<string>('');
@@ -158,11 +255,59 @@ function ImportButton({ onImportSuccess }: ImportButtonProps) {
     [autoMssvColumn, autoNameColumn]
   );
 
+  const isLikelyGoogleSheetUrl = (url: string): boolean => {
+    return /docs\.google\.com\/spreadsheets\//i.test(url);
+  };
+
+  const mapImportErrorMessage = (error: any): string => {
+    const backendMessage = String(error?.response?.data?.message || error?.message || '').trim();
+    const normalized = normalizeText(backendMessage);
+
+    if (
+      normalized.includes('failedtofetch') ||
+      normalized.includes('networkerror') ||
+      normalized.includes('loadfailed') ||
+      normalized.includes('khongthetruycap')
+    ) {
+      return 'Không thể truy cập Google Sheet. Vui lòng kiểm tra link, quyền chia sẻ (public) hoặc kết nối mạng.';
+    }
+
+    if (
+      normalized.includes('google') &&
+      (normalized.includes('url') || normalized.includes('link') || normalized.includes('invalid') || normalized.includes('khonghople'))
+    ) {
+      return 'Link Google Sheet không hợp lệ. Vui lòng kiểm tra lại URL.';
+    }
+
+    if (
+      normalized.includes('permission') ||
+      normalized.includes('forbidden') ||
+      normalized.includes('unauthorized') ||
+      normalized.includes('khongcoquyen') ||
+      normalized.includes('khongpublic') ||
+      normalized.includes('public')
+    ) {
+      return 'Không thể truy cập Google Sheet. Hãy kiểm tra quyền chia sẻ (public hoặc cấp quyền phù hợp).';
+    }
+
+    if (
+      normalized.includes('empty') ||
+      normalized.includes('nodata') ||
+      normalized.includes('khongcodulieu') ||
+      normalized.includes('sheetrong')
+    ) {
+      return 'Google Sheet đang trống hoặc không có dữ liệu hợp lệ để import.';
+    }
+
+    return backendMessage || 'Import thất bại!';
+  };
+
   const resetWizardState = () => {
     setStep(1);
     setStepThreeMode('manual');
     setSelectedSource('excel');
     setSelectedFile(null);
+    setGoogleSheetUrl('');
     setColumns([]);
     setAutoMssvColumn('');
     setAutoNameColumn('');
@@ -225,6 +370,48 @@ function ImportButton({ onImportSuccess }: ImportButtonProps) {
     }
   };
 
+  const validateGoogleSheetUrl = (): string | null => {
+    const trimmedUrl = googleSheetUrl.trim();
+
+    if (!trimmedUrl) {
+      return 'Vui lòng nhập URL Google Sheet.';
+    }
+
+    if (!isLikelyGoogleSheetUrl(trimmedUrl)) {
+      return 'Link Google Sheet không hợp lệ. Vui lòng kiểm tra lại URL.';
+    }
+
+    return null;
+  };
+
+  const moveSheetToConfirmStep = async () => {
+    const validationError = validateGoogleSheetUrl();
+
+    if (validationError) {
+      setMessage({ type: 'error', text: validationError });
+      return;
+    }
+
+    setIsParsing(true);
+    setMessage(null);
+
+    try {
+      const parsedInfo = await parseGoogleSheetFromUrl(googleSheetUrl.trim());
+
+      setColumns(parsedInfo.columns);
+      setAutoMssvColumn(parsedInfo.mssvColumn || '');
+      setAutoNameColumn(parsedInfo.nameColumn || '');
+      setManualMssvColumn(parsedInfo.mssvColumn || parsedInfo.columns[0] || '');
+      setManualNameColumn(parsedInfo.nameColumn || parsedInfo.columns[1] || parsedInfo.columns[0] || '');
+      setStepThreeMode('manual');
+      setStep(2);
+    } catch (error: any) {
+      setMessage({ type: 'error', text: mapImportErrorMessage(error) });
+    } finally {
+      setIsParsing(false);
+    }
+  };
+
   const performImport = async (mappingMode: 'auto' | 'manual') => {
     if (!selectedFile) {
       setMessage({ type: 'error', text: 'Vui lòng chọn file để import.' });
@@ -255,13 +442,56 @@ function ImportButton({ onImportSuccess }: ImportButtonProps) {
         text: result.message || 'Import thành công!',
       });
 
-      await onImportSuccess();
+      await onImportSuccess(result.classId);
       setStepThreeMode('success');
       setStep(3);
     } catch (error: any) {
       setMessage({
         type: 'error',
-        text: error.response?.data?.message || error.message || 'Import thất bại!',
+        text: mapImportErrorMessage(error),
+      });
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  const performImportFromSheet = async (mappingMode: 'auto' | 'manual') => {
+    const validationError = validateGoogleSheetUrl();
+
+    if (validationError) {
+      setMessage({ type: 'error', text: validationError });
+      return;
+    }
+
+    if (mappingMode === 'manual' && (!manualMssvColumn.trim() || !manualNameColumn.trim())) {
+      setMessage({ type: 'error', text: 'Cần nhập đầy đủ tên cột MSSV và cột Họ và tên.' });
+      return;
+    }
+
+    setIsImporting(true);
+    setMessage(null);
+
+    try {
+      const result = await classService.importClassFromSheet({
+        googleSheetUrl: googleSheetUrl.trim(),
+        mappingMode,
+        startRow,
+        mssvColumn: mappingMode === 'manual' ? manualMssvColumn.trim() || undefined : undefined,
+        nameColumn: mappingMode === 'manual' ? manualNameColumn.trim() || undefined : undefined,
+      });
+
+      setMessage({
+        type: 'success',
+        text: result.message || 'Import thành công!',
+      });
+
+      await onImportSuccess(result.classId);
+      setStepThreeMode('success');
+      setStep(3);
+    } catch (error: any) {
+      setMessage({
+        type: 'error',
+        text: mapImportErrorMessage(error),
       });
     } finally {
       setIsImporting(false);
@@ -341,7 +571,7 @@ function ImportButton({ onImportSuccess }: ImportButtonProps) {
             key={source.key}
             type="button"
             className={`import-source-card ${selectedSource === source.key ? 'is-selected' : ''}`}
-            onClick={() => source.isEnabled && setSelectedSource(source.key)}
+            onClick={() => source.isEnabled && setSelectedSource(source.key as SourceType)}
             disabled={!source.isEnabled}
           >
             <span className="source-icon">{source.icon}</span>
@@ -351,18 +581,50 @@ function ImportButton({ onImportSuccess }: ImportButtonProps) {
         ))}
       </div>
 
-      <div
-        className={`import-drop-zone ${isDragOver ? 'is-drag-over' : ''}`}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-      >
-        <h4>Kéo thả file vào đây</h4>
-        <button type="button" className="import-link-button" onClick={openFilePicker} disabled={isParsing}>
-          hoặc click để chọn file
-        </button>
-        <span className="drop-hint">.xlsx, .xls - tối đa 10MB</span>
-      </div>
+      {selectedSource === 'excel' && (
+        <div
+          className={`import-drop-zone ${isDragOver ? 'is-drag-over' : ''}`}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        >
+          <h4>Kéo thả file vào đây</h4>
+          <button type="button" className="import-link-button" onClick={openFilePicker} disabled={isParsing}>
+            hoặc click để chọn file
+          </button>
+          <span className="drop-hint">.xlsx, .xls - tối đa 10MB</span>
+        </div>
+      )}
+
+      {selectedSource === 'gsheet' && (
+        <>
+          <h5 className="import-section-title">GOOGLE SHEET URL</h5>
+
+          <div className="manual-field-group">
+            <label htmlFor="google-sheet-url-input">Link Google Sheet *</label>
+            <input
+              id="google-sheet-url-input"
+              type="url"
+              className="form-control"
+              value={googleSheetUrl}
+              onChange={(event) => setGoogleSheetUrl(event.target.value)}
+              placeholder="https://docs.google.com/spreadsheets/d/..."
+              disabled={isImporting}
+            />
+          </div>
+
+          <div className="import-actions">
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={moveSheetToConfirmStep}
+              disabled={isImporting || isParsing}
+            >
+              {isParsing ? 'Đang kiểm tra...' : 'Tiếp tục'}
+            </button>
+          </div>
+        </>
+      )}
     </>
   );
 
@@ -413,7 +675,12 @@ function ImportButton({ onImportSuccess }: ImportButtonProps) {
         <button type="button" className="btn btn-outline-secondary" onClick={() => setStep(1)} disabled={isImporting}>
           Quay lại
         </button>
-        <button type="button" className="btn btn-primary" onClick={() => performImport('auto')} disabled={!isAutoDetected || isImporting}>
+        <button
+          type="button"
+          className="btn btn-primary"
+          onClick={() => (selectedSource === 'gsheet' ? performImportFromSheet('auto') : performImport('auto'))}
+          disabled={selectedSource === 'excel' ? !isAutoDetected || isImporting : isImporting}
+        >
           {isImporting ? 'Đang import...' : 'Xác nhận và Import'}
         </button>
       </div>
@@ -507,7 +774,7 @@ function ImportButton({ onImportSuccess }: ImportButtonProps) {
           <button
             type="button"
             className="btn btn-primary"
-            onClick={() => performImport('manual')}
+            onClick={() => (selectedSource === 'gsheet' ? performImportFromSheet('manual') : performImport('manual'))}
             disabled={!manualMssvColumn || !manualNameColumn || isImporting}
           >
             {isImporting ? 'Đang import...' : 'Xác nhận và Import'}
