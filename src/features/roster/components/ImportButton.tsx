@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useState } from 'react';
 import * as XLSX from 'xlsx';
-import { classService } from './classService';
+import { classService } from '../services/classService';
 
 interface ImportButtonProps {
   onImportSuccess: (importedClassId?: string) => Promise<void> | void;

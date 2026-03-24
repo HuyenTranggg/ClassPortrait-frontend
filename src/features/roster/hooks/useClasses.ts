@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Class } from '../../../types/Class';
 import { Student } from '../../../types/Student';
-import { classService } from '../classService';
+import { classService } from '../services/classService';
 
 interface UseClassesReturn {
   classes: Class[];

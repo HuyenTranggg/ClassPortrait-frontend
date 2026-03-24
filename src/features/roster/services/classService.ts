@@ -1,8 +1,8 @@
 // frontend/src/services/classService.ts
 
-import api from '../../lib/api';
-import { Class } from '../../types/Class';
-import { Student } from '../../types/Student';
+import api from '../../../lib/api';
+import { Class } from '../../../types/Class';
+import { Student } from '../../../types/Student';
 
 export type ImportSourceType = 'excel' | 'google_sheet' | 'onedrive';
 

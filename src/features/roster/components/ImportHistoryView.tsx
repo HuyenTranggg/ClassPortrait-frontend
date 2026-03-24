@@ -1,6 +1,6 @@
 import React from 'react';
-import { useImportHistory } from './hooks';
-import { ImportHistoryItem } from './classService';
+import { useImportHistory } from '../hooks';
+import { ImportHistoryItem } from '../services/classService';
 
 const sourceOptions = [
   { value: 'all', label: 'Tất cả nguồn' },

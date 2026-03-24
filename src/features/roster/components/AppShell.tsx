@@ -2,8 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import StudentCard from './StudentCard';
 import ImportButton from './ImportButton';
 import ImportHistoryView from './ImportHistoryView';
-import { useClasses, usePagination } from './hooks';
-import { useAuth } from '../auth';
+import { useClasses, usePagination } from '../hooks';
+import { useAuth } from '../../auth';
 
 const ALLOWED_LAYOUTS = [4, 5, 6] as const;
 
