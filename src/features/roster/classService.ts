@@ -4,6 +4,42 @@ import api from '../../lib/api';
 import { Class } from '../../types/Class';
 import { Student } from '../../types/Student';
 
+export type ImportSourceType = 'excel' | 'google_sheet' | 'onedrive';
+
+export interface ImportHistoryItem {
+  id: string;
+  classId: string;
+  classCode: string;
+  courseCode?: string;
+  courseName?: string;
+  semester?: string;
+  sourceType: ImportSourceType;
+  sourceName: string;
+  totalCount: number;
+  importedRows: number;
+  skippedRows: number;
+  mappingModeUsed: 'auto' | 'manual' | string;
+  createdAt: string;
+}
+
+export interface ImportHistoryPagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface ImportHistoryResponse {
+  items: ImportHistoryItem[];
+  pagination: ImportHistoryPagination;
+}
+
+interface ImportHistoryApiRawResponse {
+  items?: ImportHistoryItem[];
+  data?: ImportHistoryItem[];
+  pagination?: ImportHistoryPagination;
+}
+
 /**
  * Service để tương tác với Class API
  */
@@ -98,6 +134,31 @@ export const classService = {
     );
 
     return response.data;
+  },
+
+  /**
+   * Lấy lịch sử import theo user hiện tại
+   */
+  getImportHistory: async (params: {
+    page: number;
+    limit: number;
+    sourceType?: ImportSourceType;
+  }): Promise<ImportHistoryResponse> => {
+    const response = await api.get<ImportHistoryApiRawResponse>('/classes/import-history', {
+      params,
+    });
+
+    const payload = response.data || {};
+
+    return {
+      items: payload.items || payload.data || [],
+      pagination: payload.pagination || {
+        page: params.page,
+        limit: params.limit,
+        total: (payload.items || payload.data || []).length,
+        totalPages: 1,
+      },
+    };
   },
 
   /**
