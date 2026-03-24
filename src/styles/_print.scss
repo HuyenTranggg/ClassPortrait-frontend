@@ -68,7 +68,7 @@
   .student-gallery {
     display: grid !important;
     grid-auto-rows: auto;
-    gap: $print-gap !important;
+    gap: 2.2mm !important;
     padding: 0 !important;
     width: 100% !important;
     max-width: none !important;
@@ -77,11 +77,15 @@
   }
   
   body[data-layout="4"] .student-gallery {
-    grid-template-columns: repeat(4, 1fr) !important; // 4 cột
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
   }
   
   body[data-layout="5"] .student-gallery {
-    grid-template-columns: repeat(5, 1fr) !important; // 5 cột
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  }
+
+  body[data-layout="6"] .student-gallery {
+    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
   }
   
   // Mỗi card sinh viên
@@ -104,19 +108,12 @@
 
     img {
       width: 100% !important;
+      height: auto !important;
+      aspect-ratio: 3 / 4 !important;
       object-fit: cover !important;
       display: block !important;
       background-color: $light-gray !important;
     }
-  }
-  
-  // Ảnh sinh viên - điều chỉnh theo layout để vừa 4 hàng/trang
-  body[data-layout="4"] .student-card img {
-    height: $print-img-height-4col !important; // Giảm từ 48mm xuống 44mm để vừa 4 hàng
-  }
-  
-  body[data-layout="5"] .student-card img {
-    height: $print-img-height-5col !important; // Giảm từ 42mm xuống 38mm để vừa 4 hàng
   }
   
   // Thông tin sinh viên
@@ -163,24 +160,84 @@
   
   // Header chỉ ở trang đầu
   .print-first-header {
-    text-align: center !important;
-    margin-bottom: 2mm !important; // Giảm từ 3mm xuống 2mm
+    text-align: left !important;
+    margin-bottom: 2mm !important;
     page-break-after: avoid !important;
-    
-    h2 {
-      font-size: $print-header-size !important;
-      font-weight: bold !important;
-      margin: 0 0 0.5mm 0 !important; // Giảm từ 1mm xuống 0.5mm
-      color: $black !important;
-      line-height: 1.2 !important; // Thêm line-height để thu gọn
-    }
-    
+    border: 0.25mm solid $dark-gray !important;
+    padding: 1.6mm 2mm !important;
+  }
+
+  .print-form-top {
+    display: grid !important;
+    grid-template-columns: 1.15fr 1.85fr !important;
+    gap: 2mm !important;
+    align-items: start !important;
+    margin-bottom: 1.5mm !important;
+  }
+
+  .print-form-org {
     p {
-      font-size: $print-subheader-size !important;
-      margin: 0 0 1mm 0 !important; // Giảm từ 2mm xuống 1mm
-      color: $dark-gray !important;
-      line-height: 1.3 !important; // Thêm line-height để thu gọn
+      margin: 0 !important;
+      font-size: 8.4pt !important;
+      font-weight: 700 !important;
+      line-height: 1.25 !important;
+      color: $black !important;
+      text-transform: uppercase;
     }
+  }
+
+  .print-form-title {
+    text-align: center !important;
+
+    h2 {
+      font-size: 13pt !important;
+      font-weight: 700 !important;
+      margin: 0 0 0.8mm 0 !important;
+      line-height: 1.1 !important;
+      color: $black !important;
+      text-transform: uppercase;
+    }
+
+    p {
+      margin: 0 !important;
+      font-size: 9pt !important;
+      font-weight: 600 !important;
+      color: $black !important;
+      line-height: 1.2 !important;
+    }
+  }
+
+  .print-form-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 0.8mm 2mm !important;
+  }
+
+  .print-field {
+    display: flex !important;
+    align-items: center !important;
+    min-width: 0;
+    gap: 1mm;
+  }
+
+  .print-field-label {
+    font-size: 8.1pt !important;
+    color: $dark-gray !important;
+    white-space: nowrap;
+    font-weight: 600;
+  }
+
+  .print-field-value {
+    flex: 1;
+    min-height: 4mm;
+    display: inline-flex;
+    align-items: center;
+    font-size: 8.8pt !important;
+    color: $black !important;
+    border-bottom: 0.25mm dotted #7b7b7b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   
   // Mỗi page content
@@ -193,17 +250,6 @@
     page-break-before: always !important;
     padding-top: 0 !important;
     margin-top: 0 !important;
-  }
-  
-  // Số trang ở cuối - dùng margin thay vì absolute
-  .page-number-fixed {
-    text-align: center !important;
-    font-size: $print-page-number-size !important;
-    color: $medium-gray !important;
-    font-weight: 500 !important;
-    margin-top: 2mm !important; // Giảm từ 5mm xuống 2mm để không bị tách trang
-    padding-bottom: 2mm !important; // Giảm từ 3mm xuống 2mm
-    page-break-before: avoid !important; // Tránh break trước số trang
   }
   
   // Đảm bảo in đủ màu

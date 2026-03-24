@@ -134,6 +134,10 @@
   body[data-layout="5"] .student-gallery {
     @include data-layout-columns(5);
   }
+
+  body[data-layout="6"] .student-gallery {
+    @include data-layout-columns(6);
+  }
 }
 
 // Laptop (992px - 1199px) - 4 ảnh/hàng

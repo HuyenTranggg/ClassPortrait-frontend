@@ -19,13 +19,22 @@ interface UsePaginationReturn {
 /**
  * Custom hook để xử lý logic phân trang
  */
-export const usePagination = (students: Student[]): UsePaginationReturn => {
-  // Lấy layout từ URL query parameter
+export const usePagination = (students: Student[], selectedLayout?: number): UsePaginationReturn => {
+  // Lấy layout từ state hoặc URL query parameter
   const photosPerRow = useMemo(() => {
+    const allowedLayouts = PAGINATION_CONFIG.AVAILABLE_LAYOUTS as readonly number[];
+
+    if (typeof selectedLayout === 'number' && allowedLayouts.includes(selectedLayout)) {
+      return selectedLayout;
+    }
+
     const urlParams = new URLSearchParams(window.location.search);
-    const layoutParam = urlParams.get('layout');
-    return layoutParam === '5' ? 5 : PAGINATION_CONFIG.DEFAULT_LAYOUT;
-  }, []);
+    const parsedLayout = Number(urlParams.get('layout'));
+
+    return allowedLayouts.includes(parsedLayout)
+      ? parsedLayout
+      : PAGINATION_CONFIG.DEFAULT_LAYOUT;
+  }, [selectedLayout]);
 
   // Tính toán số ảnh mỗi trang
   const photosPerPage = useMemo(
@@ -33,27 +42,14 @@ export const usePagination = (students: Student[]): UsePaginationReturn => {
     [photosPerRow]
   );
 
-  // Tính tổng số trang
-  const totalPages = useMemo(
-    () => Math.ceil(students.length / photosPerPage),
-    [students.length, photosPerPage]
-  );
+  // Giữ tương thích API hook cũ, nhưng frontend hiện để browser tự ngắt trang khi in
+  const paginatedPages = useMemo(() => {
+    return students.length > 0
+      ? [{ pageIndex: 0, students }]
+      : [];
+  }, [students]);
 
-  // Tạo dữ liệu phân trang
-  const paginatedPages = useMemo(
-    () =>
-      Array.from({ length: totalPages }, (_, pageIndex) => {
-        const startIdx = pageIndex * photosPerPage;
-        const endIdx = Math.min(startIdx + photosPerPage, students.length);
-        const pageStudents = students.slice(startIdx, endIdx);
-
-        return {
-          pageIndex,
-          students: pageStudents,
-        };
-      }),
-    [totalPages, photosPerPage, students]
-  );
+  const totalPages = paginatedPages.length;
 
   return {
     photosPerRow,

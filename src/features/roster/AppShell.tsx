@@ -5,17 +5,47 @@ import ImportHistoryView from './ImportHistoryView';
 import { useClasses, usePagination } from './hooks';
 import { useAuth } from '../auth';
 
+const ALLOWED_LAYOUTS = [4, 5, 6] as const;
+
+const isAllowedLayout = (value: number): value is (typeof ALLOWED_LAYOUTS)[number] => {
+  return ALLOWED_LAYOUTS.includes(value as (typeof ALLOWED_LAYOUTS)[number]);
+};
+
+const getInitialLayout = (): number => {
+  const params = new URLSearchParams(window.location.search);
+  const layoutFromUrl = Number(params.get('layout'));
+
+  return isAllowedLayout(layoutFromUrl) ? layoutFromUrl : 4;
+};
+
 function AppShell() {
   const headerRef = useRef<HTMLDivElement | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [activeView, setActiveView] = useState<'roster' | 'history'>('roster');
+  const [layout, setLayout] = useState<number>(getInitialLayout);
   const { logout, userEmail } = useAuth();
   const { classes, selectedClass, students, loading, error, selectClass, refetchClasses } = useClasses();
     const handleImportSuccess = async (importedClassId?: string) => {
       await refetchClasses(importedClassId);
     };
 
-  const { photosPerRow, totalPages, paginatedPages } = usePagination(students);
+  const { photosPerRow } = usePagination(students, layout);
+
+  const updateUrlParams = (updates: { layout?: number; classId?: string }) => {
+    const params = new URLSearchParams(window.location.search);
+
+    if (typeof updates.layout === 'number') {
+      params.set('layout', String(updates.layout));
+    }
+
+    if (updates.classId) {
+      params.set('classId', updates.classId);
+    }
+
+    const query = params.toString();
+    const nextUrl = query ? `${window.location.pathname}?${query}` : window.location.pathname;
+    window.history.replaceState(null, '', nextUrl);
+  };
 
   const getDisplayNameFromEmail = (email: string | null) => {
     if (!email) {
@@ -52,10 +82,6 @@ function AppShell() {
   }, [photosPerRow]);
 
   useEffect(() => {
-    document.documentElement.style.setProperty('--total-pages', totalPages.toString());
-  }, [totalPages]);
-
-  useEffect(() => {
     const updateHeaderHeight = () => {
       const headerHeight = headerRef.current?.offsetHeight || 0;
       document.documentElement.style.setProperty('--shell-header-height', `${headerHeight}px`);
@@ -78,6 +104,7 @@ function AppShell() {
 
     if (classId) {
       selectClass(classId);
+      updateUrlParams({ classId });
     }
   };
 
@@ -87,14 +114,16 @@ function AppShell() {
     }
 
     await selectClass(classId);
+    updateUrlParams({ classId });
     setActiveView('roster');
   };
 
   const handleLayoutChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const layout = event.target.value === '5' ? '5' : '4';
-    const urlParams = new URLSearchParams(window.location.search);
-    urlParams.set('layout', layout);
-    window.location.search = urlParams.toString();
+    const nextValue = Number(event.target.value);
+    const nextLayout = isAllowedLayout(nextValue) ? nextValue : 4;
+
+    setLayout(nextLayout);
+    updateUrlParams({ layout: nextLayout, classId: selectedClass?.id });
   };
 
   const lecturerDisplayName = getDisplayNameFromEmail(userEmail);
@@ -104,6 +133,18 @@ function AppShell() {
   const classCodeLabel = selectedClass?.classCode || 'Chưa import dữ liệu';
   const semesterLabel = selectedClass?.semester || 'Chưa import dữ liệu';
   const studentCountLabel = selectedClass ? `${students.length}` : '0';
+  const selectedClassMeta = selectedClass as any;
+
+  const printCourseLabel = [selectedClass?.courseCode, selectedClass?.courseName].filter(Boolean).join(' - ');
+  const printDepartment = String(selectedClassMeta?.department || '').trim();
+  const printExamDate = String(selectedClassMeta?.examDate || selectedClassMeta?.date || '').trim();
+  const printInstructor = String(selectedClassMeta?.instructor || '').trim();
+  const printProctor = String(selectedClassMeta?.proctor || selectedClassMeta?.invigilator || '').trim();
+  const printExamRoom = String(selectedClassMeta?.examRoom || selectedClassMeta?.room || '').trim();
+  const printExamShift = String(selectedClassMeta?.shift || selectedClassMeta?.examShift || '').trim();
+  const printExamTime = String(selectedClassMeta?.examTime || selectedClassMeta?.time || '').trim();
+  const printClassCode = String(selectedClass?.classCode || '').trim();
+  const printStudentCount = selectedClass ? String(students.length) : '';
 
   return (
     <div className={`app-shell ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
@@ -237,6 +278,7 @@ function AppShell() {
                 >
                   <option value="4">Lưới 4 cột</option>
                   <option value="5">Lưới 5 cột</option>
+                  <option value="6">Lưới 6 cột</option>
                 </select>
 
                 <button type="button" className="btn btn-primary btn-print" onClick={handlePrint}>
@@ -268,40 +310,73 @@ function AppShell() {
 
         {activeView === 'roster' && !loading && !error && (
           <section className="gallery-panel">
-            {paginatedPages.length === 0 ? (
+            {students.length === 0 ? (
               <div className="empty-state-card">
                 <h2>Chưa có dữ liệu để hiển thị</h2>
                 <p>Hãy import danh sách lớp để hệ thống tự động lấy ảnh và tạo sổ ảnh chuẩn định dạng.</p>
               </div>
             ) : (
-              paginatedPages.map(({ pageIndex, students: pageStudents }) => (
-                <React.Fragment key={pageIndex}>
-                  <div className={`page-content ${pageIndex > 0 ? 'page-break-before' : ''}`}>
-                    {pageIndex === 0 && (
-                      <div className="print-only print-first-header">
-                        <h2>SỔ ẢNH SINH VIÊN</h2>
-                        {selectedClass && <p>Lớp: {getClassDisplayName(selectedClass)}</p>}
-                        <p>Tổng số: {students.length} sinh viên</p>
-                      </div>
-                    )}
-
-                    <div className="student-gallery">
-                      {pageStudents.map((student) => (
-                        <StudentCard
-                          key={student.mssv}
-                          mssv={student.mssv}
-                          name={student.name}
-                          photoUrl={student.photoUrl}
-                        />
-                      ))}
+              <div className="page-content">
+                <div className="print-only print-first-header">
+                  <div className="print-form-top">
+                    <div className="print-form-org">
+                      <p>ĐẠI HỌC BÁCH KHOA HÀ NỘI</p>
+                      <p>{printDepartment || '\u00A0'}</p>
                     </div>
 
-                    <div className="print-only page-number-fixed">
-                      {pageIndex + 1}/{totalPages}
+                    <div className="print-form-title">
+                      <h2>DANH SÁCH THÍ SINH DỰ THI</h2>
+                      <p>Học phần: {printCourseLabel || '\u00A0'}</p>
                     </div>
                   </div>
-                </React.Fragment>
-              ))
+
+                  <div className="print-form-grid">
+                    <div className="print-field">
+                      <span className="print-field-label">Ngày thi:</span>
+                      <span className="print-field-value">{printExamDate || '\u00A0'}</span>
+                    </div>
+                    <div className="print-field">
+                      <span className="print-field-label">GV:</span>
+                      <span className="print-field-value">{printInstructor || '\u00A0'}</span>
+                    </div>
+                    <div className="print-field">
+                      <span className="print-field-label">Sĩ số:</span>
+                      <span className="print-field-value">{printStudentCount || '\u00A0'}</span>
+                    </div>
+                    <div className="print-field">
+                      <span className="print-field-label">Phòng thi:</span>
+                      <span className="print-field-value">{printExamRoom || '\u00A0'}</span>
+                    </div>
+                    <div className="print-field">
+                      <span className="print-field-label">Mã lớp học:</span>
+                      <span className="print-field-value">{printClassCode || '\u00A0'}</span>
+                    </div>
+                    <div className="print-field">
+                      <span className="print-field-label">Giám thị:</span>
+                      <span className="print-field-value">{printProctor || '\u00A0'}</span>
+                    </div>
+                    <div className="print-field">
+                      <span className="print-field-label">Kíp thi:</span>
+                      <span className="print-field-value">{printExamShift || '\u00A0'}</span>
+                    </div>
+                    <div className="print-field">
+                      <span className="print-field-label">Giờ thi:</span>
+                      <span className="print-field-value">{printExamTime || '\u00A0'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="student-gallery">
+                  {students.map((student) => (
+                    <StudentCard
+                      key={student.mssv}
+                      mssv={student.mssv}
+                      name={student.name}
+                      photoUrl={student.photoUrl}
+                    />
+                  ))}
+                </div>
+              </div>
             )}
           </section>
         )}

@@ -12,6 +12,12 @@ export interface Class {
   department?: string; // Đơn vị giảng dạy - VD: "Viện CNTT", "Khoa Toán-Tin"
   classType?: string; // Loại lớp - VD: "LT", "BT", "TH", "LT+BT"
   instructor?: string; // Giảng viên giảng dạy - VD: "TS. Nguyễn Văn A"
+  examDate?: string; // Ngày thi (nếu có trong file import)
+  examRoom?: string; // Phòng thi (nếu có trong file import)
+  examTime?: string; // Giờ thi (nếu có trong file import)
+  shift?: string; // Kíp thi (nếu có trong file import)
+  proctor?: string; // Giám thị (nếu có trong file import)
+  invigilator?: string; // Tên giám thị (alias)
   createdAt: Date; // Thời gian tạo lớp
 }
 
