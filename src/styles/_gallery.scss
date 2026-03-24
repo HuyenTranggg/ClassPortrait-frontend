@@ -17,6 +17,10 @@ body[data-layout="5"] .student-gallery {
   @include data-layout-columns(5);
 }
 
+body[data-layout="6"] .student-gallery {
+  @include data-layout-columns(6);
+}
+
 .student-card {
   width: 100%;
   max-width: $card-max-width;
