@@ -34,6 +34,21 @@ export interface ImportHistoryResponse {
   pagination: ImportHistoryPagination;
 }
 
+export type DuplicateAction = 'ask' | 'create_new' | 'update_existing';
+
+export interface DuplicateImportOptions {
+  duplicateAction?: DuplicateAction;
+  confirmUpdate?: boolean;
+  targetClassId?: string;
+}
+
+export interface ImportClassResult {
+  success: boolean;
+  classId: string;
+  message: string;
+  action?: 'created' | 'updated' | string;
+}
+
 interface ImportHistoryApiRawResponse {
   items?: ImportHistoryItem[];
   data?: ImportHistoryItem[];
@@ -80,8 +95,11 @@ export const classService = {
       nameColumn?: string;
       startRow?: number;
       mappingMode?: 'auto' | 'manual';
+      duplicateAction?: DuplicateAction;
+      confirmUpdate?: boolean;
+      targetClassId?: string;
     }
-  ): Promise<{ success: boolean; classId: string; message: string }> => {
+  ): Promise<ImportClassResult> => {
     const formData = new FormData();
     formData.append('file', file);
 
@@ -101,7 +119,19 @@ export const classService = {
       formData.append('mappingMode', options.mappingMode);
     }
 
-    const response = await api.post<{ success: boolean; classId: string; message: string }>(
+    if (options?.duplicateAction) {
+      formData.append('duplicateAction', options.duplicateAction);
+    }
+
+    if (typeof options?.confirmUpdate === 'boolean') {
+      formData.append('confirmUpdate', String(options.confirmUpdate));
+    }
+
+    if (options?.targetClassId) {
+      formData.append('targetClassId', options.targetClassId);
+    }
+
+    const response = await api.post<ImportClassResult>(
       '/classes/import',
       formData,
       {
@@ -122,8 +152,11 @@ export const classService = {
     startRow?: number;
     mssvColumn?: string;
     nameColumn?: string;
-  }): Promise<{ success: boolean; classId: string; message: string }> => {
-    const response = await api.post<{ success: boolean; classId: string; message: string }>(
+    duplicateAction?: DuplicateAction;
+    confirmUpdate?: boolean;
+    targetClassId?: string;
+  }): Promise<ImportClassResult> => {
+    const response = await api.post<ImportClassResult>(
       '/classes/import-from-sheet',
       payload,
       {

@@ -1,12 +1,12 @@
 import React, { useMemo, useRef, useState } from 'react';
 import * as XLSX from 'xlsx';
-import { classService } from '../services/classService';
+import { classService, type DuplicateImportOptions } from '../services/classService';
 
 interface ImportButtonProps {
   onImportSuccess: (importedClassId?: string) => Promise<void> | void;
 }
 
-type ImportStep = 1 | 2 | 3;
+type ImportStep = 1 | 2 | 3 | 4;
 
 interface ParsedExcelInfo {
   columns: string[];
@@ -15,6 +15,17 @@ interface ParsedExcelInfo {
 }
 
 type SourceType = 'excel' | 'gsheet' | 'onedrive';
+
+interface DuplicateConflictState {
+  existingClassId: string;
+  existingClassLabel: string;
+  message: string;
+  classFieldChanges: Array<{ field: string; oldValue: string; newValue: string }>;
+  studentChanges: Array<{ label: string; value: string }>;
+  fallbackDiffLines: string[];
+}
+
+type DuplicateStepMode = 'choose' | 'confirm-update';
 
 const SOURCE_OPTIONS = [
   {
@@ -46,6 +57,28 @@ const normalizeText = (value: string): string =>
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9]/g, '');
+
+const CLASS_FIELD_LABELS: Record<string, string> = {
+  classCode: 'Mã lớp',
+  semester: 'Học kỳ',
+  courseCode: 'Mã học phần',
+  courseName: 'Tên học phần',
+  instructor: 'Giảng viên',
+  department: 'Đơn vị',
+  examDate: 'Ngày thi',
+  examRoom: 'Phòng thi',
+  examTime: 'Giờ thi',
+  shift: 'Kíp thi',
+  proctor: 'Giám thị',
+};
+
+const STUDENT_CHANGE_LABELS: Record<string, string> = {
+  added: 'Sinh viên thêm mới',
+  removed: 'Sinh viên bị xóa',
+  renamed: 'Sinh viên đổi tên',
+  updated: 'Sinh viên cập nhật',
+  unchanged: 'Sinh viên giữ nguyên',
+};
 
 const findColumnByKeywords = (columns: string[], keywords: string[]): string | undefined => {
   const normalizedColumns = columns.map((column) => ({
@@ -249,6 +282,9 @@ function ImportButton({ onImportSuccess }: ImportButtonProps) {
   const [isImporting, setIsImporting] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [pendingMappingMode, setPendingMappingMode] = useState<'auto' | 'manual' | null>(null);
+  const [duplicateStepMode, setDuplicateStepMode] = useState<DuplicateStepMode>('choose');
+  const [duplicateConflict, setDuplicateConflict] = useState<DuplicateConflictState | null>(null);
 
   const isAutoDetected = useMemo(
     () => Boolean(autoMssvColumn && autoNameColumn),
@@ -302,6 +338,105 @@ function ImportButton({ onImportSuccess }: ImportButtonProps) {
     return backendMessage || 'Import thất bại!';
   };
 
+  const getDiffLines = (diff: any): string[] => {
+    if (!diff) {
+      return [];
+    }
+
+    if (Array.isArray(diff)) {
+      return diff.map((item) => String(item));
+    }
+
+    if (typeof diff === 'object') {
+      return Object.entries(diff).map(([key, value]) => {
+        if (Array.isArray(value)) {
+          return `${key}: ${value.map((entry) => String(entry)).join(', ')}`;
+        }
+
+        if (value && typeof value === 'object') {
+          return `${key}: ${JSON.stringify(value)}`;
+        }
+
+        return `${key}: ${String(value)}`;
+      });
+    }
+
+    return [String(diff)];
+  };
+
+  const parseClassFieldChanges = (diff: any): Array<{ field: string; oldValue: string; newValue: string }> => {
+    const rawChanges = Array.isArray(diff?.classFieldChanges) ? diff.classFieldChanges : [];
+
+    return rawChanges.map((item: any) => {
+      const rawField = String(item?.field || item?.key || item?.name || '').trim();
+      const field = CLASS_FIELD_LABELS[rawField] || rawField || 'Trường dữ liệu';
+      const oldValue = String(item?.oldValue ?? item?.from ?? '').trim() || '(trống)';
+      const newValue = String(item?.newValue ?? item?.to ?? '').trim() || '(trống)';
+
+      return { field, oldValue, newValue };
+    });
+  };
+
+  const parseStudentChanges = (diff: any): Array<{ label: string; value: string }> => {
+    const raw = diff?.studentChanges;
+
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+      return [];
+    }
+
+    return Object.entries(raw)
+      .filter(([, value]) => value !== undefined && value !== null)
+      .map(([key, value]) => ({
+        label: STUDENT_CHANGE_LABELS[key] || key,
+        value: String(value),
+      }));
+  };
+
+  const extractDuplicateConflict = (error: any): DuplicateConflictState | null => {
+    const status = error?.response?.status;
+    const payload = error?.response?.data || {};
+    const code = normalizeText(String(payload?.code || ''));
+    const payloadMessage = String(payload?.message || '').trim();
+    const normalizedMessage = normalizeText(payloadMessage);
+
+    const isDuplicateClassError =
+      status === 409 &&
+      (code.includes('classalreadyexists') ||
+        code.includes('duplicateclass') ||
+        normalizedMessage.includes('clasalreadyexists') ||
+        normalizedMessage.includes('loptontai'));
+
+    if (!isDuplicateClassError) {
+      return null;
+    }
+
+    const existingClass = payload?.existingClass || payload?.class || payload?.targetClass || payload?.duplicateClass || {};
+    const existingClassId = String(existingClass?.id || payload?.targetClassId || '').trim();
+
+    if (!existingClassId) {
+      return null;
+    }
+
+    const classCode = String(existingClass?.classCode || '').trim();
+    const semester = String(existingClass?.semester || '').trim();
+    const courseCode = String(existingClass?.courseCode || '').trim();
+    const courseName = String(existingClass?.courseName || '').trim();
+
+    const existingClassLabel =
+      [classCode, semester && `HK ${semester}`, courseCode, courseName].filter(Boolean).join(' - ') || existingClassId;
+
+    const rawDiff = payload?.diff || payload?.changes || payload?.differences || {};
+
+    return {
+      existingClassId,
+      existingClassLabel,
+      message: payloadMessage || 'Lớp đã tồn tại theo bộ nhận diện (mã lớp, học kỳ, mã học phần).',
+      classFieldChanges: parseClassFieldChanges(rawDiff),
+      studentChanges: parseStudentChanges(rawDiff),
+      fallbackDiffLines: getDiffLines(rawDiff),
+    };
+  };
+
   const resetWizardState = () => {
     setStep(1);
     setStepThreeMode('manual');
@@ -318,6 +453,9 @@ function ImportButton({ onImportSuccess }: ImportButtonProps) {
     setIsImporting(false);
     setIsDragOver(false);
     setMessage(null);
+    setPendingMappingMode(null);
+    setDuplicateStepMode('choose');
+    setDuplicateConflict(null);
 
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -412,7 +550,10 @@ function ImportButton({ onImportSuccess }: ImportButtonProps) {
     }
   };
 
-  const performImport = async (mappingMode: 'auto' | 'manual') => {
+  const performImport = async (
+    mappingMode: 'auto' | 'manual',
+    duplicateOptions?: DuplicateImportOptions
+  ) => {
     if (!selectedFile) {
       setMessage({ type: 'error', text: 'Vui lòng chọn file để import.' });
       return;
@@ -435,6 +576,9 @@ function ImportButton({ onImportSuccess }: ImportButtonProps) {
         nameColumn,
         startRow,
         mappingMode,
+        duplicateAction: duplicateOptions?.duplicateAction || 'ask',
+        confirmUpdate: duplicateOptions?.confirmUpdate,
+        targetClassId: duplicateOptions?.targetClassId,
       });
 
       setMessage({
@@ -446,6 +590,17 @@ function ImportButton({ onImportSuccess }: ImportButtonProps) {
       setStepThreeMode('success');
       setStep(3);
     } catch (error: any) {
+      const conflict = extractDuplicateConflict(error);
+
+      if (conflict) {
+        setPendingMappingMode(mappingMode);
+        setDuplicateConflict(conflict);
+        setDuplicateStepMode('choose');
+        setStep(4);
+        setMessage(null);
+        return;
+      }
+
       setMessage({
         type: 'error',
         text: mapImportErrorMessage(error),
@@ -455,7 +610,10 @@ function ImportButton({ onImportSuccess }: ImportButtonProps) {
     }
   };
 
-  const performImportFromSheet = async (mappingMode: 'auto' | 'manual') => {
+  const performImportFromSheet = async (
+    mappingMode: 'auto' | 'manual',
+    duplicateOptions?: DuplicateImportOptions
+  ) => {
     const validationError = validateGoogleSheetUrl();
 
     if (validationError) {
@@ -478,6 +636,9 @@ function ImportButton({ onImportSuccess }: ImportButtonProps) {
         startRow,
         mssvColumn: mappingMode === 'manual' ? manualMssvColumn.trim() || undefined : undefined,
         nameColumn: mappingMode === 'manual' ? manualNameColumn.trim() || undefined : undefined,
+        duplicateAction: duplicateOptions?.duplicateAction || 'ask',
+        confirmUpdate: duplicateOptions?.confirmUpdate,
+        targetClassId: duplicateOptions?.targetClassId,
       });
 
       setMessage({
@@ -489,6 +650,17 @@ function ImportButton({ onImportSuccess }: ImportButtonProps) {
       setStepThreeMode('success');
       setStep(3);
     } catch (error: any) {
+      const conflict = extractDuplicateConflict(error);
+
+      if (conflict) {
+        setPendingMappingMode(mappingMode);
+        setDuplicateConflict(conflict);
+        setDuplicateStepMode('choose');
+        setStep(4);
+        setMessage(null);
+        return;
+      }
+
       setMessage({
         type: 'error',
         text: mapImportErrorMessage(error),
@@ -496,6 +668,45 @@ function ImportButton({ onImportSuccess }: ImportButtonProps) {
     } finally {
       setIsImporting(false);
     }
+  };
+
+  const handleDuplicateCreateNew = async () => {
+    if (!pendingMappingMode) {
+      return;
+    }
+
+    if (selectedSource === 'gsheet') {
+      await performImportFromSheet(pendingMappingMode, { duplicateAction: 'create_new' });
+      return;
+    }
+
+    await performImport(pendingMappingMode, { duplicateAction: 'create_new' });
+  };
+
+  const handleDuplicatePrepareUpdate = () => {
+    setDuplicateStepMode('confirm-update');
+  };
+
+  const handleDuplicateConfirmUpdate = async () => {
+    if (!pendingMappingMode || !duplicateConflict?.existingClassId) {
+      setMessage({ type: 'error', text: 'Không tìm thấy lớp mục tiêu để cập nhật.' });
+      return;
+    }
+
+    if (selectedSource === 'gsheet') {
+      await performImportFromSheet(pendingMappingMode, {
+        duplicateAction: 'update_existing',
+        targetClassId: duplicateConflict.existingClassId,
+        confirmUpdate: true,
+      });
+      return;
+    }
+
+    await performImport(pendingMappingMode, {
+      duplicateAction: 'update_existing',
+      targetClassId: duplicateConflict.existingClassId,
+      confirmUpdate: true,
+    });
   };
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -784,6 +995,108 @@ function ImportButton({ onImportSuccess }: ImportButtonProps) {
     );
   };
 
+  const renderStepFour = () => {
+    if (!duplicateConflict) {
+      return null;
+    }
+
+    return (
+      <>
+        <p className="import-modal-subtitle">Lớp đã tồn tại trong hệ thống</p>
+        {renderProgress()}
+
+        <div className="import-detection-box is-warning">
+          <div>
+            <strong>{duplicateConflict.message}</strong>
+            <p>Lớp trùng: {duplicateConflict.existingClassLabel}</p>
+          </div>
+        </div>
+
+        {duplicateStepMode === 'choose' && (
+          <div className="import-actions mt-3">
+            <button
+              type="button"
+              className="btn btn-outline-secondary"
+              onClick={handleDuplicateCreateNew}
+              disabled={isImporting}
+            >
+              {isImporting ? 'Đang xử lý...' : 'Vẫn tạo lớp mới'}
+            </button>
+
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={handleDuplicatePrepareUpdate}
+              disabled={isImporting}
+            >
+              Cập nhật lớp đã có
+            </button>
+          </div>
+        )}
+
+        {duplicateStepMode === 'confirm-update' && (
+          <>
+            <h5 className="import-section-title">THAY ĐỔI PHÁT HIỆN</h5>
+
+            {duplicateConflict.classFieldChanges.length > 0 && (
+              <div className="detected-mapping-card mb-3">
+                {duplicateConflict.classFieldChanges.map((change) => (
+                  <div className="detected-mapping-row" key={`${change.field}-${change.oldValue}-${change.newValue}`}>
+                    <span>{change.field}</span>
+                    <strong>{change.oldValue}{' -> '}{change.newValue}</strong>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {duplicateConflict.studentChanges.length > 0 && (
+              <div className="detected-mapping-card mb-3">
+                {duplicateConflict.studentChanges.map((change) => (
+                  <div className="detected-mapping-row" key={`${change.label}-${change.value}`}>
+                    <span>{change.label}</span>
+                    <strong>{change.value}</strong>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {duplicateConflict.classFieldChanges.length === 0 && duplicateConflict.studentChanges.length === 0 && (
+              duplicateConflict.fallbackDiffLines.length > 0 ? (
+                <ul className="mb-0">
+                  {duplicateConflict.fallbackDiffLines.map((line) => (
+                    <li key={line}>{line}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mb-0 text-muted">Backend không trả về diff chi tiết, hệ thống sẽ cập nhật metadata và danh sách sinh viên của lớp hiện có.</p>
+              )
+            )}
+
+            <div className="import-actions mt-3">
+              <button
+                type="button"
+                className="btn btn-outline-secondary"
+                onClick={() => setDuplicateStepMode('choose')}
+                disabled={isImporting}
+              >
+                Quay lại
+              </button>
+
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleDuplicateConfirmUpdate}
+                disabled={isImporting}
+              >
+                {isImporting ? 'Đang cập nhật...' : 'Xác nhận cập nhật lớp'}
+              </button>
+            </div>
+          </>
+        )}
+      </>
+    );
+  };
+
   return (
     <div className="import-container">
       <input
@@ -830,6 +1143,7 @@ function ImportButton({ onImportSuccess }: ImportButtonProps) {
             {step === 1 && renderStepOne()}
             {step === 2 && renderStepTwo()}
             {step === 3 && renderStepThree()}
+            {step === 4 && renderStepFour()}
 
             {message && !(step === 3 && stepThreeMode === 'success') && (
               <div className={`alert ${message.type === 'success' ? 'alert-success' : 'alert-danger'} mt-3 mb-0`} role="alert">
