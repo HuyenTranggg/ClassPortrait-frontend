@@ -403,7 +403,7 @@ function ImportButton({ onImportSuccess }: ImportButtonProps) {
       status === 409 &&
       (code.includes('classalreadyexists') ||
         code.includes('duplicateclass') ||
-        normalizedMessage.includes('clasalreadyexists') ||
+        normalizedMessage.includes('classalreadyexists') ||
         normalizedMessage.includes('loptontai'));
 
     if (!isDuplicateClassError) {
