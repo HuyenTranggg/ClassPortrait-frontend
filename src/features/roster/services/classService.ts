@@ -6,9 +6,32 @@ import { Student } from '../../../types/Student';
 
 export type ImportSourceType = 'excel' | 'google_sheet' | 'onedrive';
 
+export interface ImportHistoryClassFieldChange {
+  field: string;
+  oldValue: string | number | boolean | null;
+  newValue: string | number | boolean | null;
+}
+
+export interface ImportHistoryStudentChanges {
+  added?: number;
+  removed?: number;
+  renamed?: number;
+  updated?: number;
+  unchanged?: number;
+  [key: string]: number | undefined;
+}
+
+export interface ImportHistoryChangesSummary {
+  classFieldChanges?: ImportHistoryClassFieldChange[];
+  studentChanges?: ImportHistoryStudentChanges;
+}
+
 export interface ImportHistoryItem {
   id: string;
   classId: string;
+  action?: 'created' | 'updated' | string;
+  duplicateDetected?: boolean;
+  changesSummary?: ImportHistoryChangesSummary;
   classCode: string;
   courseCode?: string;
   courseName?: string;

@@ -658,6 +658,38 @@
 	margin-top: 2px;
 }
 
+.history-change-summary {
+	min-width: 220px;
+	font-size: 0.82rem;
+	line-height: 1.4;
+}
+
+.history-change-group {
+	& + & {
+		margin-top: 6px;
+	}
+
+	strong {
+		display: block;
+		font-size: 0.78rem;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		color: #6b7280;
+		margin-bottom: 2px;
+	}
+}
+
+.history-change-line {
+	color: #1f2937;
+	word-break: break-word;
+}
+
+.history-source-name {
+	display: block;
+	max-width: 260px;
+	overflow-wrap: anywhere;
+}
+
 .history-class-link {
 	border: 0;
 	background: transparent;
