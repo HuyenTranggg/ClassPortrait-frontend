@@ -1,0 +1,208 @@
+.workspace-panel,
+.empty-state-card,
+.gallery-panel,
+.state-panel {
+  border: 1px solid #e5e7eb;
+  background: $white;
+  box-shadow: none;
+}
+
+.shell-header {
+  padding: 14px 0 10px;
+  align-items: flex-start;
+  border: 0;
+  border-bottom: 1px solid $shell-border;
+  background: $white;
+
+  h1 {
+    margin: 0;
+    font-size: clamp(1.5rem, 2.1vw, 1.95rem);
+    line-height: 1.2;
+  }
+}
+
+.sticky-controls {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: $white;
+  padding-bottom: 8px;
+}
+
+.shell-header-content {
+  min-width: 0;
+  flex: 1;
+}
+
+.roster-school {
+  margin: 0 0 6px;
+  color: $accent-strong;
+  font-size: 1.08rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.roster-meta {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0;
+}
+
+.roster-meta-item {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 0.98rem;
+  color: $text-strong;
+
+  span {
+    color: $text-strong;
+    font-weight: 500;
+  }
+
+  strong {
+    font-weight: 700;
+    color: #111827;
+  }
+
+  &:not(:last-child)::after {
+    content: '|';
+    color: #d1d5db;
+    margin: 0 16px;
+    font-weight: 400;
+  }
+}
+
+.shell-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 0;
+  align-self: center;
+
+  .btn-share {
+    min-width: 98px;
+    min-height: 40px;
+    font-size: 1.02rem;
+  }
+
+  .switch-actions,
+  .import-container {
+    flex-shrink: 0;
+  }
+
+  .import-container .btn {
+    min-width: 98px;
+    min-height: 40px;
+    font-size: 1.02rem;
+    border-radius: 10px;
+    background: $accent-strong;
+    border-color: $accent-dark;
+    color: $white;
+
+    &:hover,
+    &:focus,
+    &:active {
+      background: $accent-dark !important;
+      border-color: $accent-dark !important;
+      color: $white !important;
+    }
+  }
+}
+
+.workspace-panel,
+.gallery-panel,
+.state-panel,
+.empty-state-card,
+.history-panel {
+  border-radius: 14px;
+}
+
+.workspace-panel {
+  margin: 0 0 14px;
+  padding: 8px 10px;
+}
+
+.workspace-overview {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+
+  strong {
+    color: $accent-strong;
+  }
+
+  span {
+    color: $text-muted-strong;
+  }
+}
+
+.workspace-toolbar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+
+  .form-select {
+    width: min(100%, 360px);
+    min-height: 40px;
+    border-radius: 12px;
+    border-color: #d1d5db;
+    background-color: $white;
+    font-size: 0.96rem;
+  }
+
+  .layout-select {
+    width: 156px;
+  }
+
+  .btn-print {
+    min-height: 40px;
+    padding: 0 14px;
+    font-size: 0.98rem;
+    background: $accent-strong;
+    border-color: $accent-dark;
+    color: $white;
+
+    &:hover,
+    &:focus,
+    &:active {
+      background: $accent-dark !important;
+      border-color: $accent-dark !important;
+      color: $white !important;
+    }
+  }
+
+  .workspace-student-count {
+    margin-left: auto;
+    color: $text-muted-strong;
+    font-size: 1.05rem;
+    white-space: nowrap;
+  }
+}
+
+.state-panel,
+.empty-state-card {
+  padding: 56px 28px;
+  text-align: center;
+  margin-top: 24px;
+
+  p {
+    margin: 16px auto 0;
+    max-width: 560px;
+    color: $text-muted-strong;
+  }
+}
+
+.state-panel p {
+  margin-top: 18px;
+}
+
+.gallery-panel {
+  padding: 10px 12px 24px;
+}
