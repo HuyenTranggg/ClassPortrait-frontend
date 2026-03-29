@@ -71,3 +71,50 @@ export interface ImportClassResult {
   message: string;
   action?: 'created' | 'updated' | string;
 }
+
+export interface ShareLink {
+  id: string;
+  token: string;
+  shareUrl: string;
+  isActive: boolean;
+  expiresAt: string | null;
+  createdAt: string;
+}
+
+export interface CreateShareLinkPayload {
+  expiresInDays?: number;
+}
+
+export interface UpdateShareLinkPayload {
+  isActive?: boolean;
+  expiresAt?: string | null;
+}
+
+export interface DeleteShareLinkResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface SharedClassInfo {
+  id: string;
+  classCode: string;
+  courseCode?: string;
+  courseName?: string;
+  semester?: string;
+  department?: string;
+  classType?: string;
+  instructor?: string;
+}
+
+export interface SharedClassStudent {
+  mssv: string;
+  name?: string;
+  photoUrl?: string;
+  photoStatus?: string;
+  importOrder?: number;
+}
+
+export interface SharedClassResponse {
+  classInfo: SharedClassInfo;
+  students: SharedClassStudent[];
+}

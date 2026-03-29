@@ -1,0 +1,144 @@
+.share-links-panel {
+  border: 1px solid #e5e7eb;
+  background: $white;
+  padding: 16px;
+  margin-top: 8px;
+  border-radius: 14px;
+}
+
+.share-links-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.share-toolbar-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.share-links-title {
+  margin: 0;
+  font-size: 1.2rem;
+  color: $text-strong;
+}
+
+.share-links-total {
+  color: $text-muted-strong;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.share-filter-group {
+  min-width: 220px;
+}
+
+.share-link-list {
+  display: grid;
+  gap: 12px;
+}
+
+.share-link-item {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.share-link-item-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.share-link-class-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.share-link-status {
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+
+  &.is-active {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  &.is-inactive {
+    background: #f3f4f6;
+    color: #4b5563;
+  }
+
+  &.is-expired {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  &.is-empty {
+    background: #fef3c7;
+    color: #92400e;
+  }
+}
+
+.share-link-item-body {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto auto auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.share-link-url {
+  font-size: 0.96rem;
+}
+
+.share-link-item-meta {
+  margin-top: 10px;
+  color: $text-muted-strong;
+  font-size: 0.95rem;
+}
+
+.share-link-expiry-editor {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: minmax(0, 260px) auto auto;
+  gap: 10px;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .share-links-toolbar {
+    flex-wrap: wrap;
+  }
+
+  .share-toolbar-right {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .share-filter-group {
+    min-width: 0;
+    width: min(100%, 260px);
+  }
+
+  .share-link-item-body {
+    grid-template-columns: 1fr;
+  }
+
+  .share-link-expiry-editor {
+    grid-template-columns: 1fr;
+  }
+
+  .share-link-item-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

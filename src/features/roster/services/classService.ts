@@ -4,15 +4,22 @@ import api from '../../../lib/api';
 import { Class } from '../../../types/Class';
 import { Student } from '../../../types/Student';
 import {
+  CreateShareLinkPayload,
+  DeleteShareLinkResponse,
   DuplicateAction,
   ImportClassResult,
   ImportHistoryApiRawResponse,
   ImportHistoryResponse,
   ImportSourceType,
+  ShareLink,
+  SharedClassResponse,
+  UpdateShareLinkPayload,
 } from './classService.types';
 
 export type {
   DuplicateAction,
+  DeleteShareLinkResponse,
+  CreateShareLinkPayload,
   DuplicateImportOptions,
   ImportClassResult,
   ImportHistoryChangesSummary,
@@ -22,6 +29,11 @@ export type {
   ImportHistoryResponse,
   ImportHistoryStudentChanges,
   ImportSourceType,
+  ShareLink,
+  SharedClassInfo,
+  SharedClassResponse,
+  SharedClassStudent,
+  UpdateShareLinkPayload,
 } from './classService.types';
 
 /**
@@ -168,6 +180,31 @@ export const classService = {
    */
   delete: async (id: string): Promise<{ message: string }> => {
     const response = await api.delete<{ message: string }>(`/classes/${id}`);
+    return response.data;
+  },
+
+  getShareLink: async (id: string): Promise<ShareLink | null> => {
+    const response = await api.get<ShareLink | null>(`/classes/${id}/share-link`);
+    return response.data;
+  },
+
+  createShareLink: async (id: string, payload?: CreateShareLinkPayload): Promise<ShareLink> => {
+    const response = await api.post<ShareLink>(`/classes/${id}/share-link`, payload || {});
+    return response.data;
+  },
+
+  updateShareLink: async (id: string, payload: UpdateShareLinkPayload): Promise<ShareLink> => {
+    const response = await api.patch<ShareLink>(`/classes/${id}/share-link`, payload);
+    return response.data;
+  },
+
+  deleteShareLink: async (id: string): Promise<DeleteShareLinkResponse> => {
+    const response = await api.delete<DeleteShareLinkResponse>(`/classes/${id}/share-link`);
+    return response.data;
+  },
+
+  getSharedClassByToken: async (token: string): Promise<SharedClassResponse> => {
+    const response = await api.get<SharedClassResponse>(`/classes/shared/${token}`);
     return response.data;
   },
 };

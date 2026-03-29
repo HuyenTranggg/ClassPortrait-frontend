@@ -60,9 +60,13 @@ function AppSidebar({
             <span>Lịch sử import</span>
             <small>Theo dõi các lần nhập file</small>
           </button>
-          <button type="button" className="sidebar-link">
+          <button
+            type="button"
+            className={`sidebar-link ${activeView === 'share' ? 'is-active' : ''}`}
+            onClick={() => onSetActiveView('share')}
+          >
             <span>Chia sẻ</span>
-            <small>Chuẩn bị cho bước chia sẻ nội bộ</small>
+            <small>Quản lý link chia sẻ theo từng lớp</small>
           </button>
           <button type="button" className="sidebar-link">
             <span>Cài đặt</span>

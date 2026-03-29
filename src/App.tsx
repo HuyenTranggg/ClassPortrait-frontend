@@ -4,6 +4,7 @@ import './App.scss';
 import { AppShell } from './features/roster';
 import { LandingPage } from './features/landing';
 import { LoginModal, useAuth } from './features/auth';
+import { SharedClassPage } from './features/shared';
 
 const loginMessages: Record<string, string> = {
   default: 'hệ thống',
@@ -23,6 +24,8 @@ function App() {
   const { isAuthenticated, login } = useAuth();
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [loginContext, setLoginContext] = useState('default');
+  const sharedTokenMatch = window.location.pathname.match(/^\/classes\/shared\/([^/]+)$/);
+  const sharedToken = sharedTokenMatch?.[1] || null;
 
   const loginContextLabel = useMemo(() => loginMessages[loginContext] || loginMessages.default, [loginContext]);
 
@@ -71,18 +74,24 @@ function App() {
 
   return (
     <>
-      {isAuthenticated ? (
-        <AppShell />
+      {sharedToken ? (
+        <SharedClassPage token={sharedToken} />
       ) : (
-        <LandingPage onLoginClick={() => openLogin()} onFeatureClick={openLogin} />
-      )}
+        <>
+          {isAuthenticated ? (
+            <AppShell />
+          ) : (
+            <LandingPage onLoginClick={() => openLogin()} onFeatureClick={openLogin} />
+          )}
 
-      <LoginModal
-        isOpen={isLoginOpen}
-        contextLabel={loginContextLabel}
-        onClose={closeLogin}
-        onSubmit={handleLogin}
-      />
+          <LoginModal
+            isOpen={isLoginOpen}
+            contextLabel={loginContextLabel}
+            onClose={closeLogin}
+            onSubmit={handleLogin}
+          />
+        </>
+      )}
     </>
   );
 }

@@ -6,15 +6,23 @@ interface ShellHeaderProps {
   activeView: ActiveView;
   selectedClassExists: boolean;
   rosterMeta: RosterMeta;
+  onOpenShare: () => void;
   onImportSuccess: (importedClassId?: string) => Promise<void> | void;
 }
 
-function ShellHeader({ activeView, selectedClassExists, rosterMeta, onImportSuccess }: ShellHeaderProps) {
+function ShellHeader({ activeView, selectedClassExists, rosterMeta, onOpenShare, onImportSuccess }: ShellHeaderProps) {
+  const title =
+    activeView === 'roster'
+      ? 'DANH SÁCH THÍ SINH DỰ THI'
+      : activeView === 'history'
+        ? 'LỊCH SỬ IMPORT'
+        : 'QUẢN LÝ LINK CHIA SẺ';
+
   return (
     <header className="shell-header">
       <div className="shell-header-content">
         <p className="roster-school">ĐẠI HỌC BÁCH KHOA HÀ NỘI</p>
-        <h1>{activeView === 'roster' ? 'DANH SÁCH THÍ SINH DỰ THI' : 'LỊCH SỬ IMPORT'}</h1>
+        <h1>{title}</h1>
 
         {activeView === 'roster' ? (
           <div className="roster-meta" role="list" aria-label="Thông tin lớp học">
@@ -30,7 +38,12 @@ function ShellHeader({ activeView, selectedClassExists, rosterMeta, onImportSucc
 
       {activeView === 'roster' && (
         <div className="shell-actions">
-          <button type="button" className="btn btn-outline-secondary btn-share" disabled={!selectedClassExists}>
+          <button
+            type="button"
+            className="btn btn-outline-secondary btn-share"
+            disabled={!selectedClassExists}
+            onClick={onOpenShare}
+          >
             Chia sẻ
           </button>
           <ImportButton onImportSuccess={onImportSuccess} />

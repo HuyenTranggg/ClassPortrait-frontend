@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import ImportHistoryView from './ImportHistoryView';
+import ShareLinksView from './ShareLinksView';
 import { useClasses, usePagination } from '../hooks';
 import { useAuth } from '../../auth';
 import AppSidebar from './app-shell/AppSidebar';
@@ -7,12 +8,14 @@ import ShellHeader from './app-shell/ShellHeader';
 import WorkspaceToolbar from './app-shell/WorkspaceToolbar';
 import RosterBody from './app-shell/RosterBody';
 import { buildPrintMeta, buildRosterMeta, getDisplayNameFromEmail, getInitialLayout, isAllowedLayout } from './app-shell/utils';
+import ShareLinkModal from './share/ShareLinkModal';
 
 function AppShell() {
   const headerRef = useRef<HTMLDivElement | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [activeView, setActiveView] = useState<'roster' | 'history'>('roster');
+  const [activeView, setActiveView] = useState<'roster' | 'history' | 'share'>('roster');
   const [layout, setLayout] = useState<number>(getInitialLayout);
+  const [isShareModalOpen, setShareModalOpen] = useState(false);
   const { logout, userEmail } = useAuth();
   const { classes, selectedClass, students, loading, error, selectClass, refetchClasses } = useClasses();
     const handleImportSuccess = async (importedClassId?: string) => {
@@ -111,6 +114,7 @@ function AppShell() {
             activeView={activeView}
             selectedClassExists={Boolean(selectedClass)}
             rosterMeta={rosterMeta}
+            onOpenShare={() => setShareModalOpen(true)}
             onImportSuccess={handleImportSuccess}
           />
 
@@ -138,7 +142,14 @@ function AppShell() {
         )}
 
         {activeView === 'history' && <ImportHistoryView onOpenClass={handleOpenClassFromHistory} />}
+        {activeView === 'share' && <ShareLinksView classes={classes} />}
       </main>
+
+      <ShareLinkModal
+        isOpen={isShareModalOpen}
+        selectedClass={selectedClass}
+        onClose={() => setShareModalOpen(false)}
+      />
     </div>
   );
 }
