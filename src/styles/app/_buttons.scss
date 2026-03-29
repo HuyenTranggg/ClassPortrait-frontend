@@ -1,0 +1,58 @@
+.btn {
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 1.02rem;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.btn-primary {
+  background: $accent-strong;
+  border-color: $accent-dark;
+
+  &:hover,
+  &:focus,
+  &:active {
+    background: $accent-dark !important;
+    border-color: $accent-dark !important;
+  }
+}
+
+.btn-outline-secondary {
+  color: $text-strong;
+  border-color: #d1d5db;
+  background: $white;
+
+  &:hover,
+  &:focus,
+  &:active {
+    color: $text-strong !important;
+    border-color: #9ca3af !important;
+    background: #fafafa !important;
+  }
+}
+
+.btn-login-top {
+  min-width: 120px;
+}
+
+.btn-login-top,
+.btn-hero,
+.btn-login-submit {
+  background: $accent-strong !important;
+  border-color: $accent-dark !important;
+  color: $white !important;
+
+  &:hover,
+  &:focus,
+  &:active {
+    background: $accent-dark !important;
+    border-color: $accent-dark !important;
+    color: $white !important;
+  }
+}
+
+.btn-hero,
+.btn-login-submit {
+  min-width: 240px;
+  min-height: 52px;
+}

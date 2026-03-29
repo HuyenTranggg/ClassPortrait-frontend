@@ -1,0 +1,76 @@
+.landing-main,
+.app-main {
+  min-width: 0;
+  padding: 0 22px 22px;
+  background: $white;
+}
+
+.landing-topbar,
+.shell-header {
+  min-height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 0 18px;
+  background: $white;
+  border: 1px solid $shell-border;
+}
+
+.landing-topbar span,
+.shell-header span {
+  color: $text-muted-strong;
+  font-size: 1.2rem;
+}
+
+.landing-hero {
+  min-height: calc(100vh - 74px);
+  display: grid;
+  align-content: center;
+  gap: 24px;
+  padding: 34px 12px 46px;
+}
+
+.hero-copy {
+  max-width: 620px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.shell-eyebrow {
+  margin-bottom: 10px;
+  font-size: 0.92rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: $accent-medium;
+}
+
+.hero-copy h1,
+.shell-header h1,
+.empty-state-card h2,
+.login-modal-card h2 {
+  font-family: inherit;
+  color: $text-strong;
+  font-weight: 700;
+}
+
+.hero-copy h1 {
+  font-size: clamp(2.4rem, 3.8vw, 3.2rem);
+  margin-bottom: 16px;
+}
+
+.hero-description {
+  font-size: 1.22rem;
+  line-height: 1.65;
+  color: $text-muted-strong;
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.hero-actions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 22px;
+}
