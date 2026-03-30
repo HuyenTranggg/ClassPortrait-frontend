@@ -1,6 +1,6 @@
 import { Class, Student } from '../../../../types';
 
-export type ActiveView = 'roster' | 'history';
+export type ActiveView = 'roster' | 'history' | 'share';
 
 export interface RosterMeta {
   courseLabel: string;

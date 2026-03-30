@@ -26,10 +26,6 @@ function ImportHistoryView({ onOpenClass }: ImportHistoryViewProps) {
   return (
     <section className="history-panel">
       <div className="history-toolbar">
-        <div>
-          <h2 className="history-title">Lịch sử import</h2>
-        </div>
-
         <div className="history-filter-group">
           {/* <label htmlFor="history-source-type" className="form-label mb-1">Nguồn dữ liệu</label> */}
           <select
