@@ -203,8 +203,17 @@ export const classService = {
     return response.data;
   },
 
-  getSharedClassByToken: async (token: string): Promise<SharedClassResponse> => {
-    const response = await api.get<SharedClassResponse>(`/classes/shared/${token}`);
+  getSharedClass: async (params: {
+    id: string;
+    exp: string;
+    sig: string;
+  }): Promise<SharedClassResponse> => {
+    const response = await api.get<SharedClassResponse>(`/classes/shared/${params.id}`, {
+      params: {
+        exp: params.exp,
+        sig: params.sig,
+      },
+    });
     return response.data;
   },
 };

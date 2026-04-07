@@ -3,14 +3,20 @@ import { classService, SharedClassResponse } from '../roster/services/classServi
 import { StudentCard } from '../roster/components';
 
 interface SharedClassPageProps {
-  token: string;
+  id: string;
+  exp: string;
+  sig: string;
 }
 
 const mapPublicError = (error: any): string => {
   const status = error?.response?.status;
 
+  if (status === 400) {
+    return 'Link chia sẻ thiếu tham số hoặc sai định dạng.';
+  }
+
   if (status === 403) {
-    return 'Link chia sẻ đã bị tắt hoặc đã hết hạn.';
+    return 'Link chia sẻ đã hết hạn, bị vô hiệu hoặc đã bị chỉnh sửa.';
   }
 
   if (status === 404) {
@@ -31,7 +37,7 @@ const getInitialLayout = (): (typeof AVAILABLE_LAYOUTS)[number] => {
     : 4;
 };
 
-function SharedClassPage({ token }: SharedClassPageProps) {
+function SharedClassPage({ id, exp, sig }: SharedClassPageProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [payload, setPayload] = useState<SharedClassResponse | null>(null);
@@ -42,8 +48,14 @@ function SharedClassPage({ token }: SharedClassPageProps) {
       setLoading(true);
       setError(null);
 
+      if (!id || !exp || !sig) {
+        setError('Link chia sẻ thiếu tham số bắt buộc.');
+        setLoading(false);
+        return;
+      }
+
       try {
-        const data = await classService.getSharedClassByToken(token);
+        const data = await classService.getSharedClass({ id, exp, sig });
         setPayload(data);
       } catch (fetchError: any) {
         setError(mapPublicError(fetchError));
@@ -53,7 +65,7 @@ function SharedClassPage({ token }: SharedClassPageProps) {
     };
 
     fetchSharedClass();
-  }, [token]);
+  }, [id, exp, sig]);
 
   const courseLabel = useMemo(() => {
     const classInfo = payload?.classInfo;
