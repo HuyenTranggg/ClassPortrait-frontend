@@ -24,8 +24,12 @@ function App() {
   const { isAuthenticated, login } = useAuth();
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [loginContext, setLoginContext] = useState('default');
-  const sharedTokenMatch = window.location.pathname.match(/^\/classes\/shared\/([^/]+)$/);
-  const sharedToken = sharedTokenMatch?.[1] || null;
+  const sharedPathMatch = window.location.pathname.match(/^\/classes\/shared\/([^/]+)$/);
+  const sharedLinkId = sharedPathMatch?.[1] || null;
+  const isSharedRoute = Boolean(sharedLinkId);
+  const sharedParams = new URLSearchParams(window.location.search);
+  const sharedExp = sharedParams.get('exp') || '';
+  const sharedSig = sharedParams.get('sig') || '';
 
   const loginContextLabel = useMemo(() => loginMessages[loginContext] || loginMessages.default, [loginContext]);
 
@@ -74,8 +78,8 @@ function App() {
 
   return (
     <>
-      {sharedToken ? (
-        <SharedClassPage token={sharedToken} />
+      {isSharedRoute ? (
+        <SharedClassPage id={sharedLinkId!} exp={sharedExp} sig={sharedSig} />
       ) : (
         <>
           {isAuthenticated ? (

@@ -63,11 +63,16 @@ const formatDate = (value?: string | null): string => {
 };
 
 const buildPublicShareUrl = (shareLink: ShareLink | null): string => {
-  if (!shareLink?.token) {
+  if (!shareLink?.shareUrl) {
     return '';
   }
 
-  return `${window.location.origin}/classes/shared/${shareLink.token}`;
+  try {
+    const parsed = new URL(shareLink.shareUrl);
+    return `${window.location.origin}${parsed.pathname}${parsed.search}`;
+  } catch {
+    return shareLink.shareUrl;
+  }
 };
 
 const mapApiError = (error: any, fallback: string): string => {

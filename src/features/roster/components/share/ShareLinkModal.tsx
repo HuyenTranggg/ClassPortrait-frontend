@@ -115,12 +115,17 @@ function ShareLinkModal({ isOpen, selectedClass, onClose }: ShareLinkModalProps)
   }, [selectedClass]);
 
   const publicShareUrl = useMemo(() => {
-    if (!shareLink?.token) {
+    if (!shareLink?.shareUrl) {
       return '';
     }
 
-    return `${window.location.origin}/classes/shared/${shareLink.token}`;
-  }, [shareLink?.token]);
+    try {
+      const parsed = new URL(shareLink.shareUrl);
+      return `${window.location.origin}${parsed.pathname}${parsed.search}`;
+    } catch {
+      return shareLink.shareUrl;
+    }
+  }, [shareLink?.shareUrl]);
 
   const shareStatus = useMemo(() => {
     if (!shareLink) {
