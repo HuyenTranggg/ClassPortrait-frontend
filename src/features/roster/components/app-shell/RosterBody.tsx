@@ -2,15 +2,27 @@ import React from 'react';
 import { Student } from '../../../../types';
 import StudentCard from '../StudentCard';
 import { PrintMeta } from './types';
+import { AttendanceStatus } from '../../services/attendanceService';
 
 interface RosterBodyProps {
   loading: boolean;
   error: string | null;
   students: Student[];
   printMeta: PrintMeta;
+  isAttendanceMode: boolean;
+  attendanceByMssv: Record<string, { status: AttendanceStatus }>;
+  onToggleAttendance: (mssv: string) => void;
 }
 
-function RosterBody({ loading, error, students, printMeta }: RosterBodyProps) {
+function RosterBody({
+  loading,
+  error,
+  students,
+  printMeta,
+  isAttendanceMode,
+  attendanceByMssv,
+  onToggleAttendance,
+}: RosterBodyProps) {
   if (loading) {
     return (
       <div className="state-panel">
@@ -34,6 +46,12 @@ function RosterBody({ loading, error, students, printMeta }: RosterBodyProps) {
 
   return (
     <section className="gallery-panel">
+      {isAttendanceMode && (
+        <div className="attendance-mode-hint">
+          Đang ở chế độ điểm danh: Click vào ảnh thí sinh để đổi trạng thái có mặt/vắng.
+        </div>
+      )}
+
       {students.length === 0 ? (
         <div className="empty-state-card">
           <h2>Chưa có dữ liệu để hiển thị</h2>
@@ -68,7 +86,16 @@ function RosterBody({ loading, error, students, printMeta }: RosterBodyProps) {
 
           <div className="student-gallery">
             {students.map((student) => (
-              <StudentCard key={student.mssv} mssv={student.mssv} name={student.name} photoUrl={student.photoUrl} />
+              <StudentCard
+                key={student.mssv}
+                mssv={student.mssv}
+                name={student.name}
+                photoUrl={student.photoUrl}
+                attendanceStatus={attendanceByMssv[student.mssv]?.status}
+                isAttendanceMode={isAttendanceMode}
+                showAttendanceStatus={!isAttendanceMode && Boolean(attendanceByMssv[student.mssv])}
+                onToggleAttendance={() => onToggleAttendance(student.mssv)}
+              />
             ))}
           </div>
         </div>

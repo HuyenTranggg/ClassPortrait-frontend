@@ -34,7 +34,7 @@ const getInitialLayout = (): (typeof AVAILABLE_LAYOUTS)[number] => {
 
   return AVAILABLE_LAYOUTS.includes(value as (typeof AVAILABLE_LAYOUTS)[number])
     ? (value as (typeof AVAILABLE_LAYOUTS)[number])
-    : 4;
+    : 5;
 };
 
 function SharedClassPage({ id, exp, sig }: SharedClassPageProps) {
@@ -88,7 +88,7 @@ function SharedClassPage({ id, exp, sig }: SharedClassPageProps) {
     const next = Number(event.target.value);
     const nextLayout = AVAILABLE_LAYOUTS.includes(next as (typeof AVAILABLE_LAYOUTS)[number])
       ? (next as (typeof AVAILABLE_LAYOUTS)[number])
-      : 4;
+      : 5;
 
     setLayout(nextLayout);
 

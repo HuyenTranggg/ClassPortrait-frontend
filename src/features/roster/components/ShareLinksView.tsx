@@ -143,6 +143,20 @@ function ShareLinksView({ classes }: ShareLinksViewProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [classes.map((item) => item.id).join('|')]);
 
+  useEffect(() => {
+    if (!message) {
+      return undefined;
+    }
+
+    const timer = window.setTimeout(() => {
+      setMessage(null);
+    }, 3500);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [message]);
+
   const filteredRows = useMemo(() => {
     return [...rows]
       .filter((row) => Boolean(row.shareLink))
@@ -337,12 +351,6 @@ function ShareLinksView({ classes }: ShareLinksViewProps) {
         </div>
       </div>
 
-      {message && (
-        <div className={`alert ${message.type === 'success' ? 'alert-success' : 'alert-danger'} mb-3`} role="alert">
-          {message.text}
-        </div>
-      )}
-
       {filteredRows.length === 0 ? (
         <div className="empty-state-card">
           <h2>Không có link phù hợp bộ lọc</h2>
@@ -448,6 +456,22 @@ function ShareLinksView({ classes }: ShareLinksViewProps) {
               </article>
             );
           })}
+        </div>
+      )}
+
+      {message && (
+        <div className="attendance-toast-wrap" aria-live="polite" aria-atomic="true">
+          <div className={`attendance-toast ${message.type === 'success' ? 'is-success' : 'is-error'}`} role="alert">
+            <span className="attendance-toast-text">{message.text}</span>
+            <button
+              type="button"
+              className="attendance-toast-close"
+              aria-label="Đóng thông báo"
+              onClick={() => setMessage(null)}
+            >
+              ×
+            </button>
+          </div>
         </div>
       )}
     </section>

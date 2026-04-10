@@ -5,12 +5,32 @@ import { ActiveView, RosterMeta } from './types';
 interface ShellHeaderProps {
   activeView: ActiveView;
   selectedClassExists: boolean;
+  hasStudents: boolean;
+  hasSavedAttendance: boolean;
   rosterMeta: RosterMeta;
+  isAttendanceMode: boolean;
+  isAttendanceBusy: boolean;
   onOpenShare: () => void;
+  onStartAttendance: () => Promise<void> | void;
+  onSaveAttendance: () => void;
+  onCancelAttendance: () => void;
   onImportSuccess: (importedClassId?: string) => Promise<void> | void;
 }
 
-function ShellHeader({ activeView, selectedClassExists, rosterMeta, onOpenShare, onImportSuccess }: ShellHeaderProps) {
+function ShellHeader({
+  activeView,
+  selectedClassExists,
+  hasStudents,
+  hasSavedAttendance,
+  rosterMeta,
+  isAttendanceMode,
+  isAttendanceBusy,
+  onOpenShare,
+  onStartAttendance,
+  onSaveAttendance,
+  onCancelAttendance,
+  onImportSuccess,
+}: ShellHeaderProps) {
   const title =
     activeView === 'roster'
       ? 'DANH SÁCH THÍ SINH DỰ THI'
@@ -38,15 +58,36 @@ function ShellHeader({ activeView, selectedClassExists, rosterMeta, onOpenShare,
 
       {activeView === 'roster' && (
         <div className="shell-actions">
-          <button
-            type="button"
-            className="btn btn-outline-secondary btn-share"
-            disabled={!selectedClassExists}
-            onClick={onOpenShare}
-          >
-            Chia sẻ
-          </button>
-          <ImportButton onImportSuccess={onImportSuccess} />
+          {isAttendanceMode ? (
+            <>
+              <button type="button" className="btn btn-outline-secondary" onClick={onCancelAttendance} disabled={isAttendanceBusy}>
+                Hủy
+              </button>
+              <button type="button" className="btn btn-primary" onClick={onSaveAttendance} disabled={isAttendanceBusy || !selectedClassExists}>
+                Lưu kết quả
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                className="btn btn-outline-secondary btn-share"
+                disabled={!selectedClassExists}
+                onClick={onOpenShare}
+              >
+                Chia sẻ
+              </button>
+              <ImportButton onImportSuccess={onImportSuccess} />
+              <button
+                type="button"
+                className="btn btn-outline-secondary"
+                disabled={!selectedClassExists || !hasStudents || isAttendanceBusy}
+                onClick={onStartAttendance}
+              >
+                {isAttendanceBusy ? 'Đang tải...' : hasSavedAttendance ? 'Chỉnh sửa kết quả điểm danh' : 'Bắt đầu điểm danh'}
+              </button>
+            </>
+          )}
         </div>
       )}
     </header>

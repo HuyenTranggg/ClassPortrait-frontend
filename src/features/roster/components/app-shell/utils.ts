@@ -10,7 +10,7 @@ export const isAllowedLayout = (value: number): value is (typeof ALLOWED_LAYOUTS
 export const getInitialLayout = (): number => {
   const params = new URLSearchParams(window.location.search);
   const layoutFromUrl = Number(params.get('layout'));
-  return isAllowedLayout(layoutFromUrl) ? layoutFromUrl : 4;
+  return isAllowedLayout(layoutFromUrl) ? layoutFromUrl : 5;
 };
 
 export const getDisplayNameFromEmail = (email: string | null): string => {

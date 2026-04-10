@@ -174,6 +174,20 @@ function ShareLinkModal({ isOpen, selectedClass, onClose }: ShareLinkModalProps)
     }
   }, [isOpen]);
 
+  useEffect(() => {
+    if (!isOpen || !message) {
+      return undefined;
+    }
+
+    const timer = window.setTimeout(() => {
+      setMessage(null);
+    }, 3500);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [isOpen, message]);
+
   if (!isOpen) {
     return null;
   }
@@ -456,8 +470,18 @@ function ShareLinkModal({ isOpen, selectedClass, onClose }: ShareLinkModalProps)
         )}
 
         {message && (
-          <div className={`alert ${message.type === 'success' ? 'alert-success' : 'alert-danger'} mt-3 mb-0`} role="alert">
-            {message.text}
+          <div className="attendance-toast-wrap" aria-live="polite" aria-atomic="true">
+            <div className={`attendance-toast ${message.type === 'success' ? 'is-success' : 'is-error'}`} role="alert">
+              <span className="attendance-toast-text">{message.text}</span>
+              <button
+                type="button"
+                className="attendance-toast-close"
+                aria-label="Đóng thông báo"
+                onClick={() => setMessage(null)}
+              >
+                ×
+              </button>
+            </div>
           </div>
         )}
       </div>

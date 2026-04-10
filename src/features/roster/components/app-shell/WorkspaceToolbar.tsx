@@ -8,8 +8,10 @@ interface WorkspaceToolbarProps {
   studentsCount: number;
   photosPerRow: number;
   loading: boolean;
+  searchQuery: string;
   onClassChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
   onLayoutChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
+  onSearchChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onPrint: () => void;
 }
 
@@ -19,8 +21,10 @@ function WorkspaceToolbar({
   studentsCount,
   photosPerRow,
   loading,
+  searchQuery,
   onClassChange,
   onLayoutChange,
+  onSearchChange,
   onPrint,
 }: WorkspaceToolbarProps) {
   return (
@@ -57,6 +61,15 @@ function WorkspaceToolbar({
         <button type="button" className="btn btn-primary btn-print" onClick={onPrint}>
           In sổ ảnh
         </button>
+
+        <input
+          type="search"
+          className="form-control workspace-search-input"
+          value={searchQuery}
+          onChange={onSearchChange}
+          placeholder="Tìm MSSV hoặc tên"
+          aria-label="Tìm sinh viên theo MSSV hoặc tên"
+        />
 
         <span className="workspace-student-count">{studentsCount} sinh viên</span>
       </div>
