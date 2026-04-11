@@ -15,6 +15,7 @@ import AppToast from '../shared/components/AppToast';
 import { AttendanceFilter, useAttendanceController } from '../attendance/hooks/useAttendanceController';
 import { useRosterFilteredStudents } from '../attendance/hooks/useRosterFilteredStudents';
 import { useRosterController } from './hooks/useRosterController';
+import { PrintHeaderModal, usePrintHeaderController } from '../print';
 
 /**
  * Định dạng thời gian điểm danh để hiển thị ở summary panel.
@@ -43,7 +44,6 @@ function AppShell() {
     layout,
     setSidebarCollapsed,
     setActiveView,
-    handlePrint,
     handleClassChange,
     handleOpenClassFromHistory,
     handleLayoutChange,
@@ -129,6 +129,38 @@ function AppShell() {
   const lecturerDisplayName = getDisplayNameFromEmail(userEmail);
   const rosterMeta = buildRosterMeta(selectedClass, students);
   const printMeta = buildPrintMeta(selectedClass, filteredStudents);
+  const {
+    isModalOpen: isPrintHeaderModalOpen,
+    activeConfig: printHeaderConfig,
+    draftConfig: draftPrintHeaderConfig,
+    errorMessage: printHeaderError,
+    openModal: openPrintHeaderModal,
+    closeModal: closePrintHeaderModal,
+    updateDraftConfig,
+    uploadImage,
+    clearDraftImage,
+    applyDraftConfig,
+  } = usePrintHeaderController(printMeta);
+
+  /**
+   * Mở modal cấu hình header trước khi thực hiện in sổ ảnh.
+   * @returns Không trả về giá trị.
+   */
+  const handleOpenPrintModal = () => {
+    openPrintHeaderModal();
+  };
+
+  /**
+   * Áp dụng cấu hình header đã chọn và kích hoạt lệnh in.
+   * @returns Không trả về giá trị.
+   */
+  const handleApplyHeaderAndPrint = () => {
+    applyDraftConfig();
+
+    window.requestAnimationFrame(() => {
+      window.print();
+    });
+  };
 
   return (
     <div className={`app-shell ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
@@ -170,7 +202,7 @@ function AppShell() {
                 onClassChange={handleClassChangeWithAttendanceConfirm}
                 onLayoutChange={handleLayoutChange}
                 onSearchChange={(event) => setAttendanceSearch(event.target.value)}
-                onPrint={handlePrint}
+                onPrint={handleOpenPrintModal}
               />
 
               {!isAttendanceMode && savedAttendance && (
@@ -227,6 +259,7 @@ function AppShell() {
             error={error}
             students={filteredStudents}
             printMeta={printMeta}
+            printHeaderConfig={printHeaderConfig}
             isAttendanceMode={isAttendanceMode}
             attendanceByMssv={activeAttendanceMap}
             onToggleAttendance={handleToggleAttendance}
@@ -270,6 +303,18 @@ function AppShell() {
       {attendanceMessage && (
         <AppToast message={attendanceMessage} onClose={() => setAttendanceMessage(null)} className="no-print" />
       )}
+
+      <PrintHeaderModal
+        isOpen={isPrintHeaderModalOpen}
+        draftConfig={draftPrintHeaderConfig}
+        printMeta={printMeta}
+        errorMessage={printHeaderError}
+        onClose={closePrintHeaderModal}
+        onApplyAndPrint={handleApplyHeaderAndPrint}
+        onUpdateDraft={updateDraftConfig}
+        onUploadImage={uploadImage}
+        onClearImage={clearDraftImage}
+      />
     </div>
   );
 }

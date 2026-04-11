@@ -84,7 +84,7 @@ function ShellHeader({
                 disabled={!selectedClassExists || !hasStudents || isAttendanceBusy}
                 onClick={onStartAttendance}
               >
-                {isAttendanceBusy ? 'Đang tải...' : hasSavedAttendance ? 'Chỉnh sửa kết quả điểm danh' : 'Bắt đầu điểm danh'}
+                {isAttendanceBusy ? 'Đang tải...' : hasSavedAttendance ? 'Chỉnh sửa điểm danh' : 'Bắt đầu điểm danh'}
               </button>
             </>
           )}

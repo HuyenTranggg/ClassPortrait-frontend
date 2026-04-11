@@ -3,12 +3,14 @@ import { Student } from '../../../../types';
 import StudentCard from '../StudentCard';
 import { PrintMeta } from './types';
 import { AttendanceStatus } from '../../attendance/services/api';
+import { PrintHeaderConfig, PrintHeaderRenderer } from '../../print';
 
 interface RosterBodyProps {
   loading: boolean;
   error: string | null;
   students: Student[];
   printMeta: PrintMeta;
+  printHeaderConfig: PrintHeaderConfig;
   isAttendanceMode: boolean;
   attendanceByMssv: Record<string, { status: AttendanceStatus }>;
   onToggleAttendance: (mssv: string) => void;
@@ -19,6 +21,7 @@ function RosterBody({
   error,
   students,
   printMeta,
+  printHeaderConfig,
   isAttendanceMode,
   attendanceByMssv,
   onToggleAttendance,
@@ -59,30 +62,7 @@ function RosterBody({
         </div>
       ) : (
         <div className="page-content">
-          <div className="print-only print-first-header">
-            <div className="print-form-top">
-              <div className="print-form-org">
-                <p>ĐẠI HỌC BÁCH KHOA HÀ NỘI</p>
-                <p>{printMeta.printDepartment || '\u00A0'}</p>
-              </div>
-
-              <div className="print-form-title">
-                <h2>DANH SÁCH THÍ SINH DỰ THI</h2>
-                <p>Học phần: {printMeta.printCourseLabel || '\u00A0'}</p>
-              </div>
-            </div>
-
-            <div className="print-form-grid">
-              <div className="print-field"><span className="print-field-label">Ngày thi:</span><span className="print-field-value">{printMeta.printExamDate || '\u00A0'}</span></div>
-              <div className="print-field"><span className="print-field-label">GV:</span><span className="print-field-value">{printMeta.printInstructor || '\u00A0'}</span></div>
-              <div className="print-field"><span className="print-field-label">Sĩ số:</span><span className="print-field-value">{printMeta.printStudentCount || '\u00A0'}</span></div>
-              <div className="print-field"><span className="print-field-label">Phòng thi:</span><span className="print-field-value">{printMeta.printExamRoom || '\u00A0'}</span></div>
-              <div className="print-field"><span className="print-field-label">Mã lớp học:</span><span className="print-field-value">{printMeta.printClassCode || '\u00A0'}</span></div>
-              <div className="print-field"><span className="print-field-label">Giám thị:</span><span className="print-field-value">{printMeta.printProctor || '\u00A0'}</span></div>
-              <div className="print-field"><span className="print-field-label">Kíp thi:</span><span className="print-field-value">{printMeta.printExamShift || '\u00A0'}</span></div>
-              <div className="print-field"><span className="print-field-label">Giờ thi:</span><span className="print-field-value">{printMeta.printExamTime || '\u00A0'}</span></div>
-            </div>
-          </div>
+          <PrintHeaderRenderer config={printHeaderConfig} printMeta={printMeta} className="print-only" />
 
           <div className="student-gallery">
             {students.map((student) => (
