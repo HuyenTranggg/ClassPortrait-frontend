@@ -8,7 +8,7 @@
 }
 
 .shell-header {
-  padding: 14px 0 10px;
+  padding: 10px 0 8px;
   align-items: flex-start;
   border: 0;
   border-bottom: 1px solid $shell-border;
@@ -16,7 +16,7 @@
 
   h1 {
     margin: 0;
-    font-size: clamp(1.5rem, 2.1vw, 1.95rem);
+    font-size: clamp(1.08rem, 1.3vw, 1.34rem);
     line-height: 1.2;
   }
 }
@@ -37,14 +37,14 @@
 .roster-school {
   margin: 0 0 6px;
   color: $accent-strong;
-  font-size: 1.08rem;
+  font-size: 0.98rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
 .roster-meta {
-  margin-top: 8px;
+  margin-top: 6px;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -54,8 +54,8 @@
 .roster-meta-item {
   display: flex;
   align-items: baseline;
-  gap: 8px;
-  font-size: 0.98rem;
+  gap: 6px;
+  font-size: 0.9rem;
   color: $text-strong;
 
   span {
@@ -71,7 +71,7 @@
   &:not(:last-child)::after {
     content: '|';
     color: #d1d5db;
-    margin: 0 16px;
+    margin: 0 12px;
     font-weight: 400;
   }
 }
@@ -79,14 +79,14 @@
 .shell-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   padding-top: 0;
   align-self: center;
 
   .btn-share {
-    min-width: 98px;
-    min-height: 40px;
-    font-size: 1.02rem;
+    min-width: 90px;
+    min-height: 36px;
+    font-size: 0.94rem;
   }
 
   .switch-actions,
@@ -95,10 +95,10 @@
   }
 
   .import-container .btn {
-    min-width: 98px;
-    min-height: 40px;
-    font-size: 1.02rem;
-    border-radius: 10px;
+    min-width: 90px;
+    min-height: 36px;
+    font-size: 0.94rem;
+    border-radius: 9px;
     background: $accent-strong;
     border-color: $accent-dark;
     color: $white;
@@ -122,8 +122,8 @@
 }
 
 .workspace-panel {
-  margin: 0 0 14px;
-  padding: 8px 10px;
+  margin: 0 0 12px;
+  padding: 6px 8px;
 }
 
 .workspace-overview {
@@ -144,27 +144,27 @@
 
 .workspace-toolbar {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
   flex-wrap: wrap;
 
   .form-select {
     width: min(100%, 360px);
-    min-height: 40px;
-    border-radius: 12px;
+    min-height: 36px;
+    border-radius: 10px;
     border-color: #d1d5db;
     background-color: $white;
-    font-size: 0.96rem;
+    font-size: 0.9rem;
   }
 
   .layout-select {
-    width: 156px;
+    width: 146px;
   }
 
   .btn-print {
-    min-height: 40px;
-    padding: 0 14px;
-    font-size: 0.98rem;
+    min-height: 36px;
+    padding: 0 12px;
+    font-size: 0.92rem;
     background: $accent-strong;
     border-color: $accent-dark;
     color: $white;
@@ -178,10 +178,18 @@
     }
   }
 
+  .workspace-search-input {
+    width: min(100%, 240px);
+    min-height: 36px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    border-color: #d1d5db;
+  }
+
   .workspace-student-count {
     margin-left: auto;
     color: $text-muted-strong;
-    font-size: 1.05rem;
+    font-size: 0.95rem;
     white-space: nowrap;
   }
 }

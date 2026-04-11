@@ -106,6 +106,10 @@
       box-shadow: none !important;
     }
 
+    &.is-attendance-mode {
+      border-color: $dark-gray !important;
+    }
+
     img {
       width: 100% !important;
       height: auto !important;
@@ -114,6 +118,11 @@
       display: block !important;
       background-color: $light-gray !important;
     }
+  }
+
+  .student-card-attendance-overlay,
+  .attendance-status-chip {
+    display: none !important;
   }
   
   // Thông tin sinh viên

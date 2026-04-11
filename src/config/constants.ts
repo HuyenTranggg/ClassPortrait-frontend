@@ -21,7 +21,7 @@ export const AUTH_CONFIG = {
  */
 export const PAGINATION_CONFIG = {
   ROWS_PER_PAGE: 4,
-  DEFAULT_LAYOUT: 4,
+  DEFAULT_LAYOUT: 5,
   AVAILABLE_LAYOUTS: [4, 5, 6] as const,
 } as const;
 

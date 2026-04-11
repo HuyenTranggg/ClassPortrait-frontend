@@ -2,6 +2,7 @@
  * Interface định nghĩa cấu trúc dữ liệu của một sinh viên
  */
 export interface Student {
+  id?: string;
   mssv: string;
   name?: string;
   photoUrl?: string;        // URL ảnh có chữ ký do backend cấp
