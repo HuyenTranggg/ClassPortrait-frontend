@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { ActiveView } from '../shell/types';
 import { getInitialLayout, isAllowedLayout } from '../shell/utils';
 
 interface UseRosterControllerOptions {
@@ -15,7 +16,7 @@ export const useRosterController = ({
 }: UseRosterControllerOptions) => {
   const headerRef = useRef<HTMLDivElement | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [activeView, setActiveView] = useState<'roster' | 'history' | 'share'>('roster');
+  const [activeView, setActiveView] = useState<ActiveView>('roster');
   const [layout, setLayout] = useState<number>(getInitialLayout);
 
   const updateUrlParams = (updates: { layout?: number; classId?: string }) => {

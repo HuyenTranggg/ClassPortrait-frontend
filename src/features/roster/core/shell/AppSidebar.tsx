@@ -60,6 +60,7 @@ function AppSidebar({
             <span>Lịch sử import</span>
             <small>Theo dõi các lần nhập file</small>
           </button>
+
           <button
             type="button"
             className={`sidebar-link ${activeView === 'share' ? 'is-active' : ''}`}
@@ -68,6 +69,16 @@ function AppSidebar({
             <span>Chia sẻ</span>
             <small>Quản lý link chia sẻ theo từng lớp</small>
           </button>
+
+          <button
+            type="button"
+            className={`sidebar-link ${activeView === 'dashboard' ? 'is-active' : ''}`}
+            onClick={() => onSetActiveView('dashboard')}
+          >
+            <span>Dashboard</span>
+            <small>Tổng hợp nhanh theo lớp phụ trách</small>
+          </button>
+          
           <button type="button" className="sidebar-link">
             <span>Cài đặt</span>
             <small>Tùy chỉnh layout và in ấn</small>

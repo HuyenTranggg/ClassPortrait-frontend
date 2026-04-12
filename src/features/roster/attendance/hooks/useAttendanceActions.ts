@@ -117,8 +117,10 @@ export const useAttendanceActions = ({
     [setAttendanceDraftMap, setAttendanceFilter, setAttendanceInitialMap, setAttendanceSearch, setSavedAttendance]
   );
 
-  const handleStartAttendance = useCallback(async () => {
-    if (!selectedClassId || studentsCount === 0) {
+  const handleStartAttendance = useCallback(async (classIdOverride?: string) => {
+    const targetClassId = classIdOverride || selectedClassId;
+
+    if (!targetClassId || studentsCount === 0) {
       return;
     }
 
@@ -126,7 +128,7 @@ export const useAttendanceActions = ({
     setAttendanceMessage(null);
 
     try {
-      const response = await attendanceService.getClassAttendance(selectedClassId, true);
+      const response = await attendanceService.getClassAttendance(targetClassId, true);
       const records = toAttendanceMap(
         response.students.map((item) => ({
           studentId: item.studentId,

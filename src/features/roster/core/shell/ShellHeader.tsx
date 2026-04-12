@@ -34,6 +34,8 @@ function ShellHeader({
   const title =
     activeView === 'roster'
       ? 'DANH SÁCH THÍ SINH DỰ THI'
+      : activeView === 'dashboard'
+        ? 'DASHBOARD GIẢNG VIÊN'
       : activeView === 'history'
         ? 'LỊCH SỬ IMPORT'
         : 'QUẢN LÝ LINK CHIA SẺ';
@@ -52,7 +54,7 @@ function ShellHeader({
             <div className="roster-meta-item" role="listitem"><span>Sĩ số:</span><strong>{rosterMeta.studentCountLabel}</strong></div>
           </div>
         ) : (
-          <div className="roster-meta" role="list" aria-label="Thông tin lịch sử import"></div>
+          <div className="roster-meta" role="list" aria-label="Thông tin màn hình hiện tại"></div>
         )}
       </div>
 
