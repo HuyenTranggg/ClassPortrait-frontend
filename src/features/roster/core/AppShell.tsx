@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import ImportHistoryView from '../import/views/ImportHistoryView';
 import ShareLinksView from '../share/views/ShareLinksView';
+import { TeacherDashboardView } from '../dashboard';
 import { useClasses } from './hooks/useClasses';
 import { usePagination } from './hooks/usePagination';
 import { useAuth } from '../../auth';
@@ -124,6 +125,70 @@ function AppShell() {
     }
 
     await handleOpenClassFromHistory(classId);
+  };
+
+  /**
+   * Mở nhanh lớp từ dashboard và chuyển về màn hình sổ ảnh.
+   * @param classId UUID lớp được chọn trên dashboard.
+   * @returns Không trả về giá trị.
+   */
+  const handleOpenClassFromDashboard = async (classId: string) => {
+    if (!classId) {
+      return;
+    }
+
+    if (isAttendanceMode) {
+      const confirmed = window.confirm('Bạn đang điểm danh dở. Đổi lớp sẽ mất dữ liệu tạm. Tiếp tục?');
+      if (!confirmed) {
+        return;
+      }
+    }
+
+    await selectClass(classId);
+    setActiveView('roster');
+  };
+
+  /**
+   * Bắt đầu điểm danh nhanh từ dashboard cho lớp được chọn.
+   * @param classId UUID lớp cần điểm danh.
+   * @returns Không trả về giá trị.
+   */
+  const handleStartAttendanceFromDashboard = async (classId: string) => {
+    if (!classId) {
+      return;
+    }
+
+    if (isAttendanceMode) {
+      const confirmed = window.confirm('Bạn đang điểm danh dở. Đổi lớp sẽ mất dữ liệu tạm. Tiếp tục?');
+      if (!confirmed) {
+        return;
+      }
+    }
+
+    await selectClass(classId);
+    setActiveView('roster');
+    await handleStartAttendance(classId);
+  };
+
+  /**
+   * Mở nhanh modal chia sẻ cho lớp được chọn từ dashboard.
+   * @param classId UUID lớp cần thao tác chia sẻ.
+   * @returns Không trả về giá trị.
+   */
+  const handleOpenShareFromDashboard = async (classId: string) => {
+    if (!classId) {
+      return;
+    }
+
+    if (isAttendanceMode) {
+      const confirmed = window.confirm('Bạn đang điểm danh dở. Đổi lớp sẽ mất dữ liệu tạm. Tiếp tục?');
+      if (!confirmed) {
+        return;
+      }
+    }
+
+    await selectClass(classId);
+    setShareModalOpen(true);
   };
 
   const lecturerDisplayName = getDisplayNameFromEmail(userEmail);
@@ -266,6 +331,13 @@ function AppShell() {
           />
         )}
 
+        {activeView === 'dashboard' && (
+          <TeacherDashboardView
+            onOpenClass={handleOpenClassFromDashboard}
+            onStartAttendance={handleStartAttendanceFromDashboard}
+            onOpenShare={handleOpenShareFromDashboard}
+          />
+        )}
         {activeView === 'history' && <ImportHistoryView onOpenClass={handleOpenClassFromHistoryWithAttendanceConfirm} />}
         {activeView === 'share' && <ShareLinksView classes={classes} />}
       </main>

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Class } from '../../../../types/Class';
 import { Student } from '../../../../types/Student';
 import { useAutoDismissMessage } from '../../shared/hooks/useAutoDismissMessage';
+import { ActiveView } from '../../core/shell/types';
 import {
   AppMessage,
   AttendanceFilter,
@@ -17,7 +18,7 @@ export type { AttendanceFilter } from './attendance.controller';
 interface UseAttendanceControllerOptions {
   selectedClass: Class | null;
   students: Student[];
-  activeView: 'roster' | 'history' | 'share';
+  activeView: ActiveView;
 }
 
 /**
