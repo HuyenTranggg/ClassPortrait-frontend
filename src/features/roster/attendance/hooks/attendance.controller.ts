@@ -24,6 +24,32 @@ export type AttendanceFilter = 'all' | 'present' | 'absent';
 
 export type AppMessage = { type: 'success' | 'error'; text: string } | null;
 
+const extractApiErrorMessage = (error: any): string => {
+  const payload = error?.response?.data;
+
+  if (!payload) {
+    return '';
+  }
+
+  if (typeof payload === 'string') {
+    return payload.trim();
+  }
+
+  const directMessage = String(payload?.message || payload?.error || '').trim();
+  if (directMessage) {
+    return directMessage;
+  }
+
+  if (Array.isArray(payload?.errors)) {
+    return payload.errors
+      .map((item: any) => String(item?.message || item || '').trim())
+      .filter(Boolean)
+      .join('; ');
+  }
+
+  return '';
+};
+
 /**
  * Chuyển danh sách attendance backend về map theo MSSV để tra cứu nhanh khi render.
  */
@@ -71,8 +97,13 @@ export const getLatestMarkedAt = (records: Record<string, AttendanceRecord>): st
  */
 export const mapAttendanceError = (error: any): string => {
   const status = error?.response?.status;
+  const apiMessage = extractApiErrorMessage(error);
 
   if (status === 400) {
+    if (apiMessage) {
+      return apiMessage;
+    }
+
     return 'Dữ liệu điểm danh gửi lên không hợp lệ. Vui lòng kiểm tra lại.';
   }
 
@@ -88,7 +119,7 @@ export const mapAttendanceError = (error: any): string => {
     return 'Không tìm thấy lớp hoặc sinh viên thuộc lớp hiện tại.';
   }
 
-  return String(error?.response?.data?.message || error?.message || 'Không thể xử lý điểm danh. Vui lòng thử lại.');
+  return String(apiMessage || error?.message || 'Không thể xử lý điểm danh. Vui lòng thử lại.');
 };
 
 /**

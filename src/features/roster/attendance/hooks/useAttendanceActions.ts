@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
+import type { Class } from '../../../../types/Class';
 import { attendanceService, AttendanceStatus } from '../../services';
 import {
   AppMessage,
@@ -12,8 +13,36 @@ import {
   toAttendanceMap,
 } from './attendance.controller';
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+const isValidUuid = (value?: string): boolean => {
+  return Boolean(value && UUID_REGEX.test(value));
+};
+
+const pickUuidFromClass = (selectedClass?: Class | null): string => {
+  if (!selectedClass) {
+    return '';
+  }
+
+  const rawClass = selectedClass as any;
+  const candidates = [
+    rawClass?.id,
+    rawClass?.classId,
+    rawClass?.classID,
+    rawClass?.class_id,
+    rawClass?.uuid,
+    rawClass?.classUuid,
+    rawClass?._id,
+  ]
+    .map((value) => (typeof value === 'string' ? value.trim() : ''))
+    .filter(Boolean);
+
+  return candidates.find((value) => UUID_REGEX.test(value)) || '';
+};
+
 interface UseAttendanceActionsOptions {
   selectedClassId?: string;
+  selectedClass?: Class | null;
   studentsCount: number;
   isAttendanceMode: boolean;
   attendanceInitialMap: Record<string, AttendanceRecord>;
@@ -36,6 +65,7 @@ interface UseAttendanceActionsOptions {
  */
 export const useAttendanceActions = ({
   selectedClassId,
+  selectedClass,
   studentsCount,
   isAttendanceMode,
   attendanceInitialMap,
@@ -52,6 +82,18 @@ export const useAttendanceActions = ({
   setAttendanceDraftMap,
   setSavedAttendance,
 }: UseAttendanceActionsOptions) => {
+  const resolveAttendanceClassId = useCallback((classIdOverride?: string): string => {
+    if (isValidUuid(classIdOverride)) {
+      return classIdOverride as string;
+    }
+
+    if (isValidUuid(selectedClassId)) {
+      return selectedClassId as string;
+    }
+
+    return pickUuidFromClass(selectedClass);
+  }, [selectedClass, selectedClassId]);
+
   const clearAttendanceState = useCallback(() => {
     setAttendanceMode(false);
     setAttendanceBusy(false);
@@ -118,9 +160,17 @@ export const useAttendanceActions = ({
   );
 
   const handleStartAttendance = useCallback(async (classIdOverride?: string) => {
-    const targetClassId = classIdOverride || selectedClassId;
+    const targetClassId = resolveAttendanceClassId(classIdOverride);
 
     if (!targetClassId || studentsCount === 0) {
+      return;
+    }
+
+    if (!isValidUuid(targetClassId)) {
+      setAttendanceMessage({
+        type: 'error',
+        text: 'ID lớp không hợp lệ cho tính năng điểm danh (cần UUID). Vui lòng tải lại danh sách lớp hoặc kiểm tra dữ liệu backend.',
+      });
       return;
     }
 
@@ -151,7 +201,7 @@ export const useAttendanceActions = ({
       setAttendanceBusy(false);
     }
   }, [
-    selectedClassId,
+    resolveAttendanceClassId,
     setAttendanceBusy,
     setAttendanceDraftMap,
     setAttendanceFilter,
@@ -190,7 +240,17 @@ export const useAttendanceActions = ({
   );
 
   const handleConfirmSaveAttendance = useCallback(async () => {
-    if (!selectedClassId) {
+    const targetClassId = resolveAttendanceClassId();
+
+    if (!targetClassId) {
+      return;
+    }
+
+    if (!isValidUuid(targetClassId)) {
+      setAttendanceMessage({
+        type: 'error',
+        text: 'ID lớp không hợp lệ cho tính năng điểm danh (cần UUID). Vui lòng tải lại danh sách lớp hoặc kiểm tra dữ liệu backend.',
+      });
       return;
     }
 
@@ -204,7 +264,7 @@ export const useAttendanceActions = ({
 
       await Promise.all(
         changedRecords.map((item) => {
-          return attendanceService.setStudentAttendanceStatus(selectedClassId, item.studentId, {
+          return attendanceService.setStudentAttendanceStatus(targetClassId, item.studentId, {
             status: item.status,
           });
         })
@@ -230,7 +290,7 @@ export const useAttendanceActions = ({
   }, [
     attendanceDraftMap,
     attendanceInitialMap,
-    selectedClassId,
+    resolveAttendanceClassId,
     setAttendanceBusy,
     setAttendanceFilter,
     setAttendanceInitialMap,
@@ -249,7 +309,17 @@ export const useAttendanceActions = ({
   }, [attendanceInitialMap, setAttendanceDraftMap, setAttendanceMessage, setAttendanceMode, setStatsModalOpen]);
 
   const handleConfirmRetakeAttendance = useCallback(async () => {
-    if (!selectedClassId) {
+    const targetClassId = resolveAttendanceClassId();
+
+    if (!targetClassId) {
+      return;
+    }
+
+    if (!isValidUuid(targetClassId)) {
+      setAttendanceMessage({
+        type: 'error',
+        text: 'ID lớp không hợp lệ cho tính năng điểm danh (cần UUID). Vui lòng tải lại danh sách lớp hoặc kiểm tra dữ liệu backend.',
+      });
       return;
     }
 
@@ -257,7 +327,7 @@ export const useAttendanceActions = ({
     setAttendanceMessage(null);
 
     try {
-      await attendanceService.resetClassAttendance(selectedClassId, { status: 'absent' });
+      await attendanceService.resetClassAttendance(targetClassId, { status: 'absent' });
       setRetakeConfirmOpen(false);
       await handleStartAttendance();
       setAttendanceMessage({ type: 'success', text: 'Đã reset kết quả cũ. Bạn có thể bắt đầu điểm danh lại.' });
@@ -266,7 +336,7 @@ export const useAttendanceActions = ({
     } finally {
       setAttendanceBusy(false);
     }
-  }, [handleStartAttendance, selectedClassId, setAttendanceBusy, setAttendanceMessage, setRetakeConfirmOpen]);
+  }, [handleStartAttendance, resolveAttendanceClassId, setAttendanceBusy, setAttendanceMessage, setRetakeConfirmOpen]);
 
   return {
     clearAttendanceState,

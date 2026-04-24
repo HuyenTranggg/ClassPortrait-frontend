@@ -52,6 +52,7 @@ export const useAttendanceController = ({
     handleConfirmRetakeAttendance,
   } = useAttendanceActions({
     selectedClassId: selectedClass?.id,
+    selectedClass,
     studentsCount: students.length,
     isAttendanceMode,
     attendanceInitialMap,
