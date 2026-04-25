@@ -77,17 +77,20 @@ export interface ShareLink {
   token: string;
   shareUrl: string;
   isActive: boolean;
+  requireLogin: boolean;
   expiresAt: string | null;
   createdAt: string;
 }
 
 export interface CreateShareLinkPayload {
   expiresInDays?: number;
+  requireLogin?: boolean;
 }
 
 export interface UpdateShareLinkPayload {
   isActive?: boolean;
   expiresAt?: string | null;
+  requireLogin?: boolean;
 }
 
 export interface DeleteShareLinkResponse {

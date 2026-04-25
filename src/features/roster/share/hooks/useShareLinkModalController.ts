@@ -32,6 +32,7 @@ export const useShareLinkModalController = ({
   const [shareLink, setShareLink] = useState<ShareLink | null>(null);
   const [expiresInDays, setExpiresInDays] = useState('7');
   const [expiresAtInput, setExpiresAtInput] = useState('');
+  const [requireLogin, setRequireLogin] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const classLabel = useMemo(() => {
@@ -86,6 +87,7 @@ export const useShareLinkModalController = ({
       setShareLink(null);
       setExpiresInDays('7');
       setExpiresAtInput('');
+      setRequireLogin(false);
       setMessage(null);
       setLoading(false);
       setSubmitting(false);
@@ -100,7 +102,9 @@ export const useShareLinkModalController = ({
     }
 
     const parsedDays = Number(expiresInDays);
-    const payload: CreateShareLinkPayload = {};
+    const payload: CreateShareLinkPayload = {
+      requireLogin,
+    };
 
     if (expiresInDays.trim()) {
       if (!Number.isInteger(parsedDays) || parsedDays < 1) {
@@ -213,6 +217,35 @@ export const useShareLinkModalController = ({
     }
   };
 
+  /**
+   * Chuyển đổi chế độ yêu cầu đăng nhập của link chia sẻ hiện tại.
+   */
+  const handleToggleRequireLogin = async () => {
+    if (!selectedClass?.id || !shareLink) {
+      return;
+    }
+
+    setSubmitting(true);
+    setMessage(null);
+
+    const payload: UpdateShareLinkPayload = {
+      requireLogin: !shareLink.requireLogin,
+    };
+
+    try {
+      const result = await classService.updateShareLink(selectedClass.id, payload);
+      setShareLink(result);
+      setMessage({
+        type: 'success',
+        text: result.requireLogin ? 'Đã bật yêu cầu đăng nhập.' : 'Đã tắt yêu cầu đăng nhập.',
+      });
+    } catch (error: any) {
+      setMessage({ type: 'error', text: mapShareApiError(error, 'Không thể cập nhật chế độ truy cập.') });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleCopyLink = async () => {
     if (!publicShareUrl) {
       return;
@@ -232,15 +265,18 @@ export const useShareLinkModalController = ({
     shareLink,
     expiresInDays,
     expiresAtInput,
+    requireLogin,
     message,
     classLabel,
     publicShareUrl,
     shareStatus,
     setExpiresInDays,
     setExpiresAtInput,
+    setRequireLogin,
     setMessage,
     handleCreateShareLink,
     handleToggleActive,
+    handleToggleRequireLogin,
     handleSaveExpiry,
     handleDeleteLink,
     handleCopyLink,

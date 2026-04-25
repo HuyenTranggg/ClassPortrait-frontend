@@ -212,6 +212,20 @@
   }
 }
 
+.share-access-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+
+  .share-access-head-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+}
+
 .share-expiry-row {
   grid-template-columns: minmax(0, 1fr) auto;
 
@@ -238,6 +252,79 @@
   color: #707275 !important;
   font-size: 0.98rem;
   line-height: 1.35;
+}
+
+.share-access-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+
+  .share-access-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 1.5px solid #d1d5db;
+    border-radius: 10px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+
+    &:hover {
+      border-color: #6b7280;
+      background: #f9fafb;
+    }
+
+    &.is-selected {
+      border-color: $accent-strong;
+      background: #f0f4ff;
+    }
+
+    input[type='radio'] {
+      display: none;
+    }
+
+    .share-access-icon {
+      font-size: 1.4rem;
+      flex-shrink: 0;
+    }
+
+    .share-access-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+
+      strong {
+        font-size: 0.98rem;
+        color: #111827;
+      }
+
+      small {
+        font-size: 0.88rem;
+        color: #6b7280;
+      }
+    }
+  }
+}
+
+.share-access-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+
+  &.is-public {
+    background: #d1fae5;
+    color: #065f46;
+  }
+
+  &.is-locked {
+    background: #fef3c7;
+    color: #92400e;
+  }
 }
 
 @media (max-width: 768px) {
@@ -281,7 +368,19 @@
   .share-section-head {
     flex-direction: column;
     align-items: flex-start;
-    gap: 4px;
+    gap: 8px;
+  }
+
+  .share-access-head {
+    align-items: stretch;
+
+    .share-access-head-left {
+      margin-bottom: 4px;
+    }
+
+    .btn {
+      width: 100%;
+    }
   }
 
   .share-footer-row {
