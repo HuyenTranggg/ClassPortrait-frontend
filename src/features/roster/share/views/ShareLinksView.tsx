@@ -41,6 +41,7 @@ function ShareLinksView({ classes }: ShareLinksViewProps) {
     setMessage,
     fetchShareLinks,
     handleToggleLink,
+    handleToggleRequireLogin,
     handleCopySuccess,
     handleCopyFailure,
     handleOpenExpiryEditor,
@@ -142,45 +143,64 @@ function ShareLinksView({ classes }: ShareLinksViewProps) {
                 </div>
 
                 <div className="share-link-item-body">
-                  <input
-                    className="form-control share-link-url"
-                    value={publicUrl}
-                    readOnly
-                    disabled
-                  />
+                  <div className="share-link-row-top">
+                    <input
+                      className="form-control share-link-url"
+                      value={publicUrl}
+                      readOnly
+                      disabled
+                    />
+                    <button
+                      type="button"
+                      className="btn btn-outline-secondary"
+                      onClick={() => handleCopyLink(row.shareLink)}
+                      disabled={isBusy}
+                    >
+                      Sao chép
+                    </button>
+                  </div>
 
-                  <button
-                    type="button"
-                    className="btn btn-outline-secondary"
-                    onClick={() => handleCopyLink(row.shareLink)}
-                    disabled={isBusy}
-                  >
-                    Sao chép
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-outline-secondary"
-                    onClick={() => handleOpenExpiryEditor(row)}
-                    disabled={isBusy}
-                  >
-                    Đổi hạn
-                  </button>
-                  <button
-                    type="button"
-                    className={`btn ${row.shareLink?.isActive ? 'btn-outline-danger' : 'btn-outline-success'}`}
-                    onClick={() => handleToggleLink(row)}
-                    disabled={isBusy}
-                  >
-                    {row.shareLink?.isActive ? 'Tắt link' : 'Bật link'}
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-outline-danger"
-                    onClick={() => handleDeleteLink(row)}
-                    disabled={isBusy}
-                  >
-                    Xóa link
-                  </button>
+                  <div className="share-link-row-bottom">
+                    <div className="share-link-actions">
+                      <button
+                        type="button"
+                        className="btn btn-outline-secondary"
+                        onClick={() => handleOpenExpiryEditor(row)}
+                        disabled={isBusy}
+                      >
+                        Đổi hạn
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-outline-secondary"
+                        onClick={() => handleToggleRequireLogin(row)}
+                        disabled={isBusy}
+                        title={row.shareLink?.requireLogin ? 'Đang yêu cầu đăng nhập – nhấn để đổi sang công khai' : 'Đang công khai – nhấn để yêu cầu đăng nhập'}
+                      >
+                        {row.shareLink?.requireLogin ? 'Bỏ yêu cầu đăng nhập' : 'Yêu cầu đăng nhập'}
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-outline-secondary"
+                        onClick={() => handleToggleLink(row)}
+                        disabled={isBusy}
+                      >
+                        {row.shareLink?.isActive ? 'Tắt link' : 'Bật link'}
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-outline-secondary"
+                        onClick={() => handleDeleteLink(row)}
+                        disabled={isBusy}
+                      >
+                        Xóa
+                      </button>
+                    </div>
+
+                    <div className="share-link-item-meta">
+                      Tạo {row.shareLink ? formatDate(row.shareLink.createdAt) : '--'} · Hết hạn {row.shareLink ? formatDate(row.shareLink.expiresAt) : '--'}
+                    </div>
+                  </div>
                 </div>
 
                 {isEditingExpiry && (
@@ -212,10 +232,6 @@ function ShareLinksView({ classes }: ShareLinksViewProps) {
                     </button>
                   </div>
                 )}
-
-                <div className="share-link-item-meta">
-                  Tạo ngày {row.shareLink ? formatDate(row.shareLink.createdAt) : '--'} - Hết hạn {row.shareLink ? formatDate(row.shareLink.expiresAt) : '--'}
-                </div>
               </article>
             );
           })}

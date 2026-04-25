@@ -17,15 +17,18 @@ function ShareLinkModal({ isOpen, selectedClass, onClose }: ShareLinkModalProps)
     shareLink,
     expiresInDays,
     expiresAtInput,
+    requireLogin,
     message,
     classLabel,
     publicShareUrl,
     shareStatus,
     setExpiresInDays,
     setExpiresAtInput,
+    setRequireLogin,
     setMessage,
     handleCreateShareLink,
     handleToggleActive,
+    handleToggleRequireLogin,
     handleSaveExpiry,
     handleDeleteLink,
     handleCopyLink,
@@ -88,6 +91,38 @@ function ShareLinkModal({ isOpen, selectedClass, onClose }: ShareLinkModalProps)
                   />
                   <small className="share-hint">Để trống nếu muốn link không có thời hạn.</small>
 
+                  <div className="share-field-label mt-3">Chế độ truy cập</div>
+                  <div className="share-access-options" role="radiogroup" aria-label="Chế độ truy cập">
+                    <label className={`share-access-option ${!requireLogin ? 'is-selected' : ''}`}>
+                      <input
+                        type="radio"
+                        name="share-require-login"
+                        value="public"
+                        checked={!requireLogin}
+                        onChange={() => setRequireLogin(false)}
+                        disabled={submitting}
+                      />
+                      <span className="share-access-text">
+                        <strong>Công khai</strong>
+                        <small>Ai có link đều xem được</small>
+                      </span>
+                    </label>
+                    <label className={`share-access-option ${requireLogin ? 'is-selected' : ''}`}>
+                      <input
+                        type="radio"
+                        name="share-require-login"
+                        value="login"
+                        checked={requireLogin}
+                        onChange={() => setRequireLogin(true)}
+                        disabled={submitting}
+                      />
+                      <span className="share-access-text">
+                        <strong>Yêu cầu đăng nhập</strong>
+                        <small>Chỉ tài khoản HUST mới xem được</small>
+                      </span>
+                    </label>
+                  </div>
+
                   <button
                     type="button"
                     className="btn btn-primary share-create-btn"
@@ -120,6 +155,25 @@ function ShareLinkModal({ isOpen, selectedClass, onClose }: ShareLinkModalProps)
                     <a className="btn btn-outline-primary" href={publicShareUrl} target="_blank" rel="noreferrer">
                       Mở link
                     </a>
+                  </div>
+                </section>
+
+                <section className="share-section-card">
+                  <div className="share-section-head share-access-head">
+                    <div className="share-access-head-left">
+                      <div className="share-section-title" style={{ margin: 0 }}>CHẾ ĐỘ TRUY CẬP</div>
+                      <div className={`share-access-badge ${shareLink.requireLogin ? 'is-locked' : 'is-public'}`}>
+                        {shareLink.requireLogin ? 'Yêu cầu đăng nhập HUST' : 'Công khai'}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      className="btn btn-outline-secondary btn-sm"
+                      onClick={handleToggleRequireLogin}
+                      disabled={submitting}
+                    >
+                      {shareLink.requireLogin ? 'Đổi sang Công khai' : 'Đổi sang Yêu cầu đăng nhập'}
+                    </button>
                   </div>
                 </section>
 

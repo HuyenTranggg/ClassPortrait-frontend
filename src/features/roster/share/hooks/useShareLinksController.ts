@@ -128,6 +128,33 @@ export const useShareLinksController = ({ classes }: UseShareLinksControllerOpti
     }
   };
 
+  /**
+   * Chuyển đổi chế độ yêu cầu đăng nhập của link chia sẻ.
+   * @param row Bản ghi chứa thông tin lớp và link chia sẻ hiện tại.
+   */
+  const handleToggleRequireLogin = async (row: ShareLinkRow) => {
+    if (!row.shareLink) {
+      return;
+    }
+
+    const classId = row.classInfo.id;
+    setActionLoading(classId, true);
+    setMessage(null);
+
+    try {
+      const updated = await classService.updateShareLink(classId, { requireLogin: !row.shareLink.requireLogin });
+      updateRow(classId, updated);
+      setMessage({
+        type: 'success',
+        text: updated.requireLogin ? 'Đã bật yêu cầu đăng nhập.' : 'Đã tắt yêu cầu đăng nhập.',
+      });
+    } catch (toggleError: any) {
+      setMessage({ type: 'error', text: mapShareApiError(toggleError, 'Không thể cập nhật chế độ truy cập.') });
+    } finally {
+      setActionLoading(classId, false);
+    }
+  };
+
   const handleCopySuccess = () => {
     setMessage({ type: 'success', text: 'Đã sao chép link chia sẻ.' });
   };
@@ -230,6 +257,7 @@ export const useShareLinksController = ({ classes }: UseShareLinksControllerOpti
     setMessage,
     fetchShareLinks,
     handleToggleLink,
+    handleToggleRequireLogin,
     handleCopySuccess,
     handleCopyFailure,
     handleOpenExpiryEditor,
