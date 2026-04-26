@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { PrintMeta } from '../../core/shell/types';
+import { PrintMeta } from '../../types';
 import { createDefaultPrintHeaderConfig, DEFAULT_PRINT_COMPONENT_ORDER } from '../constants';
 import { PrintHeaderConfig } from '../types';
 

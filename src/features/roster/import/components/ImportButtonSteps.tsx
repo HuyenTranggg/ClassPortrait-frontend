@@ -1,6 +1,6 @@
 import React from 'react';
 import { SOURCE_OPTIONS } from '../utils/parsers';
-import { ImportStateSnapshot, SourceType } from '../utils/types';
+import { ImportStateSnapshot, SourceType } from '../types';
 
 export const ImportProgress = ({ step }: { step: 1 | 2 | 3 | 4 }) => (
   <div className="import-stepper">

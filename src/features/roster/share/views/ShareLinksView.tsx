@@ -1,7 +1,7 @@
 import React from 'react';
 import { Class } from '../../../../types';
-import { ShareLink } from '../../services/class/service';
-import AppToast from '../../shared/components/AppToast';
+import { ShareLink } from '../../services/class.service';
+import AppToast from '../../../../components/AppToast';
 import {
   buildPublicShareUrl,
   formatDateTime,

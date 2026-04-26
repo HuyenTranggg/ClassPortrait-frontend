@@ -9,15 +9,15 @@
 @import './styles/print';
 
 // App-level style modules
-@import './styles/app/buttons';
-@import './styles/app/navigation-shell';
-@import './styles/app/landing-workspace';
-@import './styles/app/history';
-@import './styles/app/login-modal';
-@import './styles/app/import-modal';
-@import './styles/app/share-modal';
-@import './styles/app/shared-public';
-@import './styles/app/share-links';
-@import './styles/app/dashboard';
-@import './styles/app/attendance';
-@import './styles/app/print-header';
+@import './components/styles/buttons';
+@import './layouts/styles/navigation-shell';
+@import './features/landing/styles/landing-workspace';
+@import './features/roster/import/styles/history';
+@import './features/auth/styles/login-modal';
+@import './features/roster/import/styles/import-modal';
+@import './features/roster/share/styles/share-modal';
+@import './features/share-public/styles/shared-public';
+@import './features/roster/share/styles/share-links';
+@import './features/roster/dashboard/styles/dashboard';
+@import './features/roster/attendance/styles/attendance';
+@import './features/roster/print/styles/print-header';

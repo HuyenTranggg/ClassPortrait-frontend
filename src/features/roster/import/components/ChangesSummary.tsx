@@ -1,5 +1,5 @@
 import React from 'react';
-import { ImportHistoryItem } from '../../services/class/service';
+import { ImportHistoryItem } from '../../services/class.service';
 import { classFieldLabel, studentChangeLabel } from '../utils/history/constants';
 
 interface ChangesSummaryProps {

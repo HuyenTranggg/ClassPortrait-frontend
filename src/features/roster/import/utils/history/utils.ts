@@ -1,4 +1,4 @@
-import { ImportHistoryItem } from '../../../services/class/service';
+import { ImportHistoryItem } from '../../../services/class.service';
 
 export function getClassLabel(item: ImportHistoryItem): string {
   const classCode = String(item.classCode || '').trim();

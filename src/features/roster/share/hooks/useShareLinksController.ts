@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Class } from '../../../../types';
-import { classService, ShareLink } from '../../services/class/service';
+import { classService, ShareLink } from '../../services/class.service';
 import {
   getShareLinkStatus,
   mapShareApiError,
   toDateTimeLocalValue,
   toIsoFromDateTimeLocal,
 } from '../utils/shareHelpers';
-import { useAutoDismissMessage } from '../../shared/hooks/useAutoDismissMessage';
+import { useAutoDismissMessage } from '../../../../hooks/useAutoDismissMessage';
 
 export interface ShareLinkRow {
   classInfo: Class;

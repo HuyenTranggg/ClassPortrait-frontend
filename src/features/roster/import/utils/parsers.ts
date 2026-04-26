@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx';
-import { ImportSourceOption, ParsedExcelInfo } from './types';
+import { ImportSourceOption, ParsedExcelInfo } from '../types';
 
 export const SOURCE_OPTIONS: ImportSourceOption[] = [
   {

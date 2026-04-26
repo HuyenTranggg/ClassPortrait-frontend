@@ -1,4 +1,4 @@
-import { DuplicateConflictState } from './types';
+import { DuplicateConflictState } from '../types';
 import { normalizeText } from './parsers';
 
 const CLASS_FIELD_LABELS: Record<string, string> = {

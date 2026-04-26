@@ -4,7 +4,7 @@ import {
   ImportHistoryItem,
   ImportHistoryPagination,
   ImportSourceType,
-} from '../../services/class/service';
+} from '../../services/class.service';
 
 export type ImportHistoryFilter = 'all' | ImportSourceType;
 
