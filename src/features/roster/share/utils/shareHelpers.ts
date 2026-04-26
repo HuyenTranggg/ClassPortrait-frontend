@@ -1,4 +1,4 @@
-import { ShareLink } from '../../services/class/service';
+import { ShareLink } from '../../services/class.service';
 
 /**
  * Chuyển datetime ISO sang định dạng input datetime-local.

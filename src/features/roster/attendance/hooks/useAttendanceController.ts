@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Class } from '../../../../types/Class';
 import { Student } from '../../../../types/Student';
-import { useAutoDismissMessage } from '../../shared/hooks/useAutoDismissMessage';
-import { ActiveView } from '../../core/shell/types';
+import { useAutoDismissMessage } from '../../../../hooks/useAutoDismissMessage';
+import { ActiveView } from '../../types';
 import {
   AppMessage,
   AttendanceFilter,
@@ -10,10 +10,10 @@ import {
   buildAttendanceDetailRows,
   getAttendanceStats,
   SavedAttendanceState,
-} from './attendance.controller';
+} from '../services/attendance.service';
 import { useAttendanceActions } from './useAttendanceActions';
 
-export type { AttendanceFilter } from './attendance.controller';
+export type { AttendanceFilter } from '../services/attendance.service';
 
 interface UseAttendanceControllerOptions {
   selectedClass: Class | null;

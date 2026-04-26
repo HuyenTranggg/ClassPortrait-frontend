@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import dashboardApi from '../services/api';
+import dashboardApi from '../services/dashboard.api';
 import {
   AttendanceStatusFilter,
   DashboardClassItem,

@@ -1,1 +1,1 @@
-export { default as AppShell } from './core/AppShell';
+export { default as AppShell } from '../../layouts/AppShell';

@@ -4,7 +4,7 @@ import './App.scss';
 import { AppShell } from './features/roster';
 import { LandingPage } from './features/landing';
 import { LoginModal, useAuth } from './features/auth';
-import { SharedClassPage } from './features/public-share';
+import { SharedClassPage } from './features/share-public';
 
 const loginMessages: Record<string, string> = {
   default: 'hệ thống',

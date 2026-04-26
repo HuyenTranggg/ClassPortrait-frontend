@@ -1,5 +1,5 @@
 import React from 'react';
-import { PrintMeta } from '../../core/shell/types';
+import { PrintMeta } from '../../types';
 import { PrintComponentKey, PrintHeaderConfig } from '../types';
 import { DEFAULT_PRINT_COMPONENT_ORDER, PRINT_COMPONENT_LABELS } from '../constants';
 

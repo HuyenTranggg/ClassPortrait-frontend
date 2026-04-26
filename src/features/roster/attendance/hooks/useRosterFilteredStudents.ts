@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import type { Student } from '../../../../types/Student';
-import type { AttendanceFilter, SavedAttendanceState } from './attendance.controller';
+import type { AttendanceFilter, SavedAttendanceState } from '../services/attendance.service';
 
 interface UseRosterFilteredStudentsOptions {
   students: Student[];

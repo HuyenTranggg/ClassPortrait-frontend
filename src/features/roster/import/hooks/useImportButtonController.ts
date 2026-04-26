@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
-import { DuplicateImportOptions } from '../../services/class/service';
+import { DuplicateImportOptions } from '../../services/class.service';
 import { extractDuplicateConflict } from '../utils/duplicate';
 import { parseExcelFile, parseGoogleSheetFromUrl } from '../utils/parsers';
-import { ImportButtonProps, ImportStateSnapshot, MappingMode, SourceType } from '../utils/types';
+import { ImportButtonProps, ImportStateSnapshot, MappingMode, SourceType } from '../types';
 import { mapImportErrorMessage } from '../utils/errorMessages';
-import { submitImportRequest } from '../utils/submitImportRequest';
+import { submitImportRequest } from '../services/import.service';
 
 interface ControllerActions {
   setSelectedSource: (source: SourceType) => void;

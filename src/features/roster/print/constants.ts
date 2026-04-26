@@ -1,4 +1,4 @@
-import { PrintMeta } from '../core/shell/types';
+import { PrintMeta } from '../types';
 import { PrintComponentKey, PrintHeaderConfig, PrintHeaderTemplateOption } from './types';
 
 export const PRINT_COMPONENT_LABELS: Record<PrintComponentKey, string> = {

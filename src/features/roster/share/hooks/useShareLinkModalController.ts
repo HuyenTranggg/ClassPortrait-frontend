@@ -5,7 +5,7 @@ import {
   CreateShareLinkPayload,
   ShareLink,
   UpdateShareLinkPayload,
-} from '../../services/class/service';
+} from '../../services/class.service';
 import {
   buildPublicShareUrl,
   getShareLinkStatus,
@@ -13,7 +13,7 @@ import {
   toDateTimeLocalValue,
   toIsoFromDateTimeLocal,
 } from '../utils/shareHelpers';
-import { useAutoDismissMessage } from '../../shared/hooks/useAutoDismissMessage';
+import { useAutoDismissMessage } from '../../../../hooks/useAutoDismissMessage';
 
 interface UseShareLinkModalControllerOptions {
   isOpen: boolean;

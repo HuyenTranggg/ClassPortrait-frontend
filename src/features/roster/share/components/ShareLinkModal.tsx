@@ -1,6 +1,6 @@
 import React from 'react';
 import { Class } from '../../../../types';
-import AppToast from '../../shared/components/AppToast';
+import AppToast from '../../../../components/AppToast';
 import { formatDateTime } from '../utils/shareHelpers';
 import { useShareLinkModalController } from '../hooks/useShareLinkModalController';
 

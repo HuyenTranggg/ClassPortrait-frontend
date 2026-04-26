@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import { StepFour, StepOne, StepThree, StepTwo } from './ImportButtonSteps';
 import { useImportButtonController } from '../hooks/useImportButtonController';
-import { ImportButtonProps } from '../utils/types';
+import { ImportButtonProps } from '../types';
 
 function ImportButton({ onImportSuccess }: ImportButtonProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);

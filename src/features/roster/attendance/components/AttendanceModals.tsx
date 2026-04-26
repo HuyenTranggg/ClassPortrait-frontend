@@ -1,5 +1,5 @@
 import React from 'react';
-import { AttendanceStatus } from '../services/api';
+import { AttendanceStatus } from '../services/attendance.api';
 import { exportAttendanceToCsv, exportAttendanceToXlsx } from '../utils/attendanceExport';
 
 export interface AttendanceDetailRow {
