@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import ImportHistoryView from '../features/roster/import/views/ImportHistoryView';
 import ShareLinksView from '../features/roster/share/views/ShareLinksView';
 import { TeacherDashboardView } from '../features/roster/dashboard';
 import { useClasses } from '../features/roster/hooks/useClasses';
 import { usePagination } from '../hooks/usePagination';
 import { useAuth } from '../features/auth';
+import { ActiveView } from '../features/roster/types';
 import AppSidebar from './AppSidebar';
 import ShellHeader from './ShellHeader';
 import WorkspaceToolbar from './WorkspaceToolbar';
@@ -33,7 +35,51 @@ const formatAttendanceTime = (value: string): string => {
   return date.toLocaleString('vi-VN');
 };
 
+/**
+ * Xác định tab giao diện hiện tại theo pathname của router.
+ * @param pathname Đường dẫn hiện tại trên browser.
+ * @returns ActiveView tương ứng để tái sử dụng UI hiện có.
+ */
+const resolveActiveViewFromPathname = (pathname: string): ActiveView => {
+  if (pathname === '/dashboard') {
+    return 'dashboard';
+  }
+
+  if (pathname === '/import-history') {
+    return 'history';
+  }
+
+  if (pathname === '/share') {
+    return 'share';
+  }
+
+  return 'roster';
+};
+
+/**
+ * Chuyển đổi ActiveView sang đường dẫn router tương ứng.
+ * @param view View được chọn từ sidebar.
+ * @returns Pathname điều hướng của view.
+ */
+const resolvePathnameFromActiveView = (view: ActiveView): string => {
+  if (view === 'dashboard') {
+    return '/dashboard';
+  }
+
+  if (view === 'history') {
+    return '/import-history';
+  }
+
+  if (view === 'share') {
+    return '/share';
+  }
+
+  return '/classes';
+};
+
 function AppShell() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [isShareModalOpen, setShareModalOpen] = useState(false);
   const { logout, userEmail } = useAuth();
   const { classes, selectedClass, students, loading, error, selectClass, refetchClasses } = useClasses();
@@ -41,10 +87,8 @@ function AppShell() {
   const {
     headerRef,
     sidebarCollapsed,
-    activeView,
     layout,
     setSidebarCollapsed,
-    setActiveView,
     handleClassChange,
     handleOpenClassFromHistory,
     handleLayoutChange,
@@ -52,6 +96,8 @@ function AppShell() {
     selectedClassId: selectedClass?.id,
     selectClass,
   });
+
+  const activeView = resolveActiveViewFromPathname(location.pathname);
 
   const {
     isAttendanceMode,
@@ -125,6 +171,7 @@ function AppShell() {
     }
 
     await handleOpenClassFromHistory(classId);
+    navigate('/classes');
   };
 
   /**
@@ -145,7 +192,7 @@ function AppShell() {
     }
 
     await selectClass(classId);
-    setActiveView('roster');
+    navigate('/classes');
   };
 
   /**
@@ -166,7 +213,7 @@ function AppShell() {
     }
 
     await selectClass(classId);
-    setActiveView('roster');
+    navigate('/classes');
     await handleStartAttendance(classId);
   };
 
@@ -227,6 +274,15 @@ function AppShell() {
     });
   };
 
+  /**
+   * Điều hướng sidebar sang route tương ứng với view được chọn.
+   * @param view View mục tiêu từ sidebar.
+   * @returns Không trả về giá trị.
+   */
+  const handleNavigateView = (view: ActiveView) => {
+    navigate(resolvePathnameFromActiveView(view));
+  };
+
   return (
     <div className={`app-shell ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
       <AppSidebar
@@ -234,7 +290,7 @@ function AppShell() {
         sidebarCollapsed={sidebarCollapsed}
         lecturerDisplayName={lecturerDisplayName}
         onToggleSidebar={() => setSidebarCollapsed((prev) => !prev)}
-        onSetActiveView={setActiveView}
+        onSetActiveView={handleNavigateView}
         onLogout={logout}
       />
 

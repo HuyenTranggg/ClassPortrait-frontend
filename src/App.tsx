@@ -1,5 +1,6 @@
 // src/App.tsx
 import React, { useMemo, useState } from 'react';
+import { Navigate, Route, Routes, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import './App.scss';
 import { AppShell } from './features/roster';
 import { LandingPage } from './features/landing';
@@ -17,19 +18,46 @@ const loginMessages: Record<string, string> = {
   'In chuẩn format': 'chức năng in chuẩn format',
 };
 
+interface ProtectedRouteProps {
+  isAuthenticated: boolean;
+  children: React.ReactElement;
+}
+
+/**
+ * Bảo vệ route yêu cầu đăng nhập trước khi truy cập.
+ * @param isAuthenticated Trạng thái đăng nhập hiện tại.
+ * @param children Nội dung route cần bảo vệ.
+ * @returns Component con nếu đã đăng nhập, ngược lại chuyển về trang landing.
+ */
+function ProtectedRoute({ isAuthenticated, children }: ProtectedRouteProps) {
+  if (!isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
+}
+
+/**
+ * Đọc tham số route/query để hiển thị trang chia sẻ công khai.
+ * @returns Component trang chia sẻ với id/exp/sig lấy từ URL hiện tại.
+ */
+function SharedClassRoute() {
+  const { id = '' } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
+
+  return <SharedClassPage id={id} exp={searchParams.get('exp') || ''} sig={searchParams.get('sig') || ''} />;
+}
+
 /**
  * Component chính của ứng dụng Sổ ảnh sinh viên
  */
 function App() {
   const { isAuthenticated, login } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [loginContext, setLoginContext] = useState('default');
-  const sharedPathMatch = window.location.pathname.match(/^\/classes\/shared\/([^/]+)$/);
-  const sharedLinkId = sharedPathMatch?.[1] || null;
-  const isSharedRoute = Boolean(sharedLinkId);
-  const sharedParams = new URLSearchParams(window.location.search);
-  const sharedExp = sharedParams.get('exp') || '';
-  const sharedSig = sharedParams.get('sig') || '';
+  const isSharedRoute = location.pathname.startsWith('/classes/shared/');
 
   const loginContextLabel = useMemo(() => loginMessages[loginContext] || loginMessages.default, [loginContext]);
 
@@ -74,27 +102,68 @@ function App() {
     }
 
     setIsLoginOpen(false);
+    navigate('/classes', { replace: true });
   };
 
   return (
     <>
-      {isSharedRoute ? (
-        <SharedClassPage id={sharedLinkId!} exp={sharedExp} sig={sharedSig} />
-      ) : (
-        <>
-          {isAuthenticated ? (
-            <AppShell />
-          ) : (
-            <LandingPage onLoginClick={() => openLogin()} onFeatureClick={openLogin} />
-          )}
+      <Routes>
+        <Route path="/classes/shared/:id" element={<SharedClassRoute />} />
 
-          <LoginModal
-            isOpen={isLoginOpen}
-            contextLabel={loginContextLabel}
-            onClose={closeLogin}
-            onSubmit={handleLogin}
-          />
-        </>
+        <Route
+          path="/"
+          element={
+            isAuthenticated ? (
+              <Navigate to="/classes" replace />
+            ) : (
+              <LandingPage onLoginClick={() => openLogin()} onFeatureClick={openLogin} />
+            )
+          }
+        />
+
+        <Route
+          path="/classes"
+          element={
+            <ProtectedRoute isAuthenticated={isAuthenticated}>
+              <AppShell />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute isAuthenticated={isAuthenticated}>
+              <AppShell />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/import-history"
+          element={
+            <ProtectedRoute isAuthenticated={isAuthenticated}>
+              <AppShell />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/share"
+          element={
+            <ProtectedRoute isAuthenticated={isAuthenticated}>
+              <AppShell />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route path="*" element={<Navigate to={isAuthenticated ? '/classes' : '/'} replace />} />
+      </Routes>
+
+      {!isSharedRoute && (
+        <LoginModal
+          isOpen={isLoginOpen}
+          contextLabel={loginContextLabel}
+          onClose={closeLogin}
+          onSubmit={handleLogin}
+        />
       )}
     </>
   );

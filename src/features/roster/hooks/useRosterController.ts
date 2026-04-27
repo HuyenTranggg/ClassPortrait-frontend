@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import { ActiveView } from '../types';
 import { getInitialLayout, isAllowedLayout } from '../utils/roster.utils';
 
 interface UseRosterControllerOptions {
@@ -16,7 +15,6 @@ export const useRosterController = ({
 }: UseRosterControllerOptions) => {
   const headerRef = useRef<HTMLDivElement | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [activeView, setActiveView] = useState<ActiveView>('roster');
   const [layout, setLayout] = useState<number>(getInitialLayout);
 
   const updateUrlParams = (updates: { layout?: number; classId?: string }) => {
@@ -71,7 +69,6 @@ export const useRosterController = ({
 
     await selectClass(classId);
     updateUrlParams({ classId });
-    setActiveView('roster');
   };
 
   const handleLayoutChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -85,10 +82,8 @@ export const useRosterController = ({
   return {
     headerRef,
     sidebarCollapsed,
-    activeView,
     layout,
     setSidebarCollapsed,
-    setActiveView,
     handlePrint,
     handleClassChange,
     handleOpenClassFromHistory,
