@@ -1,1 +1,1 @@
-export { default as AppShell } from '../../layouts/AppShell';
+export { default as RosterView } from './views/RosterView';

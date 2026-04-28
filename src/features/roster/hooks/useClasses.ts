@@ -15,10 +15,15 @@ interface UseClassesReturn {
   refetchClasses: (preferredClassId?: string) => Promise<void>;
 }
 
+interface UseClassesOptions {
+  enabled?: boolean;
+  preferredClassId?: string;
+}
+
 /**
  * Custom hook để quản lý danh sách lớp học và sinh viên
  */
-export const useClasses = (): UseClassesReturn => {
+export const useClasses = ({ enabled = true, preferredClassId }: UseClassesOptions = {}): UseClassesReturn => {
   const [classes, setClasses] = useState<Class[]>([]);
   const [selectedClass, setSelectedClass] = useState<Class | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
@@ -34,11 +39,14 @@ export const useClasses = (): UseClassesReturn => {
       setError(null);
       
       // Tìm thông tin lớp từ danh sách hiện có
-      const classData = (classList || classesRef.current).find(c => c.id === classId);
-      if (classData) {
-        setSelectedClass(classData);
-        selectedClassIdRef.current = classData.id;
+      let classData = (classList || classesRef.current).find(c => c.id === classId);
+
+      if (!classData) {
+        classData = await classService.getById(classId);
       }
+
+      setSelectedClass(classData);
+      selectedClassIdRef.current = classData.id;
       
       // Lấy danh sách sinh viên của lớp
       const studentsData = await classService.getStudents(classId);
@@ -54,6 +62,10 @@ export const useClasses = (): UseClassesReturn => {
 
   // Lấy danh sách tất cả các lớp
   const fetchClasses = useCallback(async (preferredClassId?: string) => {
+    if (!enabled) {
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
@@ -84,7 +96,7 @@ export const useClasses = (): UseClassesReturn => {
     } finally {
       setLoading(false);
     }
-  }, [selectClassInternal]);
+  }, [enabled, selectClassInternal]);
 
   const selectClass = useCallback(async (classId: string) => {
     await selectClassInternal(classId);
@@ -95,8 +107,8 @@ export const useClasses = (): UseClassesReturn => {
   }, [fetchClasses]);
 
   useEffect(() => {
-    fetchClasses();
-  }, [fetchClasses]);
+    fetchClasses(preferredClassId);
+  }, [fetchClasses, preferredClassId]);
 
   return {
     classes,

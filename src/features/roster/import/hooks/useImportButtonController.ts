@@ -84,7 +84,9 @@ export const useImportButtonController = ({ onImportSuccess }: ImportButtonProps
 
   const onImportSucceeded = async (classId: string, successMessage?: string) => {
     setMessage({ type: 'success', text: successMessage || 'Import thành công!' });
-    await onImportSuccess(classId);
+    if (onImportSuccess) {
+      await onImportSuccess(classId);
+    }
     setStepThreeMode('success');
     setStep(3);
   };

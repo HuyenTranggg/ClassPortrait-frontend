@@ -1,7 +1,7 @@
 import { DuplicateImportOptions } from '../services/class.service';
 
 export interface ImportButtonProps {
-  onImportSuccess: (importedClassId?: string) => Promise<void> | void;
+  onImportSuccess?: (importedClassId?: string) => Promise<void> | void;
 }
 
 export type ImportStep = 1 | 2 | 3 | 4;

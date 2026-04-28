@@ -1,21 +1,17 @@
 import React from 'react';
-import { ActiveView } from '../features/roster/types';
+import { NavLink } from 'react-router-dom';
 
 interface AppSidebarProps {
-  activeView: ActiveView;
   sidebarCollapsed: boolean;
   lecturerDisplayName: string;
   onToggleSidebar: () => void;
-  onSetActiveView: (view: ActiveView) => void;
   onLogout: () => void;
 }
 
 function AppSidebar({
-  activeView,
   sidebarCollapsed,
   lecturerDisplayName,
   onToggleSidebar,
-  onSetActiveView,
   onLogout,
 }: AppSidebarProps) {
   return (
@@ -44,40 +40,36 @@ function AppSidebar({
         </div>
 
         <nav className="sidebar-nav">
-          <button
-            type="button"
-            className={`sidebar-link ${activeView === 'roster' ? 'is-active' : ''}`}
-            onClick={() => onSetActiveView('roster')}
+          <NavLink
+            to="/classes"
+            className={({ isActive }) => `sidebar-link ${isActive ? 'is-active' : ''}`}
           >
             <span>Sổ ảnh</span>
             <small>Quản lý danh sách ảnh</small>
-          </button>
-          <button
-            type="button"
-            className={`sidebar-link ${activeView === 'history' ? 'is-active' : ''}`}
-            onClick={() => onSetActiveView('history')}
+          </NavLink>
+          <NavLink
+            to="/import-history"
+            className={({ isActive }) => `sidebar-link ${isActive ? 'is-active' : ''}`}
           >
             <span>Lịch sử import</span>
             <small>Theo dõi các lần nhập file</small>
-          </button>
+          </NavLink>
 
-          <button
-            type="button"
-            className={`sidebar-link ${activeView === 'share' ? 'is-active' : ''}`}
-            onClick={() => onSetActiveView('share')}
+          <NavLink
+            to="/share"
+            className={({ isActive }) => `sidebar-link ${isActive ? 'is-active' : ''}`}
           >
             <span>Chia sẻ</span>
             <small>Quản lý link chia sẻ theo từng lớp</small>
-          </button>
+          </NavLink>
 
-          <button
-            type="button"
-            className={`sidebar-link ${activeView === 'dashboard' ? 'is-active' : ''}`}
-            onClick={() => onSetActiveView('dashboard')}
+          <NavLink
+            to="/dashboard"
+            className={({ isActive }) => `sidebar-link ${isActive ? 'is-active' : ''}`}
           >
             <span>Dashboard</span>
             <small>Tổng hợp nhanh theo lớp phụ trách</small>
-          </button>
+          </NavLink>
           
           <button type="button" className="sidebar-link">
             <span>Cài đặt</span>

@@ -7,8 +7,7 @@ export const isAllowedLayout = (value: number): value is (typeof ALLOWED_LAYOUTS
   return ALLOWED_LAYOUTS.includes(value as (typeof ALLOWED_LAYOUTS)[number]);
 };
 
-export const getInitialLayout = (): number => {
-  const params = new URLSearchParams(window.location.search);
+export const getInitialLayout = (params: URLSearchParams): number => {
   const layoutFromUrl = Number(params.get('layout'));
   return isAllowedLayout(layoutFromUrl) ? layoutFromUrl : 5;
 };

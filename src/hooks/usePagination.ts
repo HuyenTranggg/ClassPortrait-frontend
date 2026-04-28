@@ -1,6 +1,7 @@
 // frontend/src/hooks/usePagination.ts
 
 import { useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Student } from '../types/Student';
 import { PAGINATION_CONFIG } from '../config/constants';
 
@@ -20,6 +21,8 @@ interface UsePaginationReturn {
  * Custom hook để xử lý logic phân trang
  */
 export const usePagination = (students: Student[], selectedLayout?: number): UsePaginationReturn => {
+  const [searchParams] = useSearchParams();
+
   // Lấy layout từ state hoặc URL query parameter
   const photosPerRow = useMemo(() => {
     const allowedLayouts = PAGINATION_CONFIG.AVAILABLE_LAYOUTS as readonly number[];
@@ -28,13 +31,12 @@ export const usePagination = (students: Student[], selectedLayout?: number): Use
       return selectedLayout;
     }
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const parsedLayout = Number(urlParams.get('layout'));
+    const parsedLayout = Number(searchParams.get('layout'));
 
     return allowedLayouts.includes(parsedLayout)
       ? parsedLayout
       : PAGINATION_CONFIG.DEFAULT_LAYOUT;
-  }, [selectedLayout]);
+  }, [selectedLayout, searchParams]);
 
   // Tính toán số ảnh mỗi trang
   const photosPerPage = useMemo(

@@ -1,8 +1,11 @@
-// src/App.tsx
 import React, { useMemo, useState } from 'react';
 import { Navigate, Route, Routes, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import './App.scss';
-import { AppShell } from './features/roster';
+import AppLayout from './layouts/AppLayout';
+import RosterView from './features/roster/views/RosterView';
+import TeacherDashboardView from './features/roster/dashboard/views/TeacherDashboardView';
+import ImportHistoryView from './features/roster/import/views/ImportHistoryView';
+import ShareLinksView from './features/roster/share/views/ShareLinksView';
 import { LandingPage } from './features/landing';
 import { LoginModal, useAuth } from './features/auth';
 import { SharedClassPage } from './features/share-public';
@@ -121,38 +124,13 @@ function App() {
           }
         />
 
-        <Route
-          path="/classes"
-          element={
-            <ProtectedRoute isAuthenticated={isAuthenticated}>
-              <AppShell />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute isAuthenticated={isAuthenticated}>
-              <AppShell />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/import-history"
-          element={
-            <ProtectedRoute isAuthenticated={isAuthenticated}>
-              <AppShell />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/share"
-          element={
-            <ProtectedRoute isAuthenticated={isAuthenticated}>
-              <AppShell />
-            </ProtectedRoute>
-          }
-        />
+        <Route element={<ProtectedRoute isAuthenticated={isAuthenticated}><AppLayout /></ProtectedRoute>}>
+          <Route path="/classes" element={<RosterView />} />
+          <Route path="/classes/:classId" element={<RosterView />} />
+          <Route path="/dashboard" element={<TeacherDashboardView />} />
+          <Route path="/import-history" element={<ImportHistoryView />} />
+          <Route path="/share" element={<ShareLinksView />} />
+        </Route>
 
         <Route path="*" element={<Navigate to={isAuthenticated ? '/classes' : '/'} replace />} />
       </Routes>
