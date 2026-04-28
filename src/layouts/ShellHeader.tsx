@@ -4,27 +4,27 @@ import { ActiveView, RosterMeta } from '../features/roster/types';
 
 interface ShellHeaderProps {
   activeView: ActiveView;
-  selectedClassExists: boolean;
-  hasStudents: boolean;
-  hasSavedAttendance: boolean;
-  rosterMeta: RosterMeta;
-  isAttendanceMode: boolean;
-  isAttendanceBusy: boolean;
-  onOpenShare: () => void;
-  onStartAttendance: () => Promise<void> | void;
-  onSaveAttendance: () => void;
-  onCancelAttendance: () => void;
-  onImportSuccess: (importedClassId?: string) => Promise<void> | void;
+  selectedClassExists?: boolean;
+  hasStudents?: boolean;
+  hasSavedAttendance?: boolean;
+  rosterMeta?: RosterMeta;
+  isAttendanceMode?: boolean;
+  isAttendanceBusy?: boolean;
+  onOpenShare?: () => void;
+  onStartAttendance?: () => Promise<void> | void;
+  onSaveAttendance?: () => void;
+  onCancelAttendance?: () => void;
+  onImportSuccess?: (importedClassId?: string) => Promise<void> | void;
 }
 
 function ShellHeader({
   activeView,
-  selectedClassExists,
-  hasStudents,
-  hasSavedAttendance,
-  rosterMeta,
-  isAttendanceMode,
-  isAttendanceBusy,
+  selectedClassExists = false,
+  hasStudents = false,
+  hasSavedAttendance = false,
+  rosterMeta = {} as RosterMeta,
+  isAttendanceMode = false,
+  isAttendanceBusy = false,
   onOpenShare,
   onStartAttendance,
   onSaveAttendance,

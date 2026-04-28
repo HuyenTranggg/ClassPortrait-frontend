@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { classService, SharedClassResponse } from '../../roster/services/class.service';
 import StudentCard from '../../roster/components/StudentCard';
 import { useAuth } from '../../auth';
@@ -43,8 +44,7 @@ const AVAILABLE_LAYOUTS = [4, 5, 6] as const;
  * Lấy layout ban đầu từ query param hoặc mặc định 5 cột.
  * @returns Số cột hợp lệ trong AVAILABLE_LAYOUTS.
  */
-const getInitialLayout = (): (typeof AVAILABLE_LAYOUTS)[number] => {
-  const params = new URLSearchParams(window.location.search);
+const getInitialLayout = (params: URLSearchParams): (typeof AVAILABLE_LAYOUTS)[number] => {
   const value = Number(params.get('layout'));
 
   return AVAILABLE_LAYOUTS.includes(value as (typeof AVAILABLE_LAYOUTS)[number])
@@ -53,12 +53,13 @@ const getInitialLayout = (): (typeof AVAILABLE_LAYOUTS)[number] => {
 };
 
 function SharedClassPage({ id, exp, sig }: SharedClassPageProps) {
+  const [searchParams, setSearchParams] = useSearchParams();
   const { isAuthenticated, login } = useAuth();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [requiresLogin, setRequiresLogin] = useState(false);
   const [payload, setPayload] = useState<SharedClassResponse | null>(null);
-  const [layout, setLayout] = useState<(typeof AVAILABLE_LAYOUTS)[number]>(getInitialLayout);
+  const [layout, setLayout] = useState<(typeof AVAILABLE_LAYOUTS)[number]>(() => getInitialLayout(searchParams));
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [loginSubmitting, setLoginSubmitting] = useState(false);
@@ -117,6 +118,11 @@ function SharedClassPage({ id, exp, sig }: SharedClassPageProps) {
   }, [payload]);
 
   useEffect(() => {
+    const nextLayout = getInitialLayout(searchParams);
+    setLayout((currentLayout) => (currentLayout === nextLayout ? currentLayout : nextLayout));
+  }, [searchParams]);
+
+  useEffect(() => {
     document.body.setAttribute('data-layout', String(layout));
 
     return () => {
@@ -132,11 +138,9 @@ function SharedClassPage({ id, exp, sig }: SharedClassPageProps) {
 
     setLayout(nextLayout);
 
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(searchParams);
     params.set('layout', String(nextLayout));
-    const query = params.toString();
-    const nextUrl = query ? `${window.location.pathname}?${query}` : window.location.pathname;
-    window.history.replaceState(null, '', nextUrl);
+    setSearchParams(params, { replace: true });
   };
 
   /**

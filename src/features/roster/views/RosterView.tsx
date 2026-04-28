@@ -1,0 +1,292 @@
+import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useClasses } from '../hooks/useClasses';
+import { usePagination } from '../../../hooks/usePagination';
+import ShellHeader from '../../../layouts/ShellHeader';
+import WorkspaceToolbar from '../../../layouts/WorkspaceToolbar';
+import RosterBody from '../components/RosterBody';
+import { buildPrintMeta, buildRosterMeta } from '../utils/roster.utils';
+import ShareLinkModal from '../share/components/ShareLinkModal';
+import { AttendanceStatsModal, AttendanceDetailModal, RetakeConfirmModal } from '../attendance/components/AttendanceModals';
+import AppToast from '../../../components/AppToast';
+import { AttendanceFilter, useAttendanceController } from '../attendance/hooks/useAttendanceController';
+import { useRosterFilteredStudents } from '../attendance/hooks/useRosterFilteredStudents';
+import { useRosterController } from '../hooks/useRosterController';
+import { PrintHeaderModal, usePrintHeaderController } from '../print';
+
+const formatAttendanceTime = (value: string): string => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+  return date.toLocaleString('vi-VN');
+};
+
+function RosterView() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { classId } = useParams<{ classId: string }>();
+  const [isShareModalOpen, setShareModalOpen] = useState(false);
+  
+  const { classes, selectedClass, students, loading, error, selectClass, refetchClasses } = useClasses({
+    enabled: true,
+    preferredClassId: classId,
+  });
+
+  const {
+    headerRef,
+    layout,
+    handleClassChange,
+    handleLayoutChange,
+  } = useRosterController({
+    selectedClassId: selectedClass?.id,
+    selectClass,
+  });
+
+  const {
+    isAttendanceMode,
+    isAttendanceBusy,
+    attendanceMessage,
+    attendanceFilter,
+    attendanceSearch,
+    isStatsModalOpen,
+    isDetailModalOpen,
+    isRetakeConfirmOpen,
+    savedAttendance,
+    attendanceStats,
+    detailRows,
+    activeAttendanceMap,
+    setAttendanceMessage,
+    setAttendanceFilter,
+    setAttendanceSearch,
+    setStatsModalOpen,
+    setDetailModalOpen,
+    setRetakeConfirmOpen,
+    handleStartAttendance,
+    handleToggleAttendance,
+    handleConfirmSaveAttendance,
+    handleCancelAttendanceMode,
+    handleConfirmRetakeAttendance,
+  } = useAttendanceController({
+    selectedClass,
+    students,
+    activeView: 'roster',
+  });
+
+  const filteredStudents = useRosterFilteredStudents({
+    students,
+    attendanceSearch,
+    isAttendanceMode,
+    attendanceFilter,
+    savedAttendance,
+  });
+
+  const { photosPerRow } = usePagination(filteredStudents, layout);
+
+  useEffect(() => {
+    document.body.setAttribute('data-layout', photosPerRow.toString());
+
+    return () => {
+      document.body.removeAttribute('data-layout');
+    };
+  }, [photosPerRow]);
+
+  // Tự động kích hoạt hành động nếu được yêu cầu từ Dashboard (thông qua location.state)
+  useEffect(() => {
+    if (loading || !selectedClass) return;
+
+    const state = location.state as { autoStartAttendance?: boolean; autoOpenShare?: boolean } | null;
+    if (!state) return;
+
+    if (state.autoStartAttendance && !isAttendanceMode && students.length > 0) {
+      handleStartAttendance();
+    } else if (state.autoOpenShare) {
+      setShareModalOpen(true);
+    }
+
+    // Xóa state để tránh kích hoạt lại khi refresh hoặc quay lại
+    navigate(location.pathname, { replace: true, state: {} });
+  }, [loading, selectedClass, location.state, isAttendanceMode, students.length, handleStartAttendance, navigate, location.pathname]);
+
+  const handleImportSuccess = async (importedClassId?: string) => {
+    await refetchClasses(importedClassId);
+    if (importedClassId) {
+      navigate(`/classes/${importedClassId}`);
+    }
+  };
+
+  const handleClassChangeWithAttendanceConfirm = async (event: React.ChangeEvent<HTMLSelectElement>) => {
+    if (isAttendanceMode) {
+      const confirmed = window.confirm('Bạn đang điểm danh dở. Đổi lớp sẽ mất dữ liệu tạm. Tiếp tục?');
+      if (!confirmed) {
+        return;
+      }
+    }
+    await handleClassChange(event);
+  };
+
+  const rosterMeta = buildRosterMeta(selectedClass, students);
+  const printMeta = buildPrintMeta(selectedClass, filteredStudents);
+  const {
+    isModalOpen: isPrintHeaderModalOpen,
+    activeConfig: printHeaderConfig,
+    draftConfig: draftPrintHeaderConfig,
+    errorMessage: printHeaderError,
+    openModal: openPrintHeaderModal,
+    closeModal: closePrintHeaderModal,
+    updateDraftConfig,
+    uploadImage,
+    clearDraftImage,
+    applyDraftConfig,
+  } = usePrintHeaderController(printMeta);
+
+  const handleOpenPrintModal = () => {
+    openPrintHeaderModal();
+  };
+
+  const handleApplyHeaderAndPrint = () => {
+    applyDraftConfig();
+    window.requestAnimationFrame(() => {
+      window.print();
+    });
+  };
+
+  return (
+    <>
+      <div className="sticky-controls no-print" ref={headerRef}>
+        <ShellHeader
+          activeView="roster"
+          selectedClassExists={Boolean(selectedClass)}
+          hasStudents={students.length > 0}
+          hasSavedAttendance={Boolean(savedAttendance)}
+          rosterMeta={rosterMeta}
+          isAttendanceMode={isAttendanceMode}
+          isAttendanceBusy={isAttendanceBusy}
+          onOpenShare={() => setShareModalOpen(true)}
+          onStartAttendance={handleStartAttendance}
+          onSaveAttendance={() => setStatsModalOpen(true)}
+          onCancelAttendance={handleCancelAttendanceMode}
+          onImportSuccess={handleImportSuccess}
+        />
+
+        <div className="roster-controls-combined">
+          <WorkspaceToolbar
+            selectedClass={selectedClass}
+            classes={classes}
+            studentsCount={filteredStudents.length}
+            photosPerRow={photosPerRow}
+            loading={loading}
+            searchQuery={attendanceSearch}
+            onClassChange={handleClassChangeWithAttendanceConfirm}
+            onLayoutChange={handleLayoutChange}
+            onSearchChange={(event) => setAttendanceSearch(event.target.value)}
+            onPrint={handleOpenPrintModal}
+          />
+
+          {!isAttendanceMode && savedAttendance && (
+            <div className="attendance-summary-panel">
+              <div className="attendance-summary-row">
+                <div className="attendance-summary-meta">
+                  Đã điểm danh lúc: <strong>{formatAttendanceTime(savedAttendance.takenAt)}</strong>
+                </div>
+
+                <div className="attendance-summary-stats">
+                  <span>
+                    Có mặt: <strong className="text-success">{savedAttendance.stats.present}</strong>
+                  </span>
+                  <span>
+                    Vắng: <strong className="text-danger">{savedAttendance.stats.absent}</strong>
+                  </span>
+                  <span>
+                    Tỉ lệ: <strong>{savedAttendance.stats.total > 0 ? Math.round((savedAttendance.stats.present / savedAttendance.stats.total) * 100) : 0}%</strong>
+                  </span>
+                </div>
+
+                <div className="attendance-summary-filter">
+                  <select
+                    className="form-select"
+                    value={attendanceFilter}
+                    onChange={(event) => setAttendanceFilter(event.target.value as AttendanceFilter)}
+                    aria-label="Lọc danh sách điểm danh"
+                  >
+                    <option value="all">Tất cả</option>
+                    <option value="present">Có mặt</option>
+                    <option value="absent">Vắng</option>
+                  </select>
+                </div>
+
+                <div className="attendance-summary-actions">
+                  <button type="button" className="btn btn-outline-secondary" onClick={() => setRetakeConfirmOpen(true)}>
+                    Điểm danh lại
+                  </button>
+                  <button type="button" className="btn btn-outline-secondary" onClick={() => setDetailModalOpen(true)}>
+                    Xem chi tiết
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <RosterBody
+        loading={loading}
+        error={error}
+        students={filteredStudents}
+        printMeta={printMeta}
+        printHeaderConfig={printHeaderConfig}
+        isAttendanceMode={isAttendanceMode}
+        attendanceByMssv={activeAttendanceMap}
+        onToggleAttendance={handleToggleAttendance}
+      />
+
+      <ShareLinkModal
+        isOpen={isShareModalOpen}
+        selectedClass={selectedClass}
+        onClose={() => setShareModalOpen(false)}
+      />
+
+      <AttendanceStatsModal
+        isOpen={isStatsModalOpen}
+        present={attendanceStats.present}
+        absent={attendanceStats.absent}
+        total={attendanceStats.total}
+        onCancel={() => setStatsModalOpen(false)}
+        onConfirm={handleConfirmSaveAttendance}
+        isSubmitting={isAttendanceBusy}
+      />
+
+      <AttendanceDetailModal
+        isOpen={isDetailModalOpen}
+        rows={detailRows}
+        classLabel={rosterMeta.classCodeLabel}
+        onClose={() => setDetailModalOpen(false)}
+      />
+
+      <RetakeConfirmModal
+        isOpen={isRetakeConfirmOpen}
+        onCancel={() => setRetakeConfirmOpen(false)}
+        onConfirm={handleConfirmRetakeAttendance}
+        isSubmitting={isAttendanceBusy}
+      />
+
+      {attendanceMessage && (
+        <AppToast message={attendanceMessage} onClose={() => setAttendanceMessage(null)} className="no-print" />
+      )}
+
+      <PrintHeaderModal
+        isOpen={isPrintHeaderModalOpen}
+        draftConfig={draftPrintHeaderConfig}
+        printMeta={printMeta}
+        errorMessage={printHeaderError}
+        onClose={closePrintHeaderModal}
+        onApplyAndPrint={handleApplyHeaderAndPrint}
+        onUpdateDraft={updateDraftConfig}
+        onUploadImage={uploadImage}
+        onClearImage={clearDraftImage}
+      />
+    </>
+  );
+}
+
+export default RosterView;

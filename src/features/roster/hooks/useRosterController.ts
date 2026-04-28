@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ActiveView } from '../types';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getInitialLayout, isAllowedLayout } from '../utils/roster.utils';
 
 interface UseRosterControllerOptions {
@@ -8,31 +8,30 @@ interface UseRosterControllerOptions {
 }
 
 /**
- * Quản lý trạng thái view/layout/sidebar và đồng bộ query params cho AppShell.
+ * Quản lý trạng thái view/layout và đồng bộ params cho RosterView.
  */
 export const useRosterController = ({
   selectedClassId,
   selectClass,
 }: UseRosterControllerOptions) => {
   const headerRef = useRef<HTMLDivElement | null>(null);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [activeView, setActiveView] = useState<ActiveView>('roster');
-  const [layout, setLayout] = useState<number>(getInitialLayout);
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [layout, setLayout] = useState<number>(() => getInitialLayout(searchParams));
 
-  const updateUrlParams = (updates: { layout?: number; classId?: string }) => {
-    const params = new URLSearchParams(window.location.search);
+  useEffect(() => {
+    const nextLayout = getInitialLayout(searchParams);
+    setLayout((currentLayout) => (currentLayout === nextLayout ? currentLayout : nextLayout));
+  }, [searchParams]);
+
+  const updateUrlParams = (updates: { layout?: number }) => {
+    const params = new URLSearchParams(searchParams);
 
     if (typeof updates.layout === 'number') {
       params.set('layout', String(updates.layout));
     }
 
-    if (updates.classId) {
-      params.set('classId', updates.classId);
-    }
-
-    const query = params.toString();
-    const nextUrl = query ? `${window.location.pathname}?${query}` : window.location.pathname;
-    window.history.replaceState(null, '', nextUrl);
+    setSearchParams(params, { replace: true });
   };
 
   useEffect(() => {
@@ -54,24 +53,24 @@ export const useRosterController = ({
   };
 
   const handleClassChange = async (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const classId = event.target.value;
+    const newClassId = event.target.value;
 
-    if (!classId) {
+    if (!newClassId) {
+      navigate('/classes');
       return;
     }
 
-    await selectClass(classId);
-    updateUrlParams({ classId });
+    await selectClass(newClassId);
+    navigate(`/classes/${newClassId}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`);
   };
 
-  const handleOpenClassFromHistory = async (classId: string) => {
-    if (!classId) {
+  const handleOpenClassFromHistory = async (newClassId: string) => {
+    if (!newClassId) {
       return;
     }
 
-    await selectClass(classId);
-    updateUrlParams({ classId });
-    setActiveView('roster');
+    await selectClass(newClassId);
+    navigate(`/classes/${newClassId}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`);
   };
 
   const handleLayoutChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -79,16 +78,12 @@ export const useRosterController = ({
     const nextLayout = isAllowedLayout(nextValue) ? nextValue : 5;
 
     setLayout(nextLayout);
-    updateUrlParams({ layout: nextLayout, classId: selectedClassId });
+    updateUrlParams({ layout: nextLayout });
   };
 
   return {
     headerRef,
-    sidebarCollapsed,
-    activeView,
     layout,
-    setSidebarCollapsed,
-    setActiveView,
     handlePrint,
     handleClassChange,
     handleOpenClassFromHistory,
