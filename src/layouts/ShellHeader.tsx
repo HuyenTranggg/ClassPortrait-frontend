@@ -32,8 +32,10 @@ function ShellHeader({
   onImportSuccess,
 }: ShellHeaderProps) {
   const title =
-    activeView === 'roster'
-      ? 'DANH SÁCH THÍ SINH DỰ THI'
+    activeView === 'class-list'
+      ? 'DANH SÁCH LỚP THI'
+      : activeView === 'roster'
+        ? 'SỔ ẢNH LỚP THI'
       : activeView === 'dashboard'
         ? 'DASHBOARD GIẢNG VIÊN'
       : activeView === 'history'
@@ -41,22 +43,35 @@ function ShellHeader({
         : 'QUẢN LÝ LINK CHIA SẺ';
 
   return (
-    <header className="shell-header">
+    <header className="shell-header d-flex align-items-center justify-content-between">
       <div className="shell-header-content">
         <p className="roster-school">ĐẠI HỌC BÁCH KHOA HÀ NỘI</p>
         <h1>{title}</h1>
 
-        {activeView === 'roster' ? (
+        {activeView === 'roster' && (
           <div className="roster-meta" role="list" aria-label="Thông tin lớp học">
-            <div className="roster-meta-item" role="listitem"><span>Học phần:</span><strong>{rosterMeta.courseLabel}</strong></div>
-            <div className="roster-meta-item" role="listitem"><span>Mã lớp:</span><strong>{rosterMeta.classCodeLabel}</strong></div>
             <div className="roster-meta-item" role="listitem"><span>Học kỳ:</span><strong>{rosterMeta.semesterLabel}</strong></div>
+            <div className="roster-meta-item" role="listitem"><span>Mã HP:</span><strong>{rosterMeta.courseCode}</strong></div>
+            <div className="roster-meta-item" role="listitem"><span>Môn học:</span><strong>{rosterMeta.courseName}</strong></div>
+            <div className="roster-meta-item" role="listitem"><span>Mã lớp học:</span><strong>{rosterMeta.classCodeLabel}</strong></div>
+            <div className="roster-meta-item" role="listitem"><span>Mã lớp thi:</span><strong>{rosterMeta.classExamCode}</strong></div>
+            <div className="roster-meta-item" role="listitem"><span>Ngày thi:</span><strong>{rosterMeta.examDate}</strong></div>
+            <div className="roster-meta-item" role="listitem"><span>Phòng thi:</span><strong>{rosterMeta.examRoom}</strong></div>
+            <div className="roster-meta-item" role="listitem"><span>Giờ thi:</span><strong>{rosterMeta.examTime}</strong></div>
+            <div className="roster-meta-item" role="listitem"><span>Kíp thi:</span><strong>{rosterMeta.examShift}</strong></div>
+            <div className="roster-meta-item" role="listitem"><span>GV giảng dạy:</span><strong>{rosterMeta.instructor}</strong></div>
             <div className="roster-meta-item" role="listitem"><span>Sĩ số:</span><strong>{rosterMeta.studentCountLabel}</strong></div>
           </div>
-        ) : (
-          <div className="roster-meta" role="list" aria-label="Thông tin màn hình hiện tại"></div>
         )}
+
       </div>
+
+      {activeView === 'class-list' && (
+        <div className="shell-actions ms-auto">
+          <ImportButton onImportSuccess={onImportSuccess} />
+        </div>
+      )}
+
 
       {activeView === 'roster' && (
         <div className="shell-actions">
@@ -73,22 +88,23 @@ function ShellHeader({
             <>
               <button
                 type="button"
-                className="btn btn-outline-secondary btn-share"
+                className="btn btn-accent btn-share"
                 disabled={!selectedClassExists}
                 onClick={onOpenShare}
               >
                 Chia sẻ
               </button>
-              <ImportButton onImportSuccess={onImportSuccess} />
               <button
                 type="button"
-                className="btn btn-outline-secondary"
+                className="btn btn-accent"
                 disabled={!selectedClassExists || !hasStudents || isAttendanceBusy}
                 onClick={onStartAttendance}
               >
                 {isAttendanceBusy ? 'Đang tải...' : hasSavedAttendance ? 'Chỉnh sửa điểm danh' : 'Bắt đầu điểm danh'}
               </button>
             </>
+
+
           )}
         </div>
       )}

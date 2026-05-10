@@ -59,6 +59,25 @@ export const formatDateTime = (value?: string | null, fallback = 'Không có'): 
 };
 
 /**
+ * Format chỉ ngày cho giao diện tiếng Việt.
+ * @param value Giá trị thời gian đầu vào.
+ * @param fallback Giá trị fallback nếu thời gian rỗng hoặc sai.
+ * @returns Chuỗi ngày đã format.
+ */
+export const formatSimpleDate = (value?: string | null, fallback = '—'): string => {
+  if (!value) {
+    return fallback;
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleDateString('vi-VN');
+};
+
+/**
  * Chuẩn hóa URL share để luôn dùng origin hiện tại của frontend.
  * @param shareLink Dữ liệu share link backend trả về.
  * @returns URL public có thể copy/mở trực tiếp.

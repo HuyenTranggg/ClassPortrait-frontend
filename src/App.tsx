@@ -3,6 +3,7 @@ import { Navigate, Route, Routes, useLocation, useNavigate, useParams, useSearch
 import './App.scss';
 import AppLayout from './layouts/AppLayout';
 import RosterView from './features/roster/views/RosterView';
+import ClassListView from './features/roster/views/ClassListView';
 import TeacherDashboardView from './features/roster/dashboard/views/TeacherDashboardView';
 import ImportHistoryView from './features/roster/import/views/ImportHistoryView';
 import ShareLinksView from './features/roster/share/views/ShareLinksView';
@@ -125,7 +126,7 @@ function App() {
         />
 
         <Route element={<ProtectedRoute isAuthenticated={isAuthenticated}><AppLayout /></ProtectedRoute>}>
-          <Route path="/classes" element={<RosterView />} />
+          <Route path="/classes" element={<ClassListView />} />
           <Route path="/classes/:classId" element={<RosterView />} />
           <Route path="/dashboard" element={<TeacherDashboardView />} />
           <Route path="/import-history" element={<ImportHistoryView />} />

@@ -1,5 +1,6 @@
 import { DuplicateConflictState } from '../types';
 import { normalizeText } from './parsers';
+import { formatExcelTime } from './formatters';
 
 const CLASS_FIELD_LABELS: Record<string, string> = {
   classCode: 'Mã lớp',
@@ -16,11 +17,11 @@ const CLASS_FIELD_LABELS: Record<string, string> = {
 };
 
 const STUDENT_CHANGE_LABELS: Record<string, string> = {
-  added: 'Sinh viên thêm mới',
-  removed: 'Sinh viên bị xóa',
-  renamed: 'Sinh viên đổi tên',
-  updated: 'Sinh viên cập nhật',
-  unchanged: 'Sinh viên giữ nguyên',
+  added: 'Số sinh viên sẽ thêm vào lớp',
+  removed: 'Số sinh viên sẽ bị loại khỏi lớp',
+  renamed: 'Số sinh viên có thay đổi thông tin',
+  updated: 'Số sinh viên có thay đổi thông tin',
+  unchanged: 'Số sinh viên giữ nguyên',
 };
 
 const getDiffLines = (diff: any): string[] => {
@@ -58,7 +59,15 @@ const parseClassFieldChanges = (diff: any): Array<{ field: string; oldValue: str
     const oldValue = String(item?.oldValue ?? item?.from ?? '').trim() || '(trống)';
     const newValue = String(item?.newValue ?? item?.to ?? '').trim() || '(trống)';
 
-    return { field, oldValue, newValue };
+    let finalOldValue = oldValue;
+    let finalNewValue = newValue;
+
+    if (field === 'Giờ thi') {
+      finalOldValue = formatExcelTime(oldValue) || oldValue;
+      finalNewValue = formatExcelTime(newValue) || newValue;
+    }
+
+    return { field, oldValue: finalOldValue, newValue: finalNewValue };
   });
 };
 
@@ -98,26 +107,42 @@ export const extractDuplicateConflict = (error: any): DuplicateConflictState | n
   const existingClass = payload?.existingClass || payload?.class || payload?.targetClass || payload?.duplicateClass || {};
   const existingClassId = String(existingClass?.id || payload?.targetClassId || '').trim();
 
-  if (!existingClassId) {
+  // Lấy mảng duplicates từ backend (nếu có), hoặc biến existingClass thành mảng 1 phần tử
+  const rawDuplicates = Array.isArray(payload?.duplicates) && payload.duplicates.length > 0
+    ? payload.duplicates
+    : (existingClassId ? [existingClass] : []);
+
+  if (rawDuplicates.length === 0) {
     return null;
   }
 
-  const classCode = String(existingClass?.classCode || '').trim();
-  const semester = String(existingClass?.semester || '').trim();
-  const courseCode = String(existingClass?.courseCode || '').trim();
-  const courseName = String(existingClass?.courseName || '').trim();
 
-  const existingClassLabel =
-    [classCode, semester && `HK ${semester}`, courseCode, courseName].filter(Boolean).join(' - ') || existingClassId;
+  const duplicates = rawDuplicates.map((dup: any) => {
+    const classCode = String(dup?.classCode || dup?.classExamCode || '').trim();
+    const semester = String(dup?.semester || '').trim();
+    const courseCode = String(dup?.courseCode || '').trim();
+    const courseName = String(dup?.courseName || '').trim();
+    const id = String(dup?.id || dup?.existingClassId || '').trim();
 
-  const rawDiff = payload?.diff || payload?.changes || payload?.differences || {};
+    return {
+      existingClassId: id,
+      existingClassLabel: [classCode, semester && `HK ${semester}`, courseCode, courseName].filter(Boolean).join(' - ') || id,
+      classExamCode: String(dup?.classExamCode || '').trim(),
+      classCode: String(dup?.classCode || '').trim(),
+      examDate: String(dup?.examDate || '').trim(),
+      examRoom: String(dup?.examRoom || '').trim(),
+      examTime: String(dup?.examTime || '').trim(),
+      examShift: String(dup?.examShift || '').trim(),
+      studentCount: Number(dup?.studentCount || 0),
+      isFallback: Boolean(dup?.isFallback),
+      classFieldChanges: parseClassFieldChanges(dup?.diff || dup?.changes || dup?.differences || payload?.diff),
+      studentChanges: parseStudentChanges(dup?.diff || dup?.changes || dup?.differences || payload?.diff),
+      fallbackDiffLines: getDiffLines(dup?.diff || dup?.changes || dup?.differences || payload?.diff),
+    };
+  });
 
   return {
-    existingClassId,
-    existingClassLabel,
     message: payloadMessage || 'Lớp đã tồn tại theo bộ nhận diện (mã lớp, học kỳ, mã học phần).',
-    classFieldChanges: parseClassFieldChanges(rawDiff),
-    studentChanges: parseStudentChanges(rawDiff),
-    fallbackDiffLines: getDiffLines(rawDiff),
+    duplicates,
   };
 };

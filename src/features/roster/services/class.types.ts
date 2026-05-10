@@ -20,6 +20,21 @@ export interface ImportHistoryChangesSummary {
   studentChanges?: ImportHistoryStudentChanges;
 }
 
+export interface ImportHistoryClassSummary {
+  id: string;
+  semester: string;
+  courseCode: string;
+  courseName: string;
+  department?: string;
+  instructor?: string;
+  classExamCode?: string;
+  examDate?: string;
+  examRoom?: string;
+  examTime?: string;
+  examShift?: string;
+  importOrder: number;
+}
+
 export interface ImportHistoryItem {
   id: string;
   classId: string;
@@ -35,7 +50,9 @@ export interface ImportHistoryItem {
   totalCount: number;
   importedRows: number;
   skippedRows: number;
-  mappingModeUsed: 'auto' | 'manual' | string;
+  mappingModeUsed?: 'auto' | 'manual' | string | null;
+  classIds?: string[];
+  classes?: ImportHistoryClassSummary[];
   createdAt: string;
 }
 

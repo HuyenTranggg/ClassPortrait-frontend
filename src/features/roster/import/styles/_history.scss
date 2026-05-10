@@ -119,3 +119,45 @@
   color: $text-muted-strong;
   font-size: 0.9rem;
 }
+
+// ─── Expand / Sub-rows ─────────────────────────────────────────
+
+.history-subrow {
+  background: #fafafa;
+
+  td {
+    border-top: 0;
+    color: $text-muted-strong;
+  }
+}
+
+.history-expand-wrapper {
+  border-top: 1px solid #e5e7eb;
+  background: #f8fafc;
+}
+
+.history-expand-table {
+  thead th {
+    font-size: 0.78rem;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    background: #f1f5f9;
+    white-space: nowrap;
+    font-weight: 600;
+  }
+
+  tbody td {
+    font-size: 0.83rem;
+    padding-top: 6px;
+    padding-bottom: 6px;
+  }
+}
+
+// ─── Source icon ───────────────────────────────────────────────
+
+.history-source-icon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
