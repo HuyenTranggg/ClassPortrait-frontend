@@ -1,10 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import {
-  classService,
-  ImportHistoryItem,
-  ImportHistoryPagination,
-  ImportSourceType,
-} from '../../services/class.service';
+import { ImportHistoryItem, ImportHistoryPagination, ImportSourceType } from '../../services/class.types';
+import { importApi } from '../services/import.api';
 
 export type ImportHistoryFilter = 'all' | ImportSourceType;
 
@@ -19,6 +15,7 @@ interface UseImportHistoryReturn {
   setPage: (nextPage: number) => void;
   setSourceType: (nextSourceType: ImportHistoryFilter) => void;
   refetch: () => Promise<void>;
+  deleteHistory: (id: string) => Promise<void>;
 }
 
 const DEFAULT_LIMIT = 20;
@@ -29,6 +26,21 @@ const defaultPagination: ImportHistoryPagination = {
   total: 0,
   totalPages: 0,
 };
+
+/** Normalize history response - backend mới trả data[], cũ trả items[] */
+function normalizeItems(raw: any): ImportHistoryItem[] {
+  const list: any[] = raw?.data || raw?.items || [];
+  return list.map((item: any) => ({
+    ...item,
+    // Normalize số liệu stats nếu backend cũ chưa expose
+    importedRows: item.importedRows ?? item.columnMapping?.stats?.importedRows ?? 0,
+    skippedRows: item.skippedRows ?? item.columnMapping?.stats?.skippedRows ?? 0,
+    mappingModeUsed: item.mappingModeUsed ?? item.columnMapping?.mappingModeUsed ?? null,
+    // classes có thể là array các ClassSummary từ backend mới
+    classes: item.classes ?? [],
+    classIds: item.classIds ?? [],
+  }));
+}
 
 export const useImportHistory = (): UseImportHistoryReturn => {
   const [historyItems, setHistoryItems] = useState<ImportHistoryItem[]>([]);
@@ -43,21 +55,29 @@ export const useImportHistory = (): UseImportHistoryReturn => {
       setLoading(true);
       setError(null);
 
-      const response = await classService.getImportHistory({
+      const rawResponse = await importApi.getImportHistory({
         page,
         limit: DEFAULT_LIMIT,
-        sourceType: sourceType === 'all' ? undefined : sourceType,
+        sourceType: sourceType === 'all' ? undefined : (sourceType as ImportSourceType),
       });
 
-      setHistoryItems(response.items || []);
-      setPagination(response.pagination || { ...defaultPagination, page, limit: DEFAULT_LIMIT });
+      // Support both shapes: { items, pagination } and { data, pagination }
+      const items = normalizeItems(rawResponse);
+      const pag = (rawResponse as any).pagination || {
+        ...defaultPagination,
+        page,
+        limit: DEFAULT_LIMIT,
+        total: items.length,
+      };
+
+      setHistoryItems(items);
+      setPagination(pag);
     } catch (fetchError: any) {
       const message = String(
         fetchError?.response?.data?.message ||
         fetchError?.message ||
         'Không thể tải lịch sử import. Vui lòng thử lại.'
       );
-
       setHistoryItems([]);
       setError(message);
     } finally {
@@ -74,6 +94,11 @@ export const useImportHistory = (): UseImportHistoryReturn => {
     setPage(1);
   }, []);
 
+  const deleteHistory = useCallback(async (id: string) => {
+    await importApi.deleteImportHistory(id);
+    await fetchHistory();
+  }, [fetchHistory]);
+
   return {
     historyItems,
     pagination,
@@ -85,6 +110,7 @@ export const useImportHistory = (): UseImportHistoryReturn => {
     setPage,
     setSourceType,
     refetch: fetchHistory,
+    deleteHistory,
   };
 };
 

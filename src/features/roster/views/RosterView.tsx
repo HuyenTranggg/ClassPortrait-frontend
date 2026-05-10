@@ -108,23 +108,6 @@ function RosterView() {
     navigate(location.pathname, { replace: true, state: {} });
   }, [loading, selectedClass, location.state, isAttendanceMode, students.length, handleStartAttendance, navigate, location.pathname]);
 
-  const handleImportSuccess = async (importedClassId?: string) => {
-    await refetchClasses(importedClassId);
-    if (importedClassId) {
-      navigate(`/classes/${importedClassId}`);
-    }
-  };
-
-  const handleClassChangeWithAttendanceConfirm = async (event: React.ChangeEvent<HTMLSelectElement>) => {
-    if (isAttendanceMode) {
-      const confirmed = window.confirm('Bạn đang điểm danh dở. Đổi lớp sẽ mất dữ liệu tạm. Tiếp tục?');
-      if (!confirmed) {
-        return;
-      }
-    }
-    await handleClassChange(event);
-  };
-
   const rosterMeta = buildRosterMeta(selectedClass, students);
   const printMeta = buildPrintMeta(selectedClass, filteredStudents);
   const {
@@ -166,18 +149,15 @@ function RosterView() {
           onStartAttendance={handleStartAttendance}
           onSaveAttendance={() => setStatsModalOpen(true)}
           onCancelAttendance={handleCancelAttendanceMode}
-          onImportSuccess={handleImportSuccess}
         />
 
         <div className="roster-controls-combined">
           <WorkspaceToolbar
             selectedClass={selectedClass}
-            classes={classes}
             studentsCount={filteredStudents.length}
             photosPerRow={photosPerRow}
             loading={loading}
             searchQuery={attendanceSearch}
-            onClassChange={handleClassChangeWithAttendanceConfirm}
             onLayoutChange={handleLayoutChange}
             onSearchChange={(event) => setAttendanceSearch(event.target.value)}
             onPrint={handleOpenPrintModal}

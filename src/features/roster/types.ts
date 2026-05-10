@@ -1,11 +1,19 @@
 import { Class, Student } from '../../types';
 
-export type ActiveView = 'roster' | 'history' | 'share' | 'dashboard';
+export type ActiveView = 'roster' | 'class-list' | 'history' | 'share' | 'dashboard';
 
 export interface RosterMeta {
   courseLabel: string;
+  courseCode: string;
+  courseName: string;
   classCodeLabel: string;
+  classExamCode: string;
   semesterLabel: string;
+  examDate: string;
+  examRoom: string;
+  examTime: string;
+  examShift: string;
+  instructor: string;
   studentCountLabel: string;
 }
 

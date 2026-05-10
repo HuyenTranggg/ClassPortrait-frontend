@@ -6,6 +6,7 @@ import { AttendanceStatus } from '../attendance/services/attendance.api';
 interface StudentCardProps {
   mssv: string;
   name?: string;
+  fullName?: string;
   photoUrl?: string;
   attendanceStatus?: AttendanceStatus;
   isAttendanceMode?: boolean;
@@ -20,7 +21,9 @@ interface StudentCardProps {
 function StudentCard({
   mssv,
   name,
+  fullName,
   photoUrl,
+
   attendanceStatus,
   isAttendanceMode,
   showAttendanceStatus,
@@ -74,7 +77,7 @@ function StudentCard({
       </div>
       <div className="card-body">
         <h6 className="card-title">{mssv}</h6>
-        {name && <span className="student-name">{name}</span>}
+        {(fullName || name) && <span className="student-name">{fullName || name}</span>}
         {!isAttendanceMode && showAttendanceStatus && attendanceStatus && (
           <span className={`attendance-status-chip mt-2 ${attendanceStatus === 'present' ? 'is-present' : 'is-absent'}`}>
             {statusLabel}

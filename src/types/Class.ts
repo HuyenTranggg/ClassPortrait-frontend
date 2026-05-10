@@ -6,6 +6,8 @@ import { Student } from './Student';
 export interface Class {
   id: string; // UUID - ID duy nhất của lớp
   classCode: string; // Mã lớp (BẮT BUỘC) - VD: "123456"
+  classCodes?: string[]; // Mảng tất cả mã lớp học của SV trong lớp thi
+  classExamCode?: string; // Mã lớp thi
   courseCode?: string; // Mã học phần - VD: "IT3280", "MI2020"
   courseName?: string; // Tên học phần - VD: "Mạng máy tính", "Giải tích 2"
   semester?: string; // Học kỳ - VD: "2024.1", "20241"
@@ -15,11 +17,14 @@ export interface Class {
   examDate?: string; // Ngày thi (nếu có trong file import)
   examRoom?: string; // Phòng thi (nếu có trong file import)
   examTime?: string; // Giờ thi (nếu có trong file import)
-  shift?: string; // Kíp thi (nếu có trong file import)
+  examShift?: string; // Kíp thi
+  shift?: string; // Kíp thi (alias cũ)
   proctor?: string; // Giám thị (nếu có trong file import)
-  invigilator?: string; // Tên giám thị (alias)
+  isFallback?: boolean; // Đánh dấu lớp fallback (nhận diện theo mã lớp học)
   createdAt: Date; // Thời gian tạo lớp
+  studentCount?: number; // Sĩ số sinh viên của lớp
 }
+
 
 /**
  * Interface mở rộng của Class khi cần trả về kèm danh sách sinh viên

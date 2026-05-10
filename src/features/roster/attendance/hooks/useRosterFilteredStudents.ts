@@ -36,9 +36,15 @@ export const useRosterFilteredStudents = ({
       }
 
       const normalizedName = String(student.name || '').toLowerCase();
+      const normalizedFullName = String(student.fullName || '').toLowerCase();
       const normalizedMssv = String(student.mssv || '').toLowerCase();
 
-      return normalizedName.includes(normalizedQuery) || normalizedMssv.includes(normalizedQuery);
+      return (
+        normalizedName.includes(normalizedQuery) ||
+        normalizedFullName.includes(normalizedQuery) ||
+        normalizedMssv.includes(normalizedQuery)
+      );
+
     });
   }, [attendanceFilter, attendanceSearch, isAttendanceMode, savedAttendance, students]);
 };

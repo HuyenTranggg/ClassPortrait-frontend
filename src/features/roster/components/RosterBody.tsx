@@ -70,7 +70,9 @@ function RosterBody({
                 key={student.mssv}
                 mssv={student.mssv}
                 name={student.name}
+                fullName={student.fullName}
                 photoUrl={student.photoUrl}
+
                 attendanceStatus={attendanceByMssv[student.mssv]?.status}
                 isAttendanceMode={isAttendanceMode}
                 showAttendanceStatus={!isAttendanceMode && Boolean(attendanceByMssv[student.mssv])}

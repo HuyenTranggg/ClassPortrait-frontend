@@ -12,6 +12,7 @@ export type {
   ImportClassResult,
   ImportHistoryChangesSummary,
   ImportHistoryClassFieldChange,
+  ImportHistoryClassSummary,
   ImportHistoryItem,
   ImportHistoryPagination,
   ImportHistoryResponse,

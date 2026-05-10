@@ -2,9 +2,10 @@ import { useMemo, useState } from 'react';
 import { DuplicateImportOptions } from '../../services/class.service';
 import { extractDuplicateConflict } from '../utils/duplicate';
 import { parseExcelFile, parseGoogleSheetFromUrl } from '../utils/parsers';
-import { ImportButtonProps, ImportStateSnapshot, MappingMode, SourceType } from '../types';
+import { ImportButtonProps, ImportStateSnapshot, MappingMode, SourceType, ImportPreviewData } from '../types';
 import { mapImportErrorMessage } from '../utils/errorMessages';
 import { submitImportRequest } from '../services/import.service';
+import { importApi } from '../services/import.api';
 
 interface ControllerActions {
   setSelectedSource: (source: SourceType) => void;
@@ -13,7 +14,7 @@ interface ControllerActions {
   setManualNameColumn: (value: string) => void;
   setStartRow: (value: number) => void;
   setStepThreeManual: () => void;
-  setStep: (step: 1 | 2 | 3 | 4) => void;
+  setStep: (step: 1 | 2 | 3 | 4 | 5) => void;
   setDuplicateStepModeChoose: () => void;
   openModal: (resetFileInput: () => void) => void;
   closeModal: (resetFileInput: () => void) => void;
@@ -21,6 +22,7 @@ interface ControllerActions {
   moveSheetToConfirmStep: () => Promise<void>;
   submitAuto: () => Promise<void>;
   submitManual: () => Promise<void>;
+  submitFinalImport: () => Promise<void>;
   handleDuplicateCreateNew: () => Promise<void>;
   handleDuplicatePrepareUpdate: () => void;
   handleDuplicateConfirmUpdate: () => Promise<void>;
@@ -29,7 +31,7 @@ interface ControllerActions {
 
 export const useImportButtonController = ({ onImportSuccess }: ImportButtonProps): [ImportStateSnapshot, ControllerActions] => {
   const [isOpen, setIsOpen] = useState(false);
-  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
+  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
   const [stepThreeMode, setStepThreeMode] = useState<'manual' | 'success'>('manual');
   const [selectedSource, setSelectedSource] = useState<SourceType>('excel');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -47,6 +49,8 @@ export const useImportButtonController = ({ onImportSuccess }: ImportButtonProps
   const [pendingMappingMode, setPendingMappingMode] = useState<MappingMode | null>(null);
   const [duplicateStepMode, setDuplicateStepMode] = useState<'choose' | 'confirm-update'>('choose');
   const [duplicateConflict, setDuplicateConflict] = useState<ImportStateSnapshot['duplicateConflict']>(null);
+  const [previewData, setPreviewData] = useState<ImportPreviewData | null>(null);
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
 
   const isAutoDetected = useMemo(() => Boolean(autoMssvColumn && autoNameColumn), [autoMssvColumn, autoNameColumn]);
 
@@ -69,13 +73,13 @@ export const useImportButtonController = ({ onImportSuccess }: ImportButtonProps
     setPendingMappingMode(null);
     setDuplicateStepMode('choose');
     setDuplicateConflict(null);
+    setPreviewData(null);
+    setIsPreviewLoading(false);
   };
 
   const validateGoogleSheetUrl = (): string | null => {
     const trimmedUrl = googleSheetUrl.trim();
-    if (!trimmedUrl) {
-      return 'Vui lòng nhập URL Google Sheet.';
-    }
+    if (!trimmedUrl) return 'Vui lòng nhập URL Google Sheet.';
     if (!/docs\.google\.com\/spreadsheets\//i.test(trimmedUrl)) {
       return 'Link Google Sheet không hợp lệ. Vui lòng kiểm tra lại URL.';
     }
@@ -91,9 +95,56 @@ export const useImportButtonController = ({ onImportSuccess }: ImportButtonProps
     setStep(3);
   };
 
+  // Gọi preview API và chuyển sang Step 4
+  const runPreview = async (mappingMode: MappingMode) => {
+    const usingSheet = selectedSource === 'gsheet';
+    const mssvColumn = mappingMode === 'manual' ? manualMssvColumn.trim() : autoMssvColumn;
+    const nameColumn = mappingMode === 'manual' ? manualNameColumn.trim() : autoNameColumn;
+
+    if (!mssvColumn || !nameColumn) {
+      setMessage({ type: 'error', text: 'Cần chọn đầy đủ cột MSSV và cột Họ và tên.' });
+      return;
+    }
+
+    setIsPreviewLoading(true);
+    setMessage(null);
+
+    try {
+      let data: ImportPreviewData;
+      if (usingSheet) {
+        const validationError = validateGoogleSheetUrl();
+        if (validationError) {
+          setMessage({ type: 'error', text: validationError });
+          return;
+        }
+        data = await importApi.previewImportFromSheet({
+          googleSheetUrl: googleSheetUrl.trim(),
+          mappingMode,
+          mssvColumn,
+          nameColumn,
+          startRow,
+        });
+      } else {
+        if (!selectedFile) {
+          setMessage({ type: 'error', text: 'Vui lòng chọn file để import.' });
+          return;
+        }
+        data = await importApi.previewImport(selectedFile, { mappingMode, mssvColumn, nameColumn, startRow });
+      }
+
+      setPendingMappingMode(mappingMode);
+      setPreviewData(data);
+      setStep(4);
+    } catch (error: any) {
+      setMessage({ type: 'error', text: mapImportErrorMessage(error) });
+    } finally {
+      setIsPreviewLoading(false);
+    }
+  };
+
+  // Thực hiện import thực sự (gọi từ bước Preview)
   const submitImport = async (mappingMode: MappingMode, duplicateOptions?: DuplicateImportOptions) => {
     const usingSheet = selectedSource === 'gsheet';
-
     if (!usingSheet && !selectedFile) {
       setMessage({ type: 'error', text: 'Vui lòng chọn file để import.' });
       return;
@@ -105,14 +156,6 @@ export const useImportButtonController = ({ onImportSuccess }: ImportButtonProps
     if (!mssvColumn || !nameColumn) {
       setMessage({ type: 'error', text: 'Cần chọn đầy đủ cột MSSV và cột Họ và tên.' });
       return;
-    }
-
-    if (usingSheet) {
-      const validationError = validateGoogleSheetUrl();
-      if (validationError) {
-        setMessage({ type: 'error', text: validationError });
-        return;
-      }
     }
 
     setIsImporting(true);
@@ -137,7 +180,7 @@ export const useImportButtonController = ({ onImportSuccess }: ImportButtonProps
         setPendingMappingMode(mappingMode);
         setDuplicateConflict(conflict);
         setDuplicateStepMode('choose');
-        setStep(4);
+        setStep(5);
         setMessage(null);
       } else {
         setMessage({ type: 'error', text: mapImportErrorMessage(error) });
@@ -151,7 +194,7 @@ export const useImportButtonController = ({ onImportSuccess }: ImportButtonProps
     isOpen, step, stepThreeMode, selectedSource, selectedFile, googleSheetUrl, columns,
     autoMssvColumn, autoNameColumn, manualMssvColumn, manualNameColumn, startRow,
     isParsing, isImporting, isDragOver, message, isAutoDetected, pendingMappingMode,
-    duplicateStepMode, duplicateConflict,
+    duplicateStepMode, duplicateConflict, previewData, isPreviewLoading,
   };
 
   const actions: ControllerActions = {
@@ -212,24 +255,28 @@ export const useImportButtonController = ({ onImportSuccess }: ImportButtonProps
         setIsParsing(false);
       }
     },
-    submitAuto: async () => submitImport('auto'),
-    submitManual: async () => submitImport('manual'),
+    // Bước 2 → Preview (step 4)
+    submitAuto: async () => runPreview('auto'),
+    // Bước 3 → Preview (step 4)
+    submitManual: async () => runPreview('manual'),
+    // Bước 4 (Preview) → Thực hiện import thật
+    submitFinalImport: async () => {
+      if (!pendingMappingMode) return;
+      await submitImport(pendingMappingMode);
+    },
     handleDuplicateCreateNew: async () => {
-      if (!pendingMappingMode) {
-        return;
-      }
-
+      if (!pendingMappingMode) return;
       await submitImport(pendingMappingMode, { duplicateAction: 'create_new' });
     },
     handleDuplicatePrepareUpdate: () => setDuplicateStepMode('confirm-update'),
     handleDuplicateConfirmUpdate: async () => {
-      if (!pendingMappingMode || !duplicateConflict?.existingClassId) {
+      if (!pendingMappingMode || !duplicateConflict?.duplicates || duplicateConflict.duplicates.length === 0) {
         setMessage({ type: 'error', text: 'Không tìm thấy lớp mục tiêu để cập nhật.' });
         return;
       }
       await submitImport(pendingMappingMode, {
         duplicateAction: 'update_existing',
-        targetClassId: duplicateConflict.existingClassId,
+        targetClassId: duplicateConflict.duplicates[0].existingClassId, // Backend ignore targetClassId in multi-import, but we pass first one for backward compatibility
         confirmUpdate: true,
       });
     },

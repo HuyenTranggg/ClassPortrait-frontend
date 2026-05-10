@@ -38,16 +38,57 @@ export const getClassDisplayName = (cls: Class | null): string => {
   return parts.join(' - ') || cls.id;
 };
 
+export const formatDate = (value?: string | Date | null): string => {
+  if (!value) return '—';
+  try {
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return '—';
+    return d.toLocaleDateString('vi-VN');
+  } catch {
+    return '—';
+  }
+};
+
+export const formatTime = (value?: string | null): string => {
+  if (!value) return '—';
+  const str = String(value).trim();
+  // Nếu là số thập phân (ví dụ 0.666...) → chuyển sang giờ
+  const num = parseFloat(str);
+  if (!isNaN(num) && str.includes('.')) {
+    const totalSeconds = Math.round(num * 24 * 3600);
+    const h = Math.floor(totalSeconds / 3600)
+      .toString()
+      .padStart(2, '0');
+    const m = Math.floor((totalSeconds % 3600) / 60)
+      .toString()
+      .padStart(2, '0');
+    const s = (totalSeconds % 60).toString().padStart(2, '0');
+    return `${h}:${m}:${s}`;
+  }
+  // Nếu là chuỗi giờ hh:mm[:ss]
+  if (/^\d{1,2}:\d{2}/.test(str)) return str;
+  return str;
+};
+
 export const buildRosterMeta = (selectedClass: Class | null, students: Student[]): RosterMeta => {
   return {
     courseLabel: selectedClass
       ? [selectedClass.courseCode, selectedClass.courseName].filter(Boolean).join(' - ') || 'Chưa có dữ liệu học phần'
       : 'Chưa import dữ liệu',
-    classCodeLabel: selectedClass?.classCode || 'Chưa import dữ liệu',
-    semesterLabel: selectedClass?.semester || 'Chưa import dữ liệu',
+    courseCode: selectedClass?.courseCode || '—',
+    courseName: selectedClass?.courseName || '—',
+    classCodeLabel: selectedClass?.classCode || '—',
+    classExamCode: selectedClass?.classExamCode || '—',
+    semesterLabel: selectedClass?.semester || '—',
+    examDate: formatDate(selectedClass?.examDate),
+    examRoom: selectedClass?.examRoom || '—',
+    examTime: formatTime(selectedClass?.examTime),
+    examShift: selectedClass?.examShift || selectedClass?.shift || '—',
+    instructor: selectedClass?.instructor || '—',
     studentCountLabel: selectedClass ? `${students.length}` : '0',
   };
 };
+
 
 export const buildPrintMeta = (selectedClass: Class | null, students: Student[]): PrintMeta => {
   const selectedClassMeta = selectedClass as any;
@@ -60,7 +101,7 @@ export const buildPrintMeta = (selectedClass: Class | null, students: Student[])
     printProctor: String(selectedClassMeta?.proctor || selectedClassMeta?.invigilator || '').trim(),
     printExamRoom: String(selectedClassMeta?.examRoom || selectedClassMeta?.room || '').trim(),
     printExamShift: String(selectedClassMeta?.shift || selectedClassMeta?.examShift || '').trim(),
-    printExamTime: String(selectedClassMeta?.examTime || selectedClassMeta?.time || '').trim(),
+    printExamTime: formatTime(selectedClassMeta?.examTime || selectedClassMeta?.time),
     printClassCode: String(selectedClass?.classCode || '').trim(),
     printStudentCount: selectedClass ? String(students.length) : '',
   };

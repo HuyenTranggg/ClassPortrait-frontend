@@ -4,11 +4,13 @@ import AppToast from '../../../../components/AppToast';
 import {
   buildPublicShareUrl,
   formatDateTime,
+  formatSimpleDate,
   getShareLinkStatus,
 } from '../utils/shareHelpers';
 import { ShareStatusFilter, useShareLinksController } from '../hooks/useShareLinksController';
 import { useClasses } from '../../hooks/useClasses';
 import ShellHeader from '../../../../layouts/ShellHeader';
+import { formatExcelTime } from '../../import/utils/formatters';
 
 const shareStatusOptions: Array<{ value: ShareStatusFilter; label: string }> = [
   { value: 'all', label: 'Tất cả trạng thái' },
@@ -27,7 +29,7 @@ const formatDate = (value?: string | null): string => {
 
 function ShareLinksView() {
   const { classes } = useClasses({ enabled: true });
-  
+
   const {
     filteredRows,
     statusFilter,
@@ -108,152 +110,168 @@ function ShareLinksView() {
         <ShellHeader activeView="share" />
       </div>
       <section className="share-links-panel">
-      <div className="share-links-toolbar">
-        <div className="share-toolbar-right">
-          <div className="share-filter-group">
-            <select
-              className="form-select"
-              value={statusFilter}
-              onChange={(event) => setStatusFilter(event.target.value as ShareStatusFilter)}
-            >
-              {shareStatusOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+        <div className="share-links-toolbar">
+          <div className="share-toolbar-right">
+            <div className="share-filter-group">
+              <select
+                className="form-select"
+                value={statusFilter}
+                onChange={(event) => setStatusFilter(event.target.value as ShareStatusFilter)}
+              >
+                {shareStatusOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <span className="share-links-total">{filteredRows.length} lớp</span>
           </div>
-
-          <span className="share-links-total">{filteredRows.length} lớp</span>
         </div>
-      </div>
 
-          {filteredRows.length === 0 ? (
-            <div className="empty-state-card">
-              <h2>Không có link phù hợp bộ lọc</h2>
-              <p>{statusFilter === 'all' ? 'Hiện chưa có lớp nào được tạo link chia sẻ.' : 'Hãy đổi bộ lọc để xem trạng thái link khác.'}</p>
-            </div>
-          ) : (
-            <div className="share-link-list">
-              {filteredRows.map((row) => {
-                const classId = row.classInfo.id;
-                const publicUrl = buildPublicShareUrl(row.shareLink);
-                const isBusy = Boolean(actionLoadingMap[classId]);
-                const isEditingExpiry = Object.prototype.hasOwnProperty.call(expiryEditorMap, classId);
-                const expiryEditorValue = expiryEditorMap[classId] ?? '';
-                const status = row.shareLink ? getShareLinkStatus(row.shareLink) : null;
+        {filteredRows.length === 0 ? (
+          <div className="empty-state-card">
+            <h2>Không có link phù hợp bộ lọc</h2>
+            <p>{statusFilter === 'all' ? 'Hiện chưa có lớp nào được tạo link chia sẻ.' : 'Hãy đổi bộ lọc để xem trạng thái link khác.'}</p>
+          </div>
+        ) : (
+          <div className="share-link-list">
+            {filteredRows.map((row) => {
+              const classId = row.classInfo.id;
+              const publicUrl = buildPublicShareUrl(row.shareLink);
+              const isBusy = Boolean(actionLoadingMap[classId]);
+              const isEditingExpiry = Object.prototype.hasOwnProperty.call(expiryEditorMap, classId);
+              const expiryEditorValue = expiryEditorMap[classId] ?? '';
+              const status = row.shareLink ? getShareLinkStatus(row.shareLink) : null;
 
-                return (
-                  <article className="share-link-item" key={classId}>
-                    <div className="share-link-item-head">
-                      <div className="share-link-class-name">
-                        {row.classInfo.classCode} - {row.classInfo.courseName || row.classInfo.courseCode || 'Chưa có tên học phần'}
+              return (
+                <article className="share-link-item" key={classId}>
+                  <div className="share-link-item-head">
+                    <div className="share-link-class-name">
+                      <div className="d-flex align-items-center flex-wrap gap-1">
+                        {row.classInfo.isFallback ? (
+                          row.classInfo.classCode && <strong className="me-2">{row.classInfo.classCode}</strong>
+                        ) : (
+                          row.classInfo.classExamCode && <strong className="me-2">{row.classInfo.classExamCode}</strong>
+                        )}
+                        <span>{row.classInfo.courseName}</span>
                       </div>
-
-                      <span className={`share-link-status ${status ? `is-${status.key}` : 'is-inactive'}`}>
-                        {status?.label || 'Đã tắt'}
-                      </span>
-                    </div>
-
-                    <div className="share-link-item-body">
-                      <div className="share-link-row-top">
-                        <input
-                          className="form-control share-link-url"
-                          value={publicUrl}
-                          readOnly
-                          disabled
-                        />
-                        <button
-                          type="button"
-                          className="btn btn-outline-secondary"
-                          onClick={() => handleCopyLink(row.shareLink)}
-                          disabled={isBusy}
-                        >
-                          Sao chép
-                        </button>
-                      </div>
-
-                      <div className="share-link-row-bottom">
-                        <div className="share-link-actions">
-                          <button
-                            type="button"
-                            className="btn btn-outline-secondary"
-                            onClick={() => handleOpenExpiryEditor(row)}
-                            disabled={isBusy}
-                          >
-                            Đổi hạn
-                          </button>
-                          <button
-                            type="button"
-                            className="btn btn-outline-secondary"
-                            onClick={() => handleToggleRequireLogin(row)}
-                            disabled={isBusy}
-                            title={row.shareLink?.requireLogin ? 'Đang yêu cầu đăng nhập – nhấn để đổi sang công khai' : 'Đang công khai – nhấn để yêu cầu đăng nhập'}
-                          >
-                            {row.shareLink?.requireLogin ? 'Bỏ yêu cầu đăng nhập' : 'Yêu cầu đăng nhập'}
-                          </button>
-                          <button
-                            type="button"
-                            className="btn btn-outline-secondary"
-                            onClick={() => handleToggleLink(row)}
-                            disabled={isBusy}
-                          >
-                            {row.shareLink?.isActive ? 'Tắt link' : 'Bật link'}
-                          </button>
-                          <button
-                            type="button"
-                            className="btn btn-outline-secondary"
-                            onClick={() => handleDeleteLink(row)}
-                            disabled={isBusy}
-                          >
-                            Xóa
-                          </button>
-                        </div>
-
-                        <div className="share-link-item-meta">
-                          Tạo {row.shareLink ? formatDate(row.shareLink.createdAt) : '--'} · Hết hạn {row.shareLink ? formatDate(row.shareLink.expiresAt) : '--'}
-                        </div>
+                      <div className="mt-1" style={{ fontSize: '0.9rem', fontWeight: 400, color: '#6b7280' }}>
+                        <span className="me-2">{row.classInfo.courseCode}</span>
+                        {row.classInfo.semester && <span className="me-2">· HK {row.classInfo.semester}</span>}
+                        {row.classInfo.examDate && <span className="ms-2"> | {formatSimpleDate(row.classInfo.examDate)}</span>}
+                        {row.classInfo.examRoom && <span className="ms-2"> | {row.classInfo.examRoom}</span>}
+                        {(row.classInfo.examTime || row.classInfo.examShift) && (
+                          <span className="ms-2"> |  {formatExcelTime(row.classInfo.examTime) || row.classInfo.examShift}</span>
+                        )}
                       </div>
                     </div>
 
-                    {isEditingExpiry && (
-                      <div className="share-link-expiry-editor">
-                        <input
-                          type="datetime-local"
-                          className="form-control"
-                          value={expiryEditorValue}
-                          onChange={(event) => handleExpiryInputChange(classId, event.target.value)}
-                          disabled={isBusy}
-                        />
+                    <span className={`share-link-status ${status ? `is-${status.key}` : 'is-inactive'}`}>
+                      {status?.label || 'Đã tắt'}
+                    </span>
+                  </div>
 
-                        <button
-                          type="button"
-                          className="btn btn-outline-primary"
-                          onClick={() => handleSaveExpiry(row)}
-                          disabled={isBusy}
-                        >
-                          Lưu hạn
-                        </button>
+                  <div className="share-link-item-body">
+                    <div className="share-link-row-top">
+                      <input
+                        className="form-control share-link-url"
+                        value={publicUrl}
+                        readOnly
+                        disabled
+                      />
+                      <button
+                        type="button"
+                        className="btn btn-outline-secondary"
+                        onClick={() => handleCopyLink(row.shareLink)}
+                        disabled={isBusy}
+                      >
+                        Sao chép
+                      </button>
+                    </div>
 
+                    <div className="share-link-row-bottom">
+                      <div className="share-link-actions">
                         <button
                           type="button"
                           className="btn btn-outline-secondary"
-                          onClick={() => handleCloseExpiryEditor(classId)}
+                          onClick={() => handleOpenExpiryEditor(row)}
                           disabled={isBusy}
                         >
-                          Hủy
+                          Đổi hạn
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-outline-secondary"
+                          onClick={() => handleToggleRequireLogin(row)}
+                          disabled={isBusy}
+                          title={row.shareLink?.requireLogin ? 'Đang yêu cầu đăng nhập – nhấn để đổi sang công khai' : 'Đang công khai – nhấn để yêu cầu đăng nhập'}
+                        >
+                          {row.shareLink?.requireLogin ? 'Bỏ yêu cầu đăng nhập' : 'Yêu cầu đăng nhập'}
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-outline-secondary"
+                          onClick={() => handleToggleLink(row)}
+                          disabled={isBusy}
+                        >
+                          {row.shareLink?.isActive ? 'Tắt link' : 'Bật link'}
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-outline-secondary"
+                          onClick={() => handleDeleteLink(row)}
+                          disabled={isBusy}
+                        >
+                          Xóa
                         </button>
                       </div>
-                    )}
-                  </article>
-                );
-              })}
-            </div>
-          )}
 
-          <AppToast message={message} onClose={() => setMessage(null)} />
-        </section>
-      </>
+                      <div className="share-link-item-meta">
+                        Tạo {row.shareLink ? formatDate(row.shareLink.createdAt) : '--'} · Hết hạn {row.shareLink ? formatDate(row.shareLink.expiresAt) : '--'}
+                      </div>
+                    </div>
+                  </div>
+
+                  {isEditingExpiry && (
+                    <div className="share-link-expiry-editor">
+                      <input
+                        type="datetime-local"
+                        className="form-control"
+                        value={expiryEditorValue}
+                        onChange={(event) => handleExpiryInputChange(classId, event.target.value)}
+                        disabled={isBusy}
+                      />
+
+                      <button
+                        type="button"
+                        className="btn btn-outline-primary"
+                        onClick={() => handleSaveExpiry(row)}
+                        disabled={isBusy}
+                      >
+                        Lưu hạn
+                      </button>
+
+                      <button
+                        type="button"
+                        className="btn btn-outline-secondary"
+                        onClick={() => handleCloseExpiryEditor(classId)}
+                        disabled={isBusy}
+                      >
+                        Hủy
+                      </button>
+                    </div>
+                  )}
+                </article>
+              );
+            })}
+          </div>
+        )}
+
+        <AppToast message={message} onClose={() => setMessage(null)} />
+      </section>
+    </>
   );
 }
 

@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { StepFour, StepOne, StepThree, StepTwo } from './ImportButtonSteps';
+import { StepFive, StepFourPreview, StepOne, StepThree, StepTwo } from './steps';
 import { useImportButtonController } from '../hooks/useImportButtonController';
 import { ImportButtonProps } from '../types';
 
@@ -28,7 +28,7 @@ function ImportButton({ onImportSuccess }: ImportButtonProps) {
         style={{ display: 'none' }}
       />
 
-      <button className="btn btn-success btn-sm" onClick={() => actions.openModal(resetFileInput)} disabled={state.isParsing || state.isImporting}>
+      <button className="btn btn-success btn-sm" onClick={() => actions.openModal(resetFileInput)} disabled={state.isParsing || state.isImporting || state.isPreviewLoading}>
         {state.isImporting ? (
           <><span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Đang import...</>
         ) : (
@@ -80,7 +80,15 @@ function ImportButton({ onImportSuccess }: ImportButtonProps) {
             )}
 
             {state.step === 4 && (
-              <StepFour
+              <StepFourPreview
+                state={state}
+                onBack={() => actions.setStep(state.pendingMappingMode === 'manual' ? 3 : 2)}
+                onConfirmImport={actions.submitFinalImport}
+              />
+            )}
+
+            {state.step === 5 && (
+              <StepFive
                 state={state}
                 onCreateNew={actions.handleDuplicateCreateNew}
                 onPrepareUpdate={actions.handleDuplicatePrepareUpdate}
@@ -89,7 +97,7 @@ function ImportButton({ onImportSuccess }: ImportButtonProps) {
               />
             )}
 
-            {state.message && !(state.step === 3 && state.stepThreeMode === 'success') && (
+            {state.message && !(state.step === 3 && state.stepThreeMode === 'success') && state.step !== 4 && (
               <div className={`alert ${state.message.type === 'success' ? 'alert-success' : 'alert-danger'} mt-3 mb-0`} role="alert">
                 {state.message.text}
               </div>

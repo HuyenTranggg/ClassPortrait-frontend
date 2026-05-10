@@ -4,7 +4,7 @@ export interface ImportButtonProps {
   onImportSuccess?: (importedClassId?: string) => Promise<void> | void;
 }
 
-export type ImportStep = 1 | 2 | 3 | 4;
+export type ImportStep = 1 | 2 | 3 | 4 | 5;
 
 export interface ParsedExcelInfo {
   columns: string[];
@@ -14,13 +14,25 @@ export interface ParsedExcelInfo {
 
 export type SourceType = 'excel' | 'gsheet' | 'onedrive';
 
-export interface DuplicateConflictState {
+export interface DuplicateClassInfo {
   existingClassId: string;
   existingClassLabel: string;
-  message: string;
+  classExamCode?: string;
+  classCode?: string;
+  examDate?: string;
+  examRoom?: string;
+  examTime?: string;
+  examShift?: string;
+  studentCount: number;
+  isFallback: boolean;
   classFieldChanges: Array<{ field: string; oldValue: string; newValue: string }>;
   studentChanges: Array<{ label: string; value: string }>;
   fallbackDiffLines: string[];
+}
+
+export interface DuplicateConflictState {
+  message: string;
+  duplicates: DuplicateClassInfo[];
 }
 
 export type DuplicateStepMode = 'choose' | 'confirm-update';
@@ -60,4 +72,38 @@ export interface ImportStateSnapshot {
   pendingMappingMode: MappingMode | null;
   duplicateStepMode: DuplicateStepMode;
   duplicateConflict: DuplicateConflictState | null;
+  previewData: ImportPreviewData | null;
+  isPreviewLoading: boolean;
+}
+
+// Preview types
+export interface ImportPreviewExamSession {
+  groupKey: string;
+  semester: string;
+  courseCode: string;
+  courseName: string;
+  instructor: string;
+  department: string;
+  classExamCode?: string;
+  examDate?: string;
+  examRoom?: string;
+  examTime?: string;
+  examShift?: string;
+  studentCount: number;
+  importOrder: number;
+  isFallback: boolean;
+  classCode?: string;
+}
+
+export interface ImportPreviewValidationError {
+  row: number;
+  field: string;
+  message: string;
+}
+
+export interface ImportPreviewData {
+  examSessions: ImportPreviewExamSession[];
+  validationErrors: ImportPreviewValidationError[];
+  stats: { totalRowsRead: number; skippedRows: number; importedRows: number };
+  sourceName: string;
 }
