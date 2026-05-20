@@ -45,6 +45,7 @@ export function useFaceVerification(
   
   const requestRef = useRef<number>(null);
   const isMatchingRef = useRef<boolean>(false);
+  const isRunningRef = useRef<boolean>(false);
 
   // 1. Tải và trích xuất đặc trưng của ảnh gốc (Reference Image)
   useEffect(() => {
@@ -102,8 +103,10 @@ export function useFaceVerification(
 
   // 2. Vòng lặp quét video trực tiếp
   const processVideoFrame = useCallback(async () => {
-    if (!videoRef.current || !isCameraActive || !modelsLoaded || isMatchingRef.current) {
-      requestRef.current = requestAnimationFrame(processVideoFrame);
+    if (!isRunningRef.current || !videoRef.current || !modelsLoaded || isMatchingRef.current) {
+      if (isRunningRef.current) {
+        requestRef.current = requestAnimationFrame(processVideoFrame);
+      }
       return;
     }
 
@@ -111,10 +114,23 @@ export function useFaceVerification(
       isMatchingRef.current = true;
       const videoEl = videoRef.current;
 
+      // BẢO VỆ LỖI TREO (HANG): Đảm bảo video thực sự có frame dữ liệu (readyState >= 2)
+      // Nếu giao cho faceapi khi chưa có frame, faceapi có thể bị kẹt Promise vĩnh viễn
+      if (videoEl.readyState < 2 || videoEl.videoWidth === 0) {
+        isMatchingRef.current = false;
+        if (isRunningRef.current) {
+          requestRef.current = requestAnimationFrame(processVideoFrame);
+        }
+        return;
+      }
+
       // Phát hiện khuôn mặt từ Video
       const detection = await faceapi.detectSingleFace(videoEl, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.5 }))
                                      .withFaceLandmarks()
                                      .withFaceDescriptor();
+
+      // Nếu đã unmount hoặc dừng camera trong lúc chờ await, thoát ngay lập tức để tránh state update
+      if (!isRunningRef.current) return;
 
       if (detection) {
         const currentRefDesc = referenceDescriptorRef.current;
@@ -149,12 +165,16 @@ export function useFaceVerification(
       console.error('Frame processing error', err);
     } finally {
       isMatchingRef.current = false;
-      requestRef.current = requestAnimationFrame(processVideoFrame);
+      if (isRunningRef.current) {
+        requestRef.current = requestAnimationFrame(processVideoFrame);
+      }
     }
-  }, [isCameraActive, modelsLoaded, videoRef]);
+  }, [modelsLoaded, videoRef]);
 
   useEffect(() => {
-    if (isCameraActive && modelsLoaded) {
+    isRunningRef.current = isCameraActive && modelsLoaded;
+    
+    if (isRunningRef.current) {
       setIsProcessing(true);
       requestRef.current = requestAnimationFrame(processVideoFrame);
     } else {
@@ -163,6 +183,7 @@ export function useFaceVerification(
     }
 
     return () => {
+      isRunningRef.current = false;
       if (requestRef.current) {
         cancelAnimationFrame(requestRef.current);
       }

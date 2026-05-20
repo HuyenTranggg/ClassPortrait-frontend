@@ -129,12 +129,25 @@ export interface SharedClassInfo {
 export interface SharedClassStudent {
   mssv: string;
   name?: string;
+  fullName?: string;
   photoUrl?: string;
   photoStatus?: string;
   importOrder?: number;
 }
 
+/** Thông tin share link để frontend truyền lại khi gọi API điểm danh uỷ quyền. */
+export interface ShareContext {
+  shareId: string;
+  exp: number;
+  sig: string;
+}
+
 export interface SharedClassResponse {
   classInfo: SharedClassInfo;
   students: SharedClassStudent[];
+  /** true khi link requireLogin=true và người xem đã đăng nhập – được phép điểm danh */
+  canTakeAttendance: boolean;
+  /** Context share link chỉ có khi canTakeAttendance=true */
+  shareContext?: ShareContext;
 }
+

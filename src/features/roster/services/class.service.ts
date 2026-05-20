@@ -18,6 +18,7 @@ export type {
   ImportHistoryResponse,
   ImportHistoryStudentChanges,
   ImportSourceType,
+  ShareContext,
   ShareLink,
   SharedClassInfo,
   SharedClassResponse,
