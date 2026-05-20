@@ -16,6 +16,8 @@ interface ShellHeaderProps {
   onCancelAttendance?: () => void;
   onStartAiScanner?: () => void;
   onImportSuccess?: (importedClassId?: string) => Promise<void> | void;
+  hideShareAction?: boolean;
+  hideAttendanceAction?: boolean;
 }
 
 function ShellHeader({
@@ -32,6 +34,8 @@ function ShellHeader({
   onCancelAttendance,
   onStartAiScanner,
   onImportSuccess,
+  hideShareAction = false,
+  hideAttendanceAction = false,
 }: ShellHeaderProps) {
   const title =
     activeView === 'class-list'
@@ -93,25 +97,27 @@ function ShellHeader({
             </>
           ) : (
             <>
-              <button
-                type="button"
-                className="btn btn-accent btn-share"
-                disabled={!selectedClassExists}
-                onClick={onOpenShare}
-              >
-                Chia sẻ
-              </button>
-              <button
-                type="button"
-                className="btn btn-accent"
-                disabled={!selectedClassExists || !hasStudents || isAttendanceBusy}
-                onClick={onStartAttendance}
-              >
-                {isAttendanceBusy ? 'Đang tải...' : hasSavedAttendance ? 'Chỉnh sửa điểm danh' : 'Bắt đầu điểm danh'}
-              </button>
+              {!hideShareAction && (
+                <button
+                  type="button"
+                  className="btn btn-accent btn-share"
+                  disabled={!selectedClassExists}
+                  onClick={onOpenShare}
+                >
+                  Chia sẻ
+                </button>
+              )}
+              {!hideAttendanceAction && (
+                <button
+                  type="button"
+                  className="btn btn-accent"
+                  disabled={!selectedClassExists || !hasStudents || isAttendanceBusy}
+                  onClick={onStartAttendance}
+                >
+                  {isAttendanceBusy ? 'Đang tải...' : hasSavedAttendance ? 'Chỉnh sửa điểm danh' : 'Bắt đầu điểm danh'}
+                </button>
+              )}
             </>
-
-
           )}
         </div>
       )}

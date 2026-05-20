@@ -1,8 +1,24 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { classService, SharedClassResponse } from '../../roster/services/class.service';
-import StudentCard from '../../roster/components/StudentCard';
 import { useAuth } from '../../auth';
+import { useSharedAttendanceController } from '../hooks/useSharedAttendanceController';
+import {
+  AttendanceStatsModal,
+  AttendanceDetailModal,
+  RetakeConfirmModal,
+} from '../../roster/attendance/components/AttendanceModals';
+import { buildAttendanceDetailRows, AttendanceFilter } from '../../roster/attendance/services/attendance.service';
+import { FaceVerificationScanner } from '../../roster/attendance/components/ai/FaceVerificationScanner';
+import { useFaceModels } from '../../roster/attendance/hooks/ai/useFaceModels';
+import ShellHeader from '../../../layouts/ShellHeader';
+import WorkspaceToolbar from '../../../layouts/WorkspaceToolbar';
+import RosterBody from '../../roster/components/RosterBody';
+import { buildPrintMeta, buildRosterMeta } from '../../roster/utils/roster.utils';
+import { PrintHeaderModal, usePrintHeaderController } from '../../roster/print';
+import { useRosterFilteredStudents } from '../../roster/attendance/hooks/useRosterFilteredStudents';
+import { usePagination } from '../../../hooks/usePagination';
+import AppToast from '../../../components/AppToast';
 
 interface SharedClassPageProps {
   id: string;
@@ -52,6 +68,12 @@ const getInitialLayout = (params: URLSearchParams): (typeof AVAILABLE_LAYOUTS)[n
     : 5;
 };
 
+// Component chính: SharedClassPage
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Component chính: SharedClassPage
+// ─────────────────────────────────────────────────────────────────────────────
+
 function SharedClassPage({ id, exp, sig }: SharedClassPageProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const { isAuthenticated, login } = useAuth();
@@ -65,6 +87,19 @@ function SharedClassPage({ id, exp, sig }: SharedClassPageProps) {
   const [loginSubmitting, setLoginSubmitting] = useState(false);
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
+  const [isAiModeOpen, setAiModeOpen] = useState(false);
+
+  // Pre-warm mô hình AI ngay khi vào trang (tránh delay khi mở scanner)
+  useFaceModels();
+
+  // Hook điểm danh của giám thị – chỉ khởi tạo khi canTakeAttendance=true
+  const canTakeAttendance = Boolean(payload?.canTakeAttendance && payload?.shareContext);
+
+  const sharedAttendance = useSharedAttendanceController({
+    classId: payload?.classInfo?.id ?? '',
+    students: payload?.students ?? [],
+    shareContext: payload?.shareContext ?? { shareId: '', exp: 0, sig: '' },
+  });
 
   /**
    * Gọi API lấy dữ liệu sổ ảnh chia sẻ.
@@ -108,14 +143,32 @@ function SharedClassPage({ id, exp, sig }: SharedClassPageProps) {
     }
   }, [isAuthenticated, requiresLogin, fetchSharedClass]);
 
-  const courseLabel = useMemo(() => {
-    const classInfo = payload?.classInfo;
-    if (!classInfo) {
-      return 'Không có dữ liệu';
+  // Sau khi fetch xong và canTakeAttendance=true, hydrate dữ liệu điểm danh đã có
+  useEffect(() => {
+    if (payload?.canTakeAttendance && payload?.shareContext && payload?.classInfo?.id) {
+      sharedAttendance.hydrateFromServer();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [payload?.classInfo?.id, payload?.canTakeAttendance]);
 
-    return [classInfo.courseCode, classInfo.courseName].filter(Boolean).join(' - ') || 'Không có dữ liệu';
-  }, [payload]);
+  // Auto-close AI scanner khi thoát chế độ điểm danh
+  useEffect(() => {
+    if (!sharedAttendance.isAttendanceMode) {
+      setAiModeOpen(false);
+    }
+  }, [sharedAttendance.isAttendanceMode]);
+
+  const rosterMeta = useMemo(() => buildRosterMeta(payload?.classInfo as any, payload?.students || []), [payload]);
+  
+  const filteredStudents = useRosterFilteredStudents({
+    students: payload?.students || [],
+    attendanceSearch: sharedAttendance.attendanceSearch,
+    isAttendanceMode: sharedAttendance.isAttendanceMode,
+    attendanceFilter: sharedAttendance.attendanceFilter,
+    savedAttendance: sharedAttendance.savedAttendance,
+  });
+
+  const { photosPerRow } = usePagination(filteredStudents, layout);
 
   useEffect(() => {
     const nextLayout = getInitialLayout(searchParams);
@@ -143,78 +196,180 @@ function SharedClassPage({ id, exp, sig }: SharedClassPageProps) {
     setSearchParams(params, { replace: true });
   };
 
-  /**
-   * Xử lý submit form đăng nhập nhanh ngay trong trang chia sẻ.
-   * @param event Sự kiện submit form.
-   */
-  const handleLoginSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setLoginError(null);
+  const printMeta = useMemo(() => buildPrintMeta(payload?.classInfo as any, payload?.students || []), [payload]);
 
-    const isValidHustEmail = /.+@hust\.edu\.vn$/i.test(loginEmail);
-    if (!isValidHustEmail) {
-      setLoginError('Vui lòng dùng email HUST có định dạng @hust.edu.vn.');
-      return;
-    }
+  const {
+    isModalOpen: isPrintHeaderModalOpen,
+    activeConfig: printHeaderConfig,
+    draftConfig: draftPrintHeaderConfig,
+    errorMessage: printHeaderError,
+    openModal: openPrintHeaderModal,
+    closeModal: closePrintHeaderModal,
+    updateDraftConfig,
+    uploadImage,
+    clearDraftImage,
+    applyDraftConfig,
+  } = usePrintHeaderController(printMeta);
 
-    if (loginPassword.length < 6) {
-      setLoginError('Mật khẩu cần có ít nhất 6 ký tự.');
-      return;
-    }
+  const handleOpenPrintModal = () => openPrintHeaderModal();
 
-    setLoginSubmitting(true);
-
-    try {
-      await login({ email: loginEmail, password: loginPassword });
-      setIsLoginOpen(false);
-      setLoginEmail('');
-      setLoginPassword('');
-    } catch (err: any) {
-      const status = err?.response?.status;
-      if (status === 401) {
-        setLoginError('Sai email hoặc mật khẩu. Vui lòng kiểm tra lại.');
-      } else if (!err?.response) {
-        setLoginError('Không thể kết nối tới server. Vui lòng thử lại sau.');
-      } else {
-        setLoginError('Đăng nhập thất bại. Vui lòng thử lại.');
-      }
-    } finally {
-      setLoginSubmitting(false);
-    }
+  const handleApplyHeaderAndPrint = () => {
+    applyDraftConfig();
+    window.requestAnimationFrame(() => {
+      window.print();
+    });
   };
 
-  return (
-    <div className="shared-page">
-      <header className="shared-header">
-        <div>
-          <p className="shared-school">ĐẠI HỌC BÁCH KHOA HÀ NỘI</p>
-          <h1>SỔ ẢNH THÍ SINH DỰ THI (CHIA SẺ)</h1>
-        </div>
-        {!loading && !error && !requiresLogin && (
-          <div className="shared-header-actions">
-            <select className="form-select shared-layout-select" value={String(layout)} onChange={handleLayoutChange}>
-              <option value="4">Lưới 4 cột</option>
-              <option value="5">Lưới 5 cột</option>
-              <option value="6">Lưới 6 cột</option>
-            </select>
+  const headerRef = useRef<HTMLDivElement>(null);
 
-            <button type="button" className="btn btn-outline-primary" onClick={() => window.print()}>
-              In sổ ảnh
-            </button>
-          </div>
-        )}
-      </header>
+  // Build chi tiết điểm danh cho modal (dùng students từ payload)
+  const detailRows = useMemo(() => {
+    if (!canTakeAttendance || !sharedAttendance.savedAttendance) return [];
 
-      {loading && (
+    const studentList = (payload?.students ?? []).map((s) => ({
+      mssv: s.mssv,
+      name: s.fullName || s.name,
+      photoUrl: s.photoUrl,
+      fullName: s.fullName,
+    }));
+
+    return buildAttendanceDetailRows(studentList as any, sharedAttendance.savedAttendance);
+  }, [canTakeAttendance, payload?.students, sharedAttendance.savedAttendance]);
+
+  // Dữ liệu sinh viên theo đúng shape mà FaceVerificationScanner cần
+  const studentsForScanner = useMemo(() => {
+    if (!payload?.students) return [];
+    return payload.students.map((s) => ({
+      id: s.mssv,          // Scanner dùng id để lưu log, dùng mssv làm id duy nhất
+      mssv: s.mssv,
+      fullName: s.fullName || s.name || s.mssv,
+      photoUrl: s.photoUrl || '',
+      classCode: '',       // Không có classCode riêng trong shared view
+    }));
+  }, [payload?.students]);
+
+  const renderContent = () => {
+    if (loading) {
+      return (
         <div className="state-panel">
           <div className="spinner-border text-primary" role="status">
             <span className="visually-hidden">Đang tải...</span>
           </div>
           <p>Đang tải dữ liệu sổ ảnh được chia sẻ...</p>
         </div>
-      )}
+      );
+    }
 
-      {!loading && requiresLogin && (
+    if (error) {
+      return (
+        <div className="alert alert-danger" role="alert">
+          <strong>Lỗi!</strong> {error}
+        </div>
+      );
+    }
+
+    if (payload) {
+      return (
+        <>
+          <div className="sticky-controls no-print" ref={headerRef}>
+            <ShellHeader
+              activeView="roster"
+              selectedClassExists={true}
+              hasStudents={payload.students.length > 0}
+              hasSavedAttendance={Boolean(sharedAttendance.savedAttendance)}
+              rosterMeta={rosterMeta}
+              isAttendanceMode={sharedAttendance.isAttendanceMode}
+              isAttendanceBusy={sharedAttendance.isBusy}
+              onStartAttendance={sharedAttendance.handleStartAttendance}
+              onSaveAttendance={() => sharedAttendance.setStatsModalOpen(true)}
+              onCancelAttendance={sharedAttendance.handleCancelAttendanceMode}
+              onStartAiScanner={canTakeAttendance ? () => setAiModeOpen(true) : undefined}
+              hideShareAction={true} // Không có nút chia sẻ trong link chia sẻ
+              hideAttendanceAction={!canTakeAttendance} // Không có nút điểm danh nếu link công khai
+            />
+
+            <div className="roster-controls-combined">
+              <WorkspaceToolbar
+                selectedClass={payload.classInfo as any}
+                studentsCount={filteredStudents.length}
+                photosPerRow={photosPerRow}
+                loading={loading}
+                searchQuery={sharedAttendance.attendanceSearch}
+                onLayoutChange={handleLayoutChange}
+                onSearchChange={(event) => sharedAttendance.setAttendanceSearch(event.target.value)}
+                onPrint={handleOpenPrintModal}
+              />
+
+              {!sharedAttendance.isAttendanceMode && sharedAttendance.savedAttendance && (
+                <div className="attendance-summary-panel">
+                  <div className="attendance-summary-row">
+                    <div className="attendance-summary-meta">
+                      Đã điểm danh lúc: <strong>{new Date(sharedAttendance.savedAttendance.takenAt).toLocaleString('vi-VN')}</strong>
+                    </div>
+
+                    <div className="attendance-summary-stats">
+                      <span>
+                        Có mặt: <strong className="text-success">{sharedAttendance.savedAttendance.stats.present}</strong>
+                      </span>
+                      <span>
+                        Vắng: <strong className="text-danger">{sharedAttendance.savedAttendance.stats.absent}</strong>
+                      </span>
+                      <span>
+                        Tỉ lệ: <strong>{sharedAttendance.savedAttendance.stats.total > 0 ? Math.round((sharedAttendance.savedAttendance.stats.present / sharedAttendance.savedAttendance.stats.total) * 100) : 0}%</strong>
+                      </span>
+                    </div>
+
+                    {canTakeAttendance && (
+                      <div className="attendance-summary-filter">
+                        <select
+                          className="form-select"
+                          value={sharedAttendance.attendanceFilter}
+                          onChange={(event) => sharedAttendance.setAttendanceFilter(event.target.value as AttendanceFilter)}
+                          aria-label="Lọc danh sách điểm danh"
+                        >
+                          <option value="all">Tất cả</option>
+                          <option value="present">Có mặt</option>
+                          <option value="absent">Vắng</option>
+                        </select>
+                      </div>
+                    )}
+
+                    {canTakeAttendance && (
+                      <div className="attendance-summary-actions">
+                        <button type="button" className="btn btn-outline-secondary" onClick={() => sharedAttendance.setRetakeConfirmOpen(true)}>
+                          Điểm danh lại
+                        </button>
+                        <button type="button" className="btn btn-outline-secondary" onClick={() => sharedAttendance.setDetailModalOpen(true)}>
+                          Xem chi tiết
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <RosterBody
+            loading={loading}
+            error={error}
+            students={filteredStudents}
+            printMeta={printMeta}
+            printHeaderConfig={printHeaderConfig}
+            isAttendanceMode={sharedAttendance.isAttendanceMode}
+            attendanceByMssv={sharedAttendance.activeAttendanceMap}
+            onToggleAttendance={sharedAttendance.handleToggleAttendance}
+          />
+        </>
+      );
+    }
+    
+    return null;
+  };
+
+  return (
+    <div className="shared-page">
+      {!loading && requiresLogin ? (
         <div className="shared-login-required">
           <div className="shared-login-card">
             <h2 className="shared-login-title">Yêu cầu đăng nhập</h2>
@@ -231,7 +386,41 @@ function SharedClassPage({ id, exp, sig }: SharedClassPageProps) {
                 Đăng nhập bằng tài khoản HUST
               </button>
             ) : (
-              <form className="shared-login-form" onSubmit={handleLoginSubmit} noValidate>
+              <form className="shared-login-form" onSubmit={async (e) => {
+                e.preventDefault();
+                setLoginError(null);
+            
+                const isValidHustEmail = /.+@hust\.edu\.vn$/i.test(loginEmail);
+                if (!isValidHustEmail) {
+                  setLoginError('Vui lòng dùng email HUST có định dạng @hust.edu.vn.');
+                  return;
+                }
+            
+                if (loginPassword.length < 6) {
+                  setLoginError('Mật khẩu cần có ít nhất 6 ký tự.');
+                  return;
+                }
+            
+                setLoginSubmitting(true);
+            
+                try {
+                  await login({ email: loginEmail, password: loginPassword });
+                  setIsLoginOpen(false);
+                  setLoginEmail('');
+                  setLoginPassword('');
+                } catch (err: any) {
+                  const status = err?.response?.status;
+                  if (status === 401) {
+                    setLoginError('Sai email hoặc mật khẩu. Vui lòng kiểm tra lại.');
+                  } else if (!err?.response) {
+                    setLoginError('Không thể kết nối tới server. Vui lòng thử lại sau.');
+                  } else {
+                    setLoginError('Đăng nhập thất bại. Vui lòng thử lại.');
+                  }
+                } finally {
+                  setLoginSubmitting(false);
+                }
+              }} noValidate>
                 <div className="shared-login-field">
                   <label htmlFor="shared-email" className="form-label">Email HUST</label>
                   <input
@@ -282,48 +471,64 @@ function SharedClassPage({ id, exp, sig }: SharedClassPageProps) {
             )}
           </div>
         </div>
+      ) : (
+        renderContent()
       )}
 
-      {!loading && error && (
-        <div className="alert alert-danger" role="alert">
-          <strong>Lỗi!</strong> {error}
-        </div>
-      )}
-
-      {!loading && !error && !requiresLogin && payload && (
+      {/* Modals điểm danh – chỉ mount khi có quyền */}
+      {canTakeAttendance && (
         <>
-          <section className="shared-meta-card">
-            <div className="shared-meta-grid" role="list" aria-label="Thông tin lớp học">
-              <div className="shared-meta-item" role="listitem"><span>Học phần:</span><strong>{courseLabel}</strong></div>
-              <div className="shared-meta-item" role="listitem"><span>Mã lớp:</span><strong>{payload.classInfo.classCode || '-'}</strong></div>
-              <div className="shared-meta-item" role="listitem"><span>Học kỳ:</span><strong>{payload.classInfo.semester || '-'}</strong></div>
-              <div className="shared-meta-item" role="listitem"><span>Đơn vị:</span><strong>{payload.classInfo.department || '-'}</strong></div>
-              <div className="shared-meta-item" role="listitem"><span>Loại lớp:</span><strong>{payload.classInfo.classType || '-'}</strong></div>
-              <div className="shared-meta-item" role="listitem"><span>Giảng viên:</span><strong>{payload.classInfo.instructor || '-'}</strong></div>
-              <div className="shared-meta-item" role="listitem"><span>Sĩ số:</span><strong>{payload.students.length}</strong></div>
-            </div>
-          </section>
-
-          {payload.students.length === 0 ? (
-            <div className="empty-state-card mt-3">
-              <h2>Lớp hiện tại chưa có sinh viên</h2>
-            </div>
-          ) : (
-            <section className="gallery-panel mt-3">
-              <div className="student-gallery">
-                {payload.students.map((student) => (
-                  <StudentCard
-                    key={student.mssv}
-                    mssv={student.mssv}
-                    name={student.name}
-                    photoUrl={student.photoUrl}
-                  />
-                ))}
-              </div>
-            </section>
+          {/* AI Face Scanner – render qua Portal, chia sẻ đúng hàm toggle như owner */}
+          {sharedAttendance.isAttendanceMode && isAiModeOpen && (
+            <FaceVerificationScanner
+              students={studentsForScanner}
+              activeAttendanceMap={sharedAttendance.activeAttendanceMap}
+              onToggleAttendance={sharedAttendance.handleToggleAttendance}
+              onClose={() => setAiModeOpen(false)}
+            />
           )}
+
+          <AttendanceStatsModal
+            isOpen={sharedAttendance.isStatsModalOpen}
+            present={sharedAttendance.attendanceStats.present}
+            absent={sharedAttendance.attendanceStats.absent}
+            total={sharedAttendance.attendanceStats.total}
+            onCancel={() => sharedAttendance.setStatsModalOpen(false)}
+            onConfirm={sharedAttendance.handleConfirmSaveAttendance}
+            isSubmitting={sharedAttendance.isBusy}
+          />
+
+          <AttendanceDetailModal
+            isOpen={sharedAttendance.isDetailModalOpen}
+            rows={detailRows}
+            classLabel={rosterMeta.classCodeLabel}
+            onClose={() => sharedAttendance.setDetailModalOpen(false)}
+          />
+
+          <RetakeConfirmModal
+            isOpen={sharedAttendance.isRetakeConfirmOpen}
+            onCancel={() => sharedAttendance.setRetakeConfirmOpen(false)}
+            onConfirm={sharedAttendance.handleConfirmRetakeAttendance}
+            isSubmitting={sharedAttendance.isBusy}
+          />
         </>
       )}
+
+      {sharedAttendance.message && (
+        <AppToast message={sharedAttendance.message} onClose={() => sharedAttendance.setMessage(null)} className="no-print" />
+      )}
+
+      <PrintHeaderModal
+        isOpen={isPrintHeaderModalOpen}
+        draftConfig={draftPrintHeaderConfig}
+        printMeta={printMeta}
+        errorMessage={printHeaderError}
+        onClose={closePrintHeaderModal}
+        onApplyAndPrint={handleApplyHeaderAndPrint}
+        onUpdateDraft={updateDraftConfig}
+        onUploadImage={uploadImage}
+        onClearImage={clearDraftImage}
+      />
     </div>
   );
 }
