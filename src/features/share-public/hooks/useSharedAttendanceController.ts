@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { ShareContext, SharedClassStudent } from '../../roster/services/class.types';
 import { attendanceService, AttendanceStatus, ShareTokenParams } from '../../roster/attendance/services/attendance.api';
 import {
@@ -11,7 +11,6 @@ import {
   SavedAttendanceState,
   toAttendanceMap,
 } from '../../roster/attendance/services/attendance.service';
-import { initSpeech } from '../../../lib/tts/speech.util';
 
 /**
  * Hook quản lý điểm danh trên trang chia sẻ sổ ảnh (dành cho giám thị).
@@ -48,13 +47,6 @@ export const useSharedAttendanceController = ({
   const [isStatsModalOpen, setStatsModalOpen] = useState(false);
   const [isDetailModalOpen, setDetailModalOpen] = useState(false);
   const [isRetakeConfirmOpen, setRetakeConfirmOpen] = useState(false);
-
-  // State tính năng "Tự động gọi tên"
-  const [isAutoCallEnabled, setAutoCallEnabled] = useState(false);
-  const [callingIndex, setCallingIndex] = useState(0);
-
-  // Khởi động TTS
-  useEffect(() => { initSpeech(); }, []);
 
   const attendanceStats = useMemo(() => getAttendanceStats(draftMap), [draftMap]);
 
@@ -242,22 +234,6 @@ export const useSharedAttendanceController = ({
 
   const activeAttendanceMap = isAttendanceMode ? draftMap : savedAttendance?.records || {};
 
-  // Handler điều hướng gọi tên thủ công
-  const handleCallingNext = useCallback(() => { setCallingIndex((prev) => prev + 1); }, []);
-
-  const handleCallingMarkPresent = useCallback(
-    (mssv: string) => {
-      handleToggleAttendance(mssv);
-      setCallingIndex((prev) => prev + 1);
-    },
-    [handleToggleAttendance]
-  );
-
-  const handleCallingClose = useCallback(() => {
-    setAutoCallEnabled(false);
-    setCallingIndex(0);
-  }, []);
-
   return {
     isAttendanceMode,
     isBusy,
@@ -270,12 +246,6 @@ export const useSharedAttendanceController = ({
     savedAttendance,
     attendanceStats,
     activeAttendanceMap,
-    isAutoCallEnabled,
-    callingIndex,
-    setAutoCallEnabled,
-    handleCallingNext,
-    handleCallingMarkPresent,
-    handleCallingClose,
     setMessage,
     setAttendanceFilter,
     setAttendanceSearch,

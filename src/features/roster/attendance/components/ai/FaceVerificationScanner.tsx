@@ -5,26 +5,19 @@ import { useWebcam } from '../../hooks/ai/useWebcam';
 import { useFaceVerification } from '../../hooks/ai/useFaceVerification';
 import { CameraOverlay } from './CameraOverlay';
 import { RecentScansLog, ScannedStudent } from './RecentScansLog';
-import { speak, buildCallText, buildPresentText } from '../../../../../lib/tts/speech.util';
 
 interface FaceVerificationScannerProps {
   students: any[];
   activeAttendanceMap: Record<string, any>;
   onToggleAttendance: (mssv: string) => void;
   onClose: () => void;
-  /** Bật/tắt tính năng đọc tên tự động */
-  isAutoCallEnabled?: boolean;
-  /** Callback thay đổi trạng thái đọc tên */
-  onToggleAutoCall?: (enabled: boolean) => void;
 }
 
 export const FaceVerificationScanner: React.FC<FaceVerificationScannerProps> = ({
   students,
   activeAttendanceMap,
   onToggleAttendance,
-  onClose,
-  isAutoCallEnabled = false,
-  onToggleAutoCall,
+  onClose
 }) => {
   const { modelsLoaded, loadingError } = useFaceModels();
   const { videoRef, isCameraActive, cameraError, startCamera, stopCamera } = useWebcam();
@@ -70,17 +63,6 @@ export const FaceVerificationScanner: React.FC<FaceVerificationScannerProps> = (
   }, [pendingStudents, searchQuery]);
 
   const currentStudent = filteredPendingStudents[currentIndex];
-
-  // Đọc tên khi sinh viên được chọn thay đổi (tránh đọc lại khi re-render không đổi người)
-  const lastSpokenStudentIdRef = useRef<string | null>(null);
-  useEffect(() => {
-    if (!isAutoCallEnabled || !currentStudent || isPaused) return;
-    if (lastSpokenStudentIdRef.current === currentStudent.id) return;
-
-    lastSpokenStudentIdRef.current = currentStudent.id;
-    speak(buildCallText(currentStudent.fullName, currentStudent.mssv));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentStudent?.id, isAutoCallEnabled, isPaused]);
 
   // Reset index về 0 mỗi khi người dùng thay đổi từ khóa tìm kiếm để focus vào kết quả đầu tiên
   useEffect(() => {
@@ -176,11 +158,6 @@ export const FaceVerificationScanner: React.FC<FaceVerificationScannerProps> = (
       }
     } catch (e) {
       console.warn('Web Audio error:', e);
-    }
-
-    // 3b. Đọc thông báo "ý được xác nhận" nếu đang bật giọng đọc
-    if (isAutoCallEnabled && currentStudent) {
-      speak(buildPresentText(currentStudent.fullName));
     }
 
     // 4. Trì hoãn 2 giây để giảng viên/sinh viên kịp quan sát thông tin trước khi chuyển tiếp
@@ -307,23 +284,6 @@ export const FaceVerificationScanner: React.FC<FaceVerificationScannerProps> = (
                     Tự động Xác nhận
                   </label>
                 </div>
-
-                {/* Switch Tự động gọi tên */}
-                <div className="form-check form-switch text-dark mb-0">
-                  <input
-                    className="form-check-input"
-                    type="checkbox"
-                    id="autoCallSwitch"
-                    checked={isAutoCallEnabled}
-                    onChange={(e) => onToggleAutoCall?.(e.target.checked)}
-                    disabled={isPaused}
-                  />
-                  <label className="form-check-label fw-medium d-flex align-items-center gap-1" htmlFor="autoCallSwitch">
-                    <i className="bi bi-mic text-primary" style={{ fontSize: '0.9rem' }} />
-                    Tự động gọi tên
-                  </label>
-                </div>
-
                 <button
                   type="button"
                   className="btn-close"

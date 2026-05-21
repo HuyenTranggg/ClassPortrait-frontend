@@ -15,7 +15,6 @@ import { useRosterController } from '../hooks/useRosterController';
 import { PrintHeaderModal, usePrintHeaderController } from '../print';
 import { FaceVerificationScanner } from '../attendance/components/ai/FaceVerificationScanner';
 import { useFaceModels } from '../attendance/hooks/ai/useFaceModels';
-import { ManualCallingBar } from '../attendance/components/ManualCallingBar';
 
 const formatAttendanceTime = (value: string): string => {
   const date = new Date(value);
@@ -63,12 +62,6 @@ function RosterView() {
     attendanceStats,
     detailRows,
     activeAttendanceMap,
-    isAutoCallEnabled,
-    callingIndex,
-    setAutoCallEnabled,
-    handleCallingNext,
-    handleCallingMarkPresent,
-    handleCallingClose,
     setAttendanceMessage,
     setAttendanceFilter,
     setAttendanceSearch,
@@ -164,13 +157,11 @@ function RosterView() {
           rosterMeta={rosterMeta}
           isAttendanceMode={isAttendanceMode}
           isAttendanceBusy={isAttendanceBusy}
-          isAutoCallEnabled={isAutoCallEnabled}
           onOpenShare={() => setShareModalOpen(true)}
           onStartAttendance={handleStartAttendance}
           onSaveAttendance={() => setStatsModalOpen(true)}
           onCancelAttendance={handleCancelAttendanceMode}
           onStartAiScanner={() => setAiModeOpen(true)}
-          onToggleAutoCall={setAutoCallEnabled}
         />
 
         <div className="roster-controls-combined">
@@ -237,21 +228,6 @@ function RosterView() {
           activeAttendanceMap={activeAttendanceMap}
           onToggleAttendance={handleToggleAttendance}
           onClose={() => setAiModeOpen(false)}
-          isAutoCallEnabled={isAutoCallEnabled}
-          onToggleAutoCall={setAutoCallEnabled}
-        />
-      )}
-
-      {/* Thanh gọi tên thủ công - hiển thị khi điểm danh thủ công và bật Tự động gọi tên */}
-      {isAttendanceMode && !isAiModeOpen && isAutoCallEnabled && (
-        <ManualCallingBar
-          students={students.map((s) => ({ id: s.id ?? s.mssv, mssv: s.mssv, fullName: s.fullName || s.name || s.mssv }))}
-          callingIndex={callingIndex}
-          presentCount={Object.values(activeAttendanceMap).filter((r) => r.status === 'present').length}
-          onMarkPresent={handleCallingMarkPresent}
-          onSkip={handleCallingNext}
-          onClose={handleCallingClose}
-          isAutoCallEnabled={isAutoCallEnabled}
         />
       )}
 

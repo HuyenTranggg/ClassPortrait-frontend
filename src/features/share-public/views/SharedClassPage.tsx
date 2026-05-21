@@ -19,7 +19,6 @@ import { PrintHeaderModal, usePrintHeaderController } from '../../roster/print';
 import { useRosterFilteredStudents } from '../../roster/attendance/hooks/useRosterFilteredStudents';
 import { usePagination } from '../../../hooks/usePagination';
 import AppToast from '../../../components/AppToast';
-import { ManualCallingBar } from '../../roster/attendance/components/ManualCallingBar';
 
 interface SharedClassPageProps {
   id: string;
@@ -281,14 +280,12 @@ function SharedClassPage({ id, exp, sig }: SharedClassPageProps) {
               rosterMeta={rosterMeta}
               isAttendanceMode={sharedAttendance.isAttendanceMode}
               isAttendanceBusy={sharedAttendance.isBusy}
-              isAutoCallEnabled={sharedAttendance.isAutoCallEnabled}
               onStartAttendance={sharedAttendance.handleStartAttendance}
               onSaveAttendance={() => sharedAttendance.setStatsModalOpen(true)}
               onCancelAttendance={sharedAttendance.handleCancelAttendanceMode}
               onStartAiScanner={canTakeAttendance ? () => setAiModeOpen(true) : undefined}
-              onToggleAutoCall={canTakeAttendance ? sharedAttendance.setAutoCallEnabled : undefined}
-              hideShareAction={true}
-              hideAttendanceAction={!canTakeAttendance}
+              hideShareAction={true} // Không có nút chia sẻ trong link chia sẻ
+              hideAttendanceAction={!canTakeAttendance} // Không có nút điểm danh nếu link công khai
             />
 
             <div className="roster-controls-combined">
@@ -488,21 +485,6 @@ function SharedClassPage({ id, exp, sig }: SharedClassPageProps) {
               activeAttendanceMap={sharedAttendance.activeAttendanceMap}
               onToggleAttendance={sharedAttendance.handleToggleAttendance}
               onClose={() => setAiModeOpen(false)}
-              isAutoCallEnabled={sharedAttendance.isAutoCallEnabled}
-              onToggleAutoCall={sharedAttendance.setAutoCallEnabled}
-            />
-          )}
-
-          {/* Thanh gọi tên thủ công cho giám thị */}
-          {sharedAttendance.isAttendanceMode && !isAiModeOpen && sharedAttendance.isAutoCallEnabled && (
-            <ManualCallingBar
-              students={payload?.students?.map((s) => ({ id: s.mssv, mssv: s.mssv, fullName: s.fullName || s.name || s.mssv })) ?? []}
-              callingIndex={sharedAttendance.callingIndex}
-              presentCount={Object.values(sharedAttendance.activeAttendanceMap).filter((r) => r.status === 'present').length}
-              onMarkPresent={sharedAttendance.handleCallingMarkPresent}
-              onSkip={sharedAttendance.handleCallingNext}
-              onClose={sharedAttendance.handleCallingClose}
-              isAutoCallEnabled={sharedAttendance.isAutoCallEnabled}
             />
           )}
 
