@@ -6,7 +6,11 @@ import { ShareTokenParams } from './attendance.api';
  * Frontend xử lý im lặng — tiếp tục quét bình thường.
  */
 export class FaceMismatchError extends Error {
-  constructor(public readonly matchScore?: number) {
+  constructor(
+    public readonly matchScore?: number,
+    public readonly distance?: number,
+    public readonly threshold?: number,
+  ) {
     super('FACE_MISMATCH');
     this.name = 'FaceMismatchError';
   }
@@ -38,12 +42,16 @@ export async function aiVerifyFace(
   classId: string,
   studentId: string,
   descriptor: Float32Array,
+  distanceThreshold: number,
   shareToken?: ShareTokenParams,
-): Promise<{ verified: true; matchScore: number }> {
+): Promise<{ verified: true; matchScore: number; distance: number; threshold: number }> {
   try {
-    const response = await api.post<{ verified: true; matchScore: number }>(
+    const response = await api.post<{ verified: true; matchScore: number; distance: number; threshold: number }>(
       `/classes/${classId}/attendance/students/${studentId}/ai-verify`,
-      { descriptor: Array.from(descriptor) },
+      {
+        descriptor: Array.from(descriptor),
+        distanceThreshold,
+      },
       {
         params: shareToken
           ? { shareId: shareToken.shareId, exp: shareToken.exp, sig: shareToken.sig }
@@ -58,7 +66,9 @@ export async function aiVerifyFace(
     // 422 FACE_MISMATCH: khuôn mặt không khớp — im lặng
     if (status === 422 && errorCode === 'FACE_MISMATCH') {
       const matchScore = err?.response?.data?.matchScore;
-      throw new FaceMismatchError(matchScore);
+      const distance = err?.response?.data?.distance;
+      const threshold = err?.response?.data?.threshold;
+      throw new FaceMismatchError(matchScore, distance, threshold);
     }
 
     // 422 NO_FACE_IN_REFERENCE: ảnh thẻ không nhận diện được mặt — báo lỗi

@@ -24,10 +24,12 @@ export function useFaceModels() {
         if (!globalLoadingPromise) {
           globalLoadingPromise = (async () => {
             // 1. Tải mô hình từ thư mục public
+            // Chỉ load 3 model cần thiết cho SsdMobilenetv1 pipeline
+            // TinyFaceDetector đã bị loại bỏ để đảm bảo nhất quán descriptor space
             await Promise.all([
               faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
               faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
-              faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+              faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
             ]);
 
             // 2. Warm-up (chạy khởi động ấm) cho mô hình AI
@@ -38,9 +40,13 @@ export function useFaceModels() {
               const dummyCanvas = document.createElement('canvas');
               dummyCanvas.width = 1;
               dummyCanvas.height = 1;
-              await faceapi.detectSingleFace(dummyCanvas)
-                             .withFaceLandmarks()
-                             .withFaceDescriptor();
+              // Warm-up với SsdMobilenetv1 để pre-compile WebGL shaders
+              await faceapi.detectSingleFace(
+                dummyCanvas,
+                new faceapi.SsdMobilenetv1Options({ minConfidence: 0.5 }),
+              )
+                .withFaceLandmarks()
+                .withFaceDescriptor();
             } catch (warmupErr) {
               console.warn('AI warmup skipped or failed:', warmupErr);
             }
