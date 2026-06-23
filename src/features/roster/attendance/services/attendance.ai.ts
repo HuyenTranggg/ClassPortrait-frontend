@@ -24,24 +24,24 @@ export class AiVerifyNetworkError extends Error {
 }
 
 /**
- * Gửi face descriptor lên Backend để xác thực và ghi nhận điểm danh.
+ * Gửi face descriptor lên Backend để xác thực khuôn mặt.
  *
  * @param classId UUID lớp học.
  * @param studentId UUID sinh viên cần xác thực.
  * @param descriptor Float32Array 128 chiều từ camera (live descriptor).
  * @param shareToken Context share link dành cho giám thị (tuỳ chọn).
- * @returns { status: 'present', matchScore: number } nếu xác thực thành công.
+ * @returns { verified: true, matchScore: number } nếu xác thực thành công.
  * @throws {FaceMismatchError} nếu Backend trả về 422 FACE_MISMATCH (không khớp mặt).
  * @throws {AiVerifyNetworkError} nếu lỗi mạng, 5xx, hoặc timeout.
  */
-export async function aiVerifyAndMark(
+export async function aiVerifyFace(
   classId: string,
   studentId: string,
   descriptor: Float32Array,
   shareToken?: ShareTokenParams,
-): Promise<{ status: string; matchScore: number }> {
+): Promise<{ verified: true; matchScore: number }> {
   try {
-    const response = await api.post<{ status: string; matchScore: number }>(
+    const response = await api.post<{ verified: true; matchScore: number }>(
       `/classes/${classId}/attendance/students/${studentId}/ai-verify`,
       { descriptor: Array.from(descriptor) },
       {

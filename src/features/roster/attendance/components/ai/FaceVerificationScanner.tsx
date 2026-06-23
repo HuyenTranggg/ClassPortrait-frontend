@@ -6,7 +6,7 @@ import { useFaceVerification } from '../../hooks/ai/useFaceVerification';
 import { CameraOverlay } from './CameraOverlay';
 import { RecentScansLog, ScannedStudent } from './RecentScansLog';
 import { speak, buildCallText, buildPresentText } from '../../../../../lib/tts/speech.util';
-import { aiVerifyAndMark, FaceMismatchError } from '../../services/attendance.ai';
+import { aiVerifyFace, FaceMismatchError } from '../../services/attendance.ai';
 import { ShareTokenParams } from '../../services/attendance.api';
 
 interface FaceVerificationScannerProps {
@@ -100,7 +100,7 @@ export const FaceVerificationScanner: React.FC<FaceVerificationScannerProps> = (
   }, [searchQuery]);
 
   // Chỉ chạy phân tích hình ảnh khi không trong chế độ tạm dừng
-  const { verificationResult, refImageError, getLiveDescriptor } = useFaceVerification(
+  const { verificationResult, refImageError, getAggregatedLiveDescriptor } = useFaceVerification(
     videoRef,
     isCameraActive && !isPaused,
     modelsLoaded,
@@ -199,13 +199,13 @@ export const FaceVerificationScanner: React.FC<FaceVerificationScannerProps> = (
 
   // ────────────────────────────────────────────────────────────────────────────
   // AUTO VERIFY: Gọi khi auto-mode đạt ngưỡng 18 frames.
-  // Gửi descriptor lên Backend → backend verify → nếu ok thì triggerSuccessUI.
+  // Gửi descriptor lên Backend → backend chỉ verify → nếu ok thì cập nhật bản nháp qua triggerSuccessUI.
   // Không làm gì nếu: mismatch (im lặng) / lỗi kỹ thuật (toast + resume).
   // ────────────────────────────────────────────────────────────────────────────
   const handleVerifyAuto = useCallback(async () => {
     if (!currentStudent || isPaused) return;
 
-    const liveDescriptor = getLiveDescriptor();
+    const liveDescriptor = getAggregatedLiveDescriptor();
     if (!liveDescriptor) {
       // Không có descriptor (camera mất tín hiệu giữa chừng) → bỏ qua, reset đếm
       setMatchHoldTime(0);
@@ -215,12 +215,10 @@ export const FaceVerificationScanner: React.FC<FaceVerificationScannerProps> = (
     // Pause scanning ngay lập tức để tránh gọi API nhiều lần
     setIsPaused(true);
 
-    const score = verificationResult?.matchScore || 90;
-
     try {
-      await aiVerifyAndMark(classId, currentStudent.id, liveDescriptor, shareToken);
+      const result = await aiVerifyFace(classId, currentStudent.id, liveDescriptor, shareToken);
       // Backend xác nhận → hiện UI thành công
-      triggerSuccessUI(currentStudent, score);
+      triggerSuccessUI(currentStudent, result.matchScore);
     } catch (err) {
       if (err instanceof FaceMismatchError) {
         // Khuôn mặt không khớp → im lặng, resume quét
@@ -235,7 +233,7 @@ export const FaceVerificationScanner: React.FC<FaceVerificationScannerProps> = (
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [classId, currentStudent, isPaused, getLiveDescriptor, verificationResult?.matchScore, shareToken, triggerSuccessUI, showErrorToast]);
+  }, [classId, currentStudent, isPaused, getAggregatedLiveDescriptor, shareToken, triggerSuccessUI, showErrorToast]);
 
   // ────────────────────────────────────────────────────────────────────────────
   // MANUAL CONFIRM: Nút "Xác nhận" bấm tay — bypass AI, tin tưởng giảng viên.
@@ -253,7 +251,7 @@ export const FaceVerificationScanner: React.FC<FaceVerificationScannerProps> = (
 
   // ────────────────────────────────────────────────────────────────────────────
   // Logic Auto-Mode: Cần khớp liên tục ~18 frames (~500-600ms) để chống nhiễu.
-  // Chỉ trigger khi score > 90 (khớp mạnh), không trigger khi isPaused.
+  // Frontend và Backend cùng dùng ngưỡng Euclidean 0.42.
   // ────────────────────────────────────────────────────────────────────────────
   useEffect(() => {
     if (isPaused) return;
@@ -263,11 +261,7 @@ export const FaceVerificationScanner: React.FC<FaceVerificationScannerProps> = (
       return;
     }
 
-    if (verificationResult.matchScore > 90) {
-      setMatchHoldTime(prev => prev + 1);
-    } else {
-      setMatchHoldTime(0);
-    }
+    setMatchHoldTime(prev => prev + 1);
 
     if (matchHoldTime > 18) {
       handleVerifyAuto();

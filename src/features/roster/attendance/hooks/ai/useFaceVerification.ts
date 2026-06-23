@@ -1,6 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import * as faceapi from '@vladmandic/face-api';
 
+export const FACE_MATCH_THRESHOLD = 0.42;
+const MAX_MATCHED_DESCRIPTOR_SAMPLES = 20;
+
 interface VerificationResult {
   isMatch: boolean;
   matchScore: number;
@@ -31,6 +34,33 @@ function distanceToPercentage(distance: number): number {
   }
 }
 
+function selectRepresentativeDescriptor(descriptors: Float32Array[]): Float32Array | null {
+  if (descriptors.length === 0) return null;
+  if (descriptors.length === 1) return new Float32Array(descriptors[0]);
+
+  let bestDescriptorIndex = 0;
+  let lowestTotalDistance = Number.POSITIVE_INFINITY;
+
+  for (let candidateIndex = 0; candidateIndex < descriptors.length; candidateIndex += 1) {
+    let totalDistance = 0;
+
+    for (let otherIndex = 0; otherIndex < descriptors.length; otherIndex += 1) {
+      if (candidateIndex === otherIndex) continue;
+      totalDistance += faceapi.euclideanDistance(
+        descriptors[candidateIndex],
+        descriptors[otherIndex],
+      );
+    }
+
+    if (totalDistance < lowestTotalDistance) {
+      lowestTotalDistance = totalDistance;
+      bestDescriptorIndex = candidateIndex;
+    }
+  }
+
+  return new Float32Array(descriptors[bestDescriptorIndex]);
+}
+
 export function useFaceVerification(
   videoRef: React.RefObject<HTMLVideoElement | null>,
   isCameraActive: boolean,
@@ -46,8 +76,12 @@ export function useFaceVerification(
   const requestRef = useRef<number>(null);
   const isMatchingRef = useRef<boolean>(false);
   const isRunningRef = useRef<boolean>(false);
-  // Ref lưu descriptor khuôn mặt đang nhìn vào camera (cập nhật mỗi frame, không gây re-render)
-  const liveDescriptorRef = useRef<Float32Array | null>(null);
+  // Chỉ giữ các descriptor khớp liên tiếp để tổng hợp trước khi xác minh ở Backend.
+  const matchedDescriptorSamplesRef = useRef<Float32Array[]>([]);
+
+  const clearLiveDescriptors = useCallback(() => {
+    matchedDescriptorSamplesRef.current = [];
+  }, []);
 
   // 1. Tải và trích xuất đặc trưng của ảnh gốc (Reference Image)
   useEffect(() => {
@@ -56,6 +90,7 @@ export function useFaceVerification(
     const loadReferenceImage = async () => {
       // ĐỒNG BỘ TUYỆT ĐỐI: Reset ngay lập tức để vòng lặp camera thấy null ngay trong frame kế tiếp
       referenceDescriptorRef.current = null;
+      clearLiveDescriptors();
       if (isMounted) {
         setVerificationResult(null);
         setRefImageError(null);
@@ -101,7 +136,7 @@ export function useFaceVerification(
     return () => {
       isMounted = false;
     };
-  }, [referenceImageUrl, modelsLoaded]);
+  }, [referenceImageUrl, modelsLoaded, clearLiveDescriptors]);
 
   // 2. Vòng lặp quét video trực tiếp
   const processVideoFrame = useCallback(async () => {
@@ -142,7 +177,7 @@ export function useFaceVerification(
           
           // Chuyển đổi sang phần trăm khớp bằng hàm phi tuyến tính hiệu chuẩn nghiêm ngặt hơn
           const score = distanceToPercentage(distance);
-          const isMatch = distance < 0.40; // THẤT CHẶT TUYỆT ĐỐI: Ngưỡng an toàn bảo mật cao (dưới 0.40 mới tự động khớp)
+          const isMatch = distance <= FACE_MATCH_THRESHOLD;
 
           setVerificationResult({
             isMatch,
@@ -150,10 +185,17 @@ export function useFaceVerification(
             distance,
             box: detection.detection.box
           });
-          // Cập nhật live descriptor để Scanner lấy khi cần gọi API ai-verify
-          liveDescriptorRef.current = detection.descriptor;
+          if (isMatch) {
+            matchedDescriptorSamplesRef.current = [
+              ...matchedDescriptorSamplesRef.current,
+              detection.descriptor,
+            ].slice(-MAX_MATCHED_DESCRIPTOR_SAMPLES);
+          } else {
+            matchedDescriptorSamplesRef.current = [];
+          }
         } else {
           // Có mặt nhưng chưa có reference descriptor hợp lệ (ví dụ ảnh thẻ lỗi/SVG)
+          clearLiveDescriptors();
           setVerificationResult({
             isMatch: false,
             matchScore: 0,
@@ -163,9 +205,11 @@ export function useFaceVerification(
         }
       } else {
         // Không tìm thấy khuôn mặt
+        clearLiveDescriptors();
         setVerificationResult(null);
       }
     } catch (err) {
+      clearLiveDescriptors();
       console.error('Frame processing error', err);
     } finally {
       isMatchingRef.current = false;
@@ -173,7 +217,7 @@ export function useFaceVerification(
         requestRef.current = requestAnimationFrame(processVideoFrame);
       }
     }
-  }, [modelsLoaded, videoRef]);
+  }, [modelsLoaded, videoRef, clearLiveDescriptors]);
 
   useEffect(() => {
     isRunningRef.current = isCameraActive && modelsLoaded;
@@ -183,16 +227,18 @@ export function useFaceVerification(
       requestRef.current = requestAnimationFrame(processVideoFrame);
     } else {
       setIsProcessing(false);
+      clearLiveDescriptors();
       setVerificationResult(null);
     }
 
     return () => {
       isRunningRef.current = false;
+      clearLiveDescriptors();
       if (requestRef.current) {
         cancelAnimationFrame(requestRef.current);
       }
     };
-  }, [isCameraActive, modelsLoaded, processVideoFrame]);
+  }, [isCameraActive, modelsLoaded, processVideoFrame, clearLiveDescriptors]);
 
   return {
     referenceDescriptor: referenceDescriptorRef.current,
@@ -200,10 +246,10 @@ export function useFaceVerification(
     isProcessing,
     refImageError,
     /**
-     * Lấy descriptor khuôn mặt đang hiển thị trên camera tại thời điểm gọi.
-     * Dùng Ref thay vì State để không gây re-render mỗi frame.
-     * Trả về null nếu camera không nhìn thấy khuôn mặt.
+     * Chọn descriptor đại diện nhất (medoid) trong các frame khớp liên tiếp gần nhất.
+     * Cách này giảm ảnh hưởng của frame rung/nhòe mà vẫn giữ descriptor gốc từ model.
      */
-    getLiveDescriptor: (): Float32Array | null => liveDescriptorRef.current,
+    getAggregatedLiveDescriptor: (): Float32Array | null =>
+      selectRepresentativeDescriptor(matchedDescriptorSamplesRef.current),
   };
 }

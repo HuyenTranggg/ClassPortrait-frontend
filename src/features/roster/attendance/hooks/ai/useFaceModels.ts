@@ -19,7 +19,7 @@ export function useFaceModels() {
 
     const loadModels = async () => {
       try {
-        const MODEL_URL = '/models';
+        const MODEL_URL = process.env.PUBLIC_URL + '/models';
         
         if (!globalLoadingPromise) {
           globalLoadingPromise = (async () => {
