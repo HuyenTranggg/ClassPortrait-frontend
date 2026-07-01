@@ -13,12 +13,12 @@ export const FACE_SIMILARITY_THRESHOLD_OPTIONS = [
 ] as const;
 export type FaceSimilarityThresholdScore = typeof FACE_SIMILARITY_THRESHOLD_OPTIONS[number]['score'];
 const VERIFICATION_WINDOW_SIZE = 7;
-const MIN_MATCHED_SAMPLES = 5;
-// Tăng từ 3 lên 5: cần 5/5 frame liên tiếp perfect để early-accept, giảm false positive
-const EARLY_ACCEPT_SAMPLE_SIZE = 5;
+const MIN_MATCHED_SAMPLES = 3;
+// Yêu cầu 3 frame liên tiếp đạt ngưỡng để early-accept
+const EARLY_ACCEPT_SAMPLE_SIZE = 3;
 const OVERLAY_SMOOTHING_SIZE = 3;
-// Throttle giữa các frame SsdMobilenetv1: ~3fps hiệu dụng, cân bằng tốc độ và chính xác
-const FRAME_MIN_INTERVAL_MS = 350;
+// Throttle giữa các frame SsdMobilenetv1: ~5fps hiệu dụng (200ms), tối ưu tốc độ nhận diện nhanh
+const FRAME_MIN_INTERVAL_MS = 200;
 
 interface VerificationResult {
   isMatch: boolean;

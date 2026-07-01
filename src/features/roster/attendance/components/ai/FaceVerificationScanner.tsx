@@ -320,7 +320,7 @@ export const FaceVerificationScanner: React.FC<FaceVerificationScannerProps> = (
         aria-modal="true"
         aria-labelledby="aiScannerModalTitle"
       >
-        <div className="modal-dialog modal-xl modal-dialog-centered" style={{ maxWidth: '960px' }}>
+        <div className="modal-dialog modal-xl modal-dialog-centered" style={{ maxWidth: '1050px' }}>
           <div className="modal-content bg-white text-dark border shadow-lg">
 
             {/* Header */}
@@ -457,6 +457,21 @@ export const FaceVerificationScanner: React.FC<FaceVerificationScannerProps> = (
               </div>
             </div>
 
+            {/* Status Bar - Cố định không gian để không đẩy layout */}
+            <div 
+              className={`px-4 py-2 border-bottom d-flex align-items-center ${successMessage ? 'bg-success-subtle text-success' : 'bg-light text-muted'}`}
+              style={{ fontSize: '0.95rem', transition: 'all 0.3s ease', minHeight: '44px' }}
+            >
+              {successMessage ? (
+                <>
+                  <i className="bi bi-check-circle-fill me-2" style={{ fontSize: '1.1rem' }}></i>
+                  <span className="fw-medium">{successMessage}</span>
+                </>
+              ) : (
+                <span>Đang chờ khuôn mặt trước camera...</span>
+              )}
+            </div>
+
             {/* Body */}
             <div className="modal-body p-3 bg-white">
               {/* Toast lỗi kỹ thuật — hiện khi có lỗi mạng/503 */}
@@ -478,18 +493,6 @@ export const FaceVerificationScanner: React.FC<FaceVerificationScannerProps> = (
                 </div>
               )}
 
-              {/* Alert thông báo xác nhận thành công */}
-              {successMessage && (
-                <div
-                  className="alert alert-success d-flex align-items-center justify-content-center py-2 mb-3 shadow"
-                  role="alert"
-                  style={{ fontSize: '1.1rem', fontWeight: 'bold', animation: 'fadeInDown 0.3s ease' }}
-                >
-                  <i className="bi bi-check-circle-fill me-2" style={{ fontSize: '1.3rem' }}></i>
-                  {successMessage}
-                </div>
-              )}
-
               {loadingError ? (
                 <div className="alert alert-danger">{loadingError}</div>
               ) : !modelsLoaded ? (
@@ -498,122 +501,158 @@ export const FaceVerificationScanner: React.FC<FaceVerificationScannerProps> = (
                   <p className="mb-0 text-muted">Đang tải mô hình AI. Vui lòng chờ...</p>
                 </div>
               ) : (
-                <div className="row g-3">
-                  {/* Cột trái: Camera */}
-                  <div className="col-md-7">
-                    <div
-                      className="position-relative bg-black rounded overflow-hidden"
-                      style={{
-                        minHeight: '320px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        border: successMessage ? '3px solid #198754' : '3px solid #dee2e6',
-                        transition: 'border-color 0.3s ease'
-                      }}
-                    >
-                      {cameraError ? (
-                        <div className="text-danger text-center p-4">{cameraError}</div>
-                      ) : (
-                        <>
-                          <video
-                            ref={videoRef}
-                            autoPlay
-                            muted
-                            playsInline
-                            style={{ width: '100%', maxHeight: '480px', objectFit: 'cover', transform: 'scaleX(-1)' }}
-                          />
-                          {!isPaused && (
-                            <CameraOverlay
-                              videoRef={videoRef}
-                              box={verificationResult?.box}
-                              isMatch={verificationResult?.isMatch || false}
-                              matchScore={verificationResult?.matchScore || 0}
-                            />
-                          )}
-                        </>
-                      )}
-                    </div>
-
-                    <RecentScansLog scans={recentScans} onUndo={handleUndo} />
-                  </div>
-
-                  {/* Cột phải: Thông tin đối soát */}
-                  <div className="col-md-5 d-flex flex-column">
-                    {currentStudent ? (
+                <>
+                  <div className="row g-3">
+                    {/* Hàng 1 - Cột Trái: Camera */}
+                    <div className="col-md-7 d-flex flex-column">
                       <div
-                        className="card border-0 text-white flex-grow-1 shadow-sm"
+                        className="position-relative bg-black rounded overflow-hidden flex-grow-1 shadow-sm"
                         style={{
-                          backgroundColor: successMessage ? '#198754' : '#f8f9fa',
-                          color: successMessage ? '#ffffff' : '#212529',
-                          border: successMessage ? 'none' : '1px solid #dee2e6',
-                          transition: 'all 0.3s ease'
+                          minHeight: '320px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          border: successMessage ? '3px solid #198754' : '3px solid #dee2e6',
+                          transition: 'border-color 0.3s ease'
                         }}
                       >
-                        <div className={`card-header ${successMessage ? 'bg-success text-white border-bottom-0' : 'bg-light text-dark border-bottom'} fw-bold`}>
-                          Sinh viên ({currentIndex + 1}/{filteredPendingStudents.length})
-                        </div>
-                        <div className="card-body text-center d-flex flex-column justify-content-center align-items-center py-4">
-                          <div className="position-relative mb-3">
-                            <img
-                              src={currentStudent.photoUrl}
-                              alt={currentStudent.fullName}
-                              className="rounded-circle border border-3 border-light shadow"
-                              style={{ width: '150px', height: '150px', objectFit: 'cover' }}
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).src = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="150" height="150"><rect width="150" height="150" fill="%236c757d"/><text x="75" y="80" text-anchor="middle" fill="%23fff" font-size="20">${currentStudent.mssv}</text></svg>`;
-                              }}
-                            />
-                            {refImageError && (
-                              <span
-                                className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                                title={refImageError}
-                              >
-                                <i className="bi bi-exclamation-triangle" />
-                              </span>
-                            )}
-                          </div>
-                          <h4 className={`fw-bold mb-1 ${successMessage ? 'text-white' : 'text-dark'}`}>{currentStudent.fullName}</h4>
-                          <p className={`mb-0 ${successMessage ? 'text-light' : 'text-muted'}`}>MSSV: {currentStudent.mssv}</p>
-                          <p className={`${successMessage ? 'text-light' : 'text-muted'}`}>Lớp: {currentStudent.classCode}</p>
-
-                          <div className="mt-auto pt-4 w-100 d-flex gap-2">
-                            <button className="btn btn-outline-danger flex-grow-1" onClick={handleSkip} disabled={isPaused}>
-                              <i className="bi bi-arrow-right-circle me-1" /> Bỏ qua
-                            </button>
-                            {/*
-                              Nút "Xác nhận" thủ công: bypass AI, tin tưởng quyết định của giảng viên.
-                              Ghi nhận local state ngay, API PUT thực sự được gọi khi bấm "Lưu".
-                            */}
-                            <button
-                              className={`btn ${verificationResult?.isMatch ? 'btn-success' : 'btn-outline-success'} flex-grow-1`}
-                              onClick={handleConfirmManual}
-                              disabled={isPaused}
-                            >
-                              <i className="bi bi-check-circle me-1" /> Xác nhận
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="card bg-light border text-dark d-flex align-items-center justify-content-center p-4 text-center flex-grow-1" style={{ minHeight: '300px' }}>
-                        {searchQuery.trim() ? (
-                          <>
-                            <i className="bi bi-search display-3 text-warning mb-3" />
-                            <h5 className="fw-bold">Không có kết quả</h5>
-                            <p className="text-muted mb-0">Không tìm thấy sinh viên chưa điểm danh nào khớp với từ khóa "{searchQuery}".</p>
-                          </>
+                        {cameraError ? (
+                          <div className="text-danger text-center p-4">{cameraError}</div>
                         ) : (
                           <>
-                            <i className="bi bi-check2-all display-1 text-success mb-3" />
-                            <h5 className="fw-bold text-success">Đã hoàn thành</h5>
-                            <p className="text-muted mb-0">Tất cả sinh viên trong danh sách đã được điểm danh.</p>
+                            <video
+                              ref={videoRef}
+                              autoPlay
+                              muted
+                              playsInline
+                              style={{ width: '100%', maxHeight: '480px', objectFit: 'cover', transform: 'scaleX(-1)' }}
+                            />
+                            {/* Overlay tương đồng % nổi trên camera */}
+                            {successMessage && verificationResult?.matchScore !== undefined && (
+                              <div className="position-absolute top-0 start-0 m-3 z-3">
+                                <span 
+                                  className="badge bg-success bg-opacity-75 fs-6 py-2 px-3 shadow-sm"
+                                  style={{ backdropFilter: 'blur(4px)', borderRadius: '8px' }}
+                                >
+                                  <i className="bi bi-check-circle me-2"></i>
+                                  Tương đồng {verificationResult.matchScore}%
+                                </span>
+                              </div>
+                            )}
+                            {!isPaused && (
+                              <CameraOverlay
+                                videoRef={videoRef}
+                                box={verificationResult?.box}
+                                isMatch={verificationResult?.isMatch || false}
+                                matchScore={verificationResult?.matchScore || 0}
+                              />
+                            )}
                           </>
                         )}
                       </div>
-                    )}
+                    </div>
+
+                    {/* Hàng 1 - Cột Phải: Thông tin đối soát */}
+                    <div className="col-md-5 d-flex flex-column">
+                      {currentStudent ? (
+                        <div
+                          className="card flex-grow-1 shadow-sm"
+                          style={{
+                            backgroundColor: '#f8f9fa',
+                            borderColor: successMessage ? '#198754' : '#dee2e6',
+                            transition: 'all 0.3s ease'
+                          }}
+                        >
+                          <div 
+                            className={`card-header fw-bold ${successMessage ? 'bg-success text-white border-success' : 'bg-light text-dark border-bottom'}`}
+                            style={{ transition: 'all 0.3s ease' }}
+                          >
+                            Sinh viên ({currentIndex + 1}/{filteredPendingStudents.length})
+                          </div>
+                          <div className="card-body d-flex flex-column p-0">
+                            {/* Phần thông tin sinh viên - Đổi màu xanh khi success */}
+                            <div 
+                              className="text-center d-flex flex-column justify-content-center align-items-center flex-grow-1 py-4 px-3"
+                              style={{
+                                backgroundColor: successMessage ? '#198754' : 'transparent',
+                                color: successMessage ? '#ffffff' : '#212529',
+                                transition: 'all 0.3s ease',
+                                borderBottomLeftRadius: 'var(--bs-card-inner-border-radius)',
+                                borderBottomRightRadius: 'var(--bs-card-inner-border-radius)'
+                              }}
+                            >
+                              <div className="position-relative mb-3">
+                                <img
+                                  src={currentStudent.photoUrl}
+                                  alt={currentStudent.fullName}
+                                  className="rounded-circle border border-3 border-light shadow"
+                                  style={{ width: '150px', height: '150px', objectFit: 'cover' }}
+                                  onError={(e) => {
+                                    (e.target as HTMLImageElement).src = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="150" height="150"><rect width="150" height="150" fill="%236c757d"/><text x="75" y="80" text-anchor="middle" fill="%23fff" font-size="20">${currentStudent.mssv}</text></svg>`;
+                                  }}
+                                />
+                                {refImageError && (
+                                  <span
+                                    className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                                    title={refImageError}
+                                  >
+                                    <i className="bi bi-exclamation-triangle" />
+                                  </span>
+                                )}
+                              </div>
+                              <h4 className={`fw-bold mb-1 ${successMessage ? 'text-white' : 'text-dark'}`}>{currentStudent.fullName}</h4>
+                              <p className={`mb-0 ${successMessage ? 'text-light' : 'text-muted'}`}>MSSV: {currentStudent.mssv}</p>
+                              <p className={`${successMessage ? 'text-light' : 'text-muted'}`}>Lớp: {currentStudent.classCode}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="card bg-light border text-dark d-flex align-items-center justify-content-center p-4 text-center flex-grow-1 shadow-sm" style={{ minHeight: '320px' }}>
+                          {searchQuery.trim() ? (
+                            <>
+                              <i className="bi bi-search display-3 text-warning mb-3" />
+                              <h5 className="fw-bold">Không có kết quả</h5>
+                              <p className="text-muted mb-0">Không tìm thấy sinh viên chưa điểm danh nào khớp với từ khóa "{searchQuery}".</p>
+                            </>
+                          ) : (
+                            <>
+                              <i className="bi bi-check2-all display-1 text-success mb-3" />
+                              <h5 className="fw-bold text-success">Đã hoàn thành</h5>
+                              <p className="text-muted mb-0">Tất cả sinh viên trong danh sách đã được điểm danh.</p>
+                            </>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
+
+                  {/* Hàng 2: Recent Scans và Nút bấm */}
+                  <div className="row g-3 mt-0">
+                    <div className="col-md-7">
+                      <RecentScansLog scans={recentScans} onUndo={handleUndo} />
+                    </div>
+                    <div className="col-md-5 d-flex align-items-center">
+                      {currentStudent && (
+                        <div className="d-flex gap-2 w-100 mt-4">
+                          <button 
+                            className="btn btn-outline-danger flex-grow-1 py-2 shadow-sm" 
+                            onClick={handleSkip} 
+                            disabled={isPaused}
+                          >
+                            <i className="bi bi-arrow-right-circle me-1" /> Bỏ qua
+                          </button>
+                          <button
+                            className={`btn ${verificationResult?.isMatch ? 'btn-success' : 'btn-outline-success'} flex-grow-1 py-2 shadow-sm`}
+                            onClick={handleConfirmManual}
+                            disabled={isPaused}
+                          >
+                            <i className="bi bi-check-circle me-1" /> Xác nhận
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </>
               )}
             </div>
 
