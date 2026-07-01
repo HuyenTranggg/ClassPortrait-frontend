@@ -48,7 +48,7 @@ export default function ClassListView() {
     setExportingGroupKey(groupKey);
     try {
       const firstName = items[0];
-      const fileName = `DanhSachDuThi_${(firstName?.courseCode ?? 'HP').replace(/[^a-zA-Z0-9]/g, '_')}_HK${(firstName?.semester ?? '').replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+      const fileName = `${(firstName?.courseCode ?? 'HP').replace(/[^a-zA-Z0-9]/g, '_')}_DanhSachDuThi.pdf`;
       await exportPDF(classIds, fileName);
     } finally {
       setExportingGroupKey(null);

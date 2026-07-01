@@ -67,5 +67,5 @@ export function formatExamTime(timeStr: string | undefined | null): string {
  */
 export function buildPdfFileName(courseCode: string, semester: string): string {
   const safe = (s: string) => s.replace(/[^a-zA-Z0-9\-_.]/g, '_');
-  return `DanhSachDuThi_${safe(courseCode)}_HK${safe(semester)}.pdf`;
+  return `${safe(courseCode)}_DanhSachDuThi.pdf`;
 }
