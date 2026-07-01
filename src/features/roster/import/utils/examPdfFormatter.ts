@@ -51,11 +51,15 @@ export function formatDob(dateValue: string | Date | undefined | null): string {
  */
 export function formatExamTime(timeStr: string | undefined | null): string {
   if (!timeStr) return '';
-  const parts = timeStr.split(':');
-  if (parts.length < 2) return timeStr;
-  const h = parts[0].padStart(2, '0');
-  const m = parts[1].padStart(2, '0');
-  return `${h}h${m}`;
+  
+  return timeStr.split('-').map(part => {
+    const trimmed = part.trim();
+    const timeParts = trimmed.split(':');
+    if (timeParts.length < 2) return trimmed;
+    const h = timeParts[0].padStart(2, '0');
+    const m = timeParts[1].padStart(2, '0');
+    return `${h}h${m}`;
+  }).join('-');
 }
 
 /**

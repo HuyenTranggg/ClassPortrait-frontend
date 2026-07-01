@@ -290,7 +290,7 @@ function buildPageHTML(session: ExamSessionPDFData): string {
             Sĩ số: &nbsp;&nbsp;<strong>${siso}</strong>
           </td>
           <td style="width:20%; padding: 3px 0; text-align:right;">
-            Phòng thi:&nbsp;&nbsp;<span style="background:#000;color:#fff;font-weight:bold;padding:1px 0;font-size:13px;display:inline-block;width:60px;text-align:center;">${escHtml(examRoomDisplay)}</span>
+            Phòng thi:&nbsp;&nbsp;<span style="background:#000;color:#fff;font-weight:bold;padding:1px 0;font-size:13px;display:inline-block;width:95px;text-align:center;">${escHtml(examRoomDisplay)}</span>
           </td>
         </tr>
         <tr>
@@ -307,7 +307,7 @@ function buildPageHTML(session: ExamSessionPDFData): string {
             Kíp thi: &nbsp;&nbsp;&nbsp;<strong>${escHtml(examShiftDisplay)}</strong>
           </td>
           <td style="padding: 3px 0 5px 0; text-align:right;">
-            Giờ thi:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="background:#000;color:#fff;font-weight:bold;padding:1px 0;font-size:13px;display:inline-block;width:60px;text-align:center;">${escHtml(examTimeDisplay)}</span>
+            Giờ thi:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="background:#000;color:#fff;font-weight:bold;padding:1px 0;font-size:13px;display:inline-block;width:95px;text-align:center;">${escHtml(examTimeDisplay)}</span>
           </td>
         </tr>
       </table>
