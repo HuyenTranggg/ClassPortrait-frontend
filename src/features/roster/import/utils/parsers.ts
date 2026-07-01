@@ -89,15 +89,32 @@ export const parseExcelFile = async (file: File): Promise<ParsedExcelInfo> => {
     .map((column) => String(column ?? '').trim())
     .map((column, index) => column || `Cột ${index + 1}`);
 
-  const mssvColumn = findColumnByKeywords(columns, ['mssv', 'ma so sinh vien', 'ma sinh vien', 'student id']);
-  const nameColumn = findColumnByKeywords(columns, ['ho va ten', 'ho ten', 'ten sinh vien', 'full name', 'name']);
+  const mssvColumn = findColumnByKeywords(columns, ['mssv', 'ma so sinh vien', 'ma sinh vien', 'mã số sinh viên', 'mã sinh viên', 'student id']);
+  const nameColumn = findColumnByKeywords(columns, ['ho va ten', 'ho ten', 'ten sinh vien', 'họ và tên', 'họ tên', 'tên sinh viên', 'full name', 'name']);
+  const semesterColumn = findColumnByKeywords(columns, ['hoc ky', 'hoc ki', 'học kỳ', 'học kì', 'semester']);
+  const departmentColumn = findColumnByKeywords(columns, ['đv giảng dạy', 'đơn vị', 'đơn vị giảng dạy', 'don vi giang day', 'dv giang day', 'don vi', 'department', 'khoa', 'viện', 'vien']);
+  const classCodeColumn = findColumnByKeywords(columns, ['mã lớp học', 'mã lớp', 'ma lop hoc', 'ma lop', 'class code']);
+  const courseCodeColumn = findColumnByKeywords(columns, ['mã học phần', 'mã hp', 'ma hoc phan', 'ma hp', 'course code']);
+  const courseNameColumn = findColumnByKeywords(columns, ['tên học phần', 'tên hp', 'ten hoc phan', 'ten hp', 'môn học', 'mon hoc', 'course name']);
+  const classNameColumn = findColumnByKeywords(columns, ['tên lớp', 'ten lop', 'class name']);
+  const classExamCodeColumn = findColumnByKeywords(columns, ['mã lớp thi', 'ma lop thi', 'class exam code', 'exam code']);
+  const examDateColumn = findColumnByKeywords(columns, ['ngày thi', 'ngay thi', 'exam date', 'date']);
+  const examRoomColumn = findColumnByKeywords(columns, ['phòng thi', 'phong thi', 'exam room', 'room']);
+  const examTimeColumn = findColumnByKeywords(columns, ['thời gian thi', 'thoi gian thi', 'giờ thi', 'gio thi', 'exam time', 'time']);
+  const examShiftColumn = findColumnByKeywords(columns, ['kíp thi', 'kip thi', 'ca thi', 'exam shift', 'shift']);
+  const instructorColumn = findColumnByKeywords(columns, ['giảng viên', 'gv giảng dạy', 'giáo viên', 'giang vien', 'gv giang day', 'giao vien', 'instructor', 'teacher']);
+  const dobColumn = findColumnByKeywords(columns, ['ngày sinh', 'ngay sinh', 'date of birth', 'dob']);
+  const genderColumn = findColumnByKeywords(columns, ['giới tính', 'gioi tinh', 'gender']);
+  const emailColumn = findColumnByKeywords(columns, ['email', 'thư điện tử', 'thu dien tu']);
 
   return {
-    columns,
-    mssvColumn,
-    nameColumn,
+    columns, mssvColumn, nameColumn,
+    semesterColumn, departmentColumn, classCodeColumn, courseCodeColumn, courseNameColumn,
+    classNameColumn, classExamCodeColumn, examDateColumn, examRoomColumn, examTimeColumn,
+    examShiftColumn, instructorColumn, dobColumn, genderColumn, emailColumn,
   };
 };
+
 
 const extractSheetMetaFromUrl = (url: string): { spreadsheetId: string; gid: string } => {
   const spreadsheetIdMatch = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/i);
@@ -171,12 +188,28 @@ export const parseGoogleSheetFromUrl = async (url: string): Promise<ParsedExcelI
     .map((column) => String(column ?? '').trim())
     .map((column, index) => column || `Cột ${index + 1}`);
 
-  const mssvColumn = findColumnByKeywords(columns, ['mssv', 'ma so sinh vien', 'ma sinh vien', 'student id']);
-  const nameColumn = findColumnByKeywords(columns, ['ho va ten', 'ho ten', 'ten sinh vien', 'full name', 'name']);
+  const mssvColumn = findColumnByKeywords(columns, ['mssv', 'ma so sinh vien', 'ma sinh vien', 'mã số sinh viên', 'mã sinh viên', 'student id']);
+  const nameColumn = findColumnByKeywords(columns, ['ho va ten', 'ho ten', 'ten sinh vien', 'họ và tên', 'họ tên', 'tên sinh viên', 'full name', 'name']);
+  const semesterColumn = findColumnByKeywords(columns, ['hoc ky', 'hoc ki', 'học kỳ', 'học kì', 'semester']);
+  const departmentColumn = findColumnByKeywords(columns, ['đv giảng dạy', 'đơn vị', 'đơn vị giảng dạy', 'don vi giang day', 'dv giang day', 'don vi', 'department', 'khoa', 'viện', 'vien']);
+  const classCodeColumn = findColumnByKeywords(columns, ['mã lớp học', 'mã lớp', 'ma lop hoc', 'ma lop', 'class code']);
+  const courseCodeColumn = findColumnByKeywords(columns, ['mã học phần', 'mã hp', 'ma hoc phan', 'ma hp', 'course code']);
+  const courseNameColumn = findColumnByKeywords(columns, ['tên học phần', 'tên hp', 'ten hoc phan', 'ten hp', 'môn học', 'mon hoc', 'course name']);
+  const classNameColumn = findColumnByKeywords(columns, ['tên lớp', 'ten lop', 'class name']);
+  const classExamCodeColumn = findColumnByKeywords(columns, ['mã lớp thi', 'ma lop thi', 'class exam code', 'exam code']);
+  const examDateColumn = findColumnByKeywords(columns, ['ngày thi', 'ngay thi', 'exam date', 'date']);
+  const examRoomColumn = findColumnByKeywords(columns, ['phòng thi', 'phong thi', 'exam room', 'room']);
+  const examTimeColumn = findColumnByKeywords(columns, ['thời gian thi', 'thoi gian thi', 'giờ thi', 'gio thi', 'exam time', 'time']);
+  const examShiftColumn = findColumnByKeywords(columns, ['kíp thi', 'kip thi', 'ca thi', 'exam shift', 'shift']);
+  const instructorColumn = findColumnByKeywords(columns, ['giảng viên', 'gv giảng dạy', 'giáo viên', 'giang vien', 'gv giang day', 'giao vien', 'instructor', 'teacher']);
+  const dobColumn = findColumnByKeywords(columns, ['ngày sinh', 'ngay sinh', 'date of birth', 'dob']);
+  const genderColumn = findColumnByKeywords(columns, ['giới tính', 'gioi tinh', 'gender']);
+  const emailColumn = findColumnByKeywords(columns, ['email', 'thư điện tử', 'thu dien tu']);
 
   return {
-    columns,
-    mssvColumn,
-    nameColumn,
+    columns, mssvColumn, nameColumn,
+    semesterColumn, departmentColumn, classCodeColumn, courseCodeColumn, courseNameColumn,
+    classNameColumn, classExamCodeColumn, examDateColumn, examRoomColumn, examTimeColumn,
+    examShiftColumn, instructorColumn, dobColumn, genderColumn, emailColumn,
   };
 };

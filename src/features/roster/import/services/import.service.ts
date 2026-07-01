@@ -10,6 +10,7 @@ interface SubmitImportRequestParams {
   mssvColumn: string;
   nameColumn: string;
   duplicateOptions?: DuplicateImportOptions;
+  extraCols?: any;
 }
 
 export const submitImportRequest = async ({
@@ -21,6 +22,7 @@ export const submitImportRequest = async ({
   mssvColumn,
   nameColumn,
   duplicateOptions,
+  extraCols,
 }: SubmitImportRequestParams): Promise<ImportClassResult> => {
   const usingSheet = source === 'gsheet';
 
@@ -34,6 +36,7 @@ export const submitImportRequest = async ({
       duplicateAction: duplicateOptions?.duplicateAction || 'ask',
       confirmUpdate: duplicateOptions?.confirmUpdate,
       targetClassId: duplicateOptions?.targetClassId,
+      ...extraCols,
     });
   }
 
@@ -49,5 +52,7 @@ export const submitImportRequest = async ({
     duplicateAction: duplicateOptions?.duplicateAction || 'ask',
     confirmUpdate: duplicateOptions?.confirmUpdate,
     targetClassId: duplicateOptions?.targetClassId,
+    ...extraCols,
   });
 };
+

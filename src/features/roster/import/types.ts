@@ -12,6 +12,21 @@ export interface ParsedExcelInfo {
   columns: string[];
   mssvColumn?: string;
   nameColumn?: string;
+  semesterColumn?: string;
+  departmentColumn?: string;
+  classCodeColumn?: string;
+  courseCodeColumn?: string;
+  courseNameColumn?: string;
+  classNameColumn?: string;
+  classExamCodeColumn?: string;
+  examDateColumn?: string;
+  examRoomColumn?: string;
+  examTimeColumn?: string;
+  examShiftColumn?: string;
+  instructorColumn?: string;
+  dobColumn?: string;
+  genderColumn?: string;
+  emailColumn?: string;
 }
 
 export type SourceType = 'excel' | 'gsheet';
@@ -61,10 +76,42 @@ export interface ImportStateSnapshot {
   selectedFile: File | null;
   googleSheetUrl: string;
   columns: string[];
+  // Auto-detected columns
   autoMssvColumn: string;
   autoNameColumn: string;
+  autoSemesterColumn: string;
+  autoDepartmentColumn: string;
+  autoClassCodeColumn: string;
+  autoCourseCodeColumn: string;
+  autoCourseNameColumn: string;
+  autoClassNameColumn: string;
+  autoClassExamCodeColumn: string;
+  autoExamDateColumn: string;
+  autoExamRoomColumn: string;
+  autoExamTimeColumn: string;
+  autoExamShiftColumn: string;
+  autoInstructorColumn: string;
+  autoDobColumn: string;
+  autoGenderColumn: string;
+  autoEmailColumn: string;
+  // Manual override columns
   manualMssvColumn: string;
   manualNameColumn: string;
+  manualSemesterColumn: string;
+  manualDepartmentColumn: string;
+  manualClassCodeColumn: string;
+  manualCourseCodeColumn: string;
+  manualCourseNameColumn: string;
+  manualClassNameColumn: string;
+  manualClassExamCodeColumn: string;
+  manualExamDateColumn: string;
+  manualExamRoomColumn: string;
+  manualExamTimeColumn: string;
+  manualExamShiftColumn: string;
+  manualInstructorColumn: string;
+  manualDobColumn: string;
+  manualGenderColumn: string;
+  manualEmailColumn: string;
   startRow: number;
   isParsing: boolean;
   isImporting: boolean;

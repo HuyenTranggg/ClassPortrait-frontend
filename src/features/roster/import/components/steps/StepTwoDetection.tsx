@@ -3,14 +3,9 @@ import { ImportStateSnapshot } from '../../types';
 import { ImportProgress } from './ImportProgress';
 
 /**
- * Bước 2: Hiển thị kết quả hệ thống tự động nhận diện các cột cần thiết (MSSV, Họ tên).
- * Cung cấp tùy chọn cho người dùng xác nhận hoặc chuyển sang chế độ tự chọn (thủ công).
- * 
- * @param props.state Trạng thái hiện tại của quá trình import, chứa kết quả nhận diện tự động.
- * @param props.onBack Callback để quay lại bước trước đó.
- * @param props.onManualMode Callback để chuyển sang chế độ cấu hình cột thủ công (Bước 3).
- * @param props.onSubmitAuto Callback để xác nhận sử dụng cấu hình tự động và tiếp tục.
- * @returns React Element giao diện bước 2.
+ * Bước 2: Hiển thị kết quả hệ thống tự động nhận diện các cột cần thiết.
+ * Giữ nguyên bố cục UI đã báo cáo, mở rộng phần "CỘT ĐÃ NHẬN DIỆN"
+ * để hiển thị tất cả các cột đã nhận diện thay vì chỉ MSSV và Họ tên.
  */
 export function StepTwo(props: {
   state: ImportStateSnapshot;
@@ -20,6 +15,31 @@ export function StepTwo(props: {
 }) {
   const { state } = props;
   const isLoading = state.isImporting || state.isPreviewLoading;
+
+  // Danh sách các trường bắt buộc cần hiển thị đầu tiên
+  const requiredFields: { label: string; value: string }[] = [
+    { label: 'Cột mã số sinh viên (MSSV)', value: state.autoMssvColumn },
+    { label: 'Cột họ và tên', value: state.autoNameColumn },
+    { label: 'Cột học kỳ', value: state.autoSemesterColumn },
+    { label: 'Cột đơn vị giảng dạy', value: state.autoDepartmentColumn },
+    { label: 'Cột mã lớp', value: state.autoClassCodeColumn },
+    { label: 'Cột mã học phần', value: state.autoCourseCodeColumn },
+    { label: 'Cột tên học phần', value: state.autoCourseNameColumn },
+    { label: 'Cột giảng viên', value: state.autoInstructorColumn },
+  ];
+
+  // Các trường tùy chọn – chỉ hiển thị nếu nhận diện được
+  const optionalFields: { label: string; value: string }[] = [
+    { label: 'Cột mã lớp thi', value: state.autoClassExamCodeColumn },
+    { label: 'Cột ngày thi', value: state.autoExamDateColumn },
+    { label: 'Cột phòng thi', value: state.autoExamRoomColumn },
+    { label: 'Cột giờ thi', value: state.autoExamTimeColumn },
+    { label: 'Cột kíp thi', value: state.autoExamShiftColumn },
+    { label: 'Cột ngày sinh', value: state.autoDobColumn },
+    { label: 'Cột giới tính', value: state.autoGenderColumn },
+    { label: 'Cột email', value: state.autoEmailColumn },
+    { label: 'Cột tên lớp quản lý', value: state.autoClassNameColumn },
+  ];
 
   return (
     <>
@@ -39,8 +59,20 @@ export function StepTwo(props: {
 
       <h5 className="import-section-title">CỘT ĐÃ NHẬN DIỆN</h5>
       <div className="detected-mapping-card">
-        <div className="detected-mapping-row"><span>Mã số sinh viên (MSSV)</span><strong>{state.autoMssvColumn || 'Chưa nhận diện'}</strong></div>
-        <div className="detected-mapping-row"><span>Họ và tên</span><strong>{state.autoNameColumn || 'Chưa nhận diện'}</strong></div>
+        {requiredFields.map(({ label, value }) => (
+          <div className="detected-mapping-row" key={label}>
+            <span>{label}<span style={{ color: '#dc3545' }}> *</span></span>
+            <span style={{ color: value ? undefined : '#dc3545' }}>{value || 'Chưa nhận diện'}</span>
+          </div>
+        ))}
+        {optionalFields.map(({ label, value }) => (
+          <div className="detected-mapping-row" key={label}>
+            <span>{label}</span>
+            <span style={{ color: value ? undefined : '#6c757d', fontStyle: value ? 'normal' : 'italic' }}>
+              {value || 'Chưa nhận diện được tự động'}
+            </span>
+          </div>
+        ))}
       </div>
 
       <div className="import-actions">

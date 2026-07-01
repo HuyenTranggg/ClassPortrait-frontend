@@ -16,7 +16,28 @@ interface ImportClassOptions {
   duplicateAction?: DuplicateAction;
   confirmUpdate?: boolean;
   targetClassId?: string;
+  semesterColumn?: string;
+  departmentColumn?: string;
+  classCodeColumn?: string;
+  courseCodeColumn?: string;
+  courseNameColumn?: string;
+  classNameColumn?: string;
+  classExamCodeColumn?: string;
+  examDateColumn?: string;
+  examRoomColumn?: string;
+  examTimeColumn?: string;
+  examShiftColumn?: string;
+  instructorColumn?: string;
+  dobColumn?: string;
+  genderColumn?: string;
+  emailColumn?: string;
 }
+
+const EXTRA_COL_KEYS: Array<keyof ImportClassOptions> = [
+  'semesterColumn', 'departmentColumn', 'classCodeColumn', 'courseCodeColumn', 'courseNameColumn',
+  'classNameColumn', 'classExamCodeColumn', 'examDateColumn', 'examRoomColumn', 'examTimeColumn',
+  'examShiftColumn', 'instructorColumn', 'dobColumn', 'genderColumn', 'emailColumn',
+];
 
 interface ImportSheetPayload extends ImportClassOptions {
   googleSheetUrl: string;
@@ -29,6 +50,21 @@ interface PreviewSheetPayload {
   mssvColumn?: string;
   nameColumn?: string;
   startRow?: number;
+  semesterColumn?: string;
+  departmentColumn?: string;
+  classCodeColumn?: string;
+  courseCodeColumn?: string;
+  courseNameColumn?: string;
+  classNameColumn?: string;
+  classExamCodeColumn?: string;
+  examDateColumn?: string;
+  examRoomColumn?: string;
+  examTimeColumn?: string;
+  examShiftColumn?: string;
+  instructorColumn?: string;
+  dobColumn?: string;
+  genderColumn?: string;
+  emailColumn?: string;
 }
 
 /**
@@ -49,12 +85,15 @@ export const importApi = {
     if (options?.duplicateAction) formData.append('duplicateAction', options.duplicateAction);
     if (typeof options?.confirmUpdate === 'boolean') formData.append('confirmUpdate', String(options.confirmUpdate));
     if (options?.targetClassId) formData.append('targetClassId', options.targetClassId);
+    for (const key of EXTRA_COL_KEYS) {
+      const val = options?.[key];
+      if (typeof val === 'string') formData.append(key, val);
+    }
 
     const response = await api.post<any>('/classes/import', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
     const data = response.data;
-    // Backend trả về classIds (mảng), ta map về ImportClassResult
     return {
       ...data,
       classId: data.classId ?? (Array.isArray(data.classIds) ? data.classIds[0] : ''),
@@ -88,6 +127,10 @@ export const importApi = {
     if (options?.nameColumn) formData.append('nameColumn', options.nameColumn);
     if (typeof options?.startRow === 'number') formData.append('startRow', String(options.startRow));
     if (options?.mappingMode) formData.append('mappingMode', options.mappingMode);
+    for (const key of EXTRA_COL_KEYS) {
+      const val = options?.[key as keyof typeof options];
+      if (typeof val === 'string') formData.append(key, val);
+    }
 
     const response = await api.post<ImportPreviewData>('/classes/import/preview', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
