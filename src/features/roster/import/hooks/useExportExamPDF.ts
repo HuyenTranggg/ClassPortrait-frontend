@@ -158,7 +158,7 @@ async function renderAndDownloadPDF(sessions: ExamSessionPDFData[], fileNameHint
         let endIndex = Math.min(startIndex + 38, session.students.length);
         let chunkStudents = session.students.slice(startIndex, endIndex);
         
-        container.innerHTML = buildPageHTML({ ...session, students: chunkStudents });
+        container.innerHTML = buildPageHTML({ ...session, students: chunkStudents }, session.students.length);
         
         // Buộc trình duyệt tính toán lại layout ngay lập tức
         void container.offsetHeight;
@@ -171,7 +171,7 @@ async function renderAndDownloadPDF(sessions: ExamSessionPDFData[], fileNameHint
         while (container.offsetHeight > maxAllowedHeight && endIndex > startIndex + 1) {
           endIndex--;
           chunkStudents = session.students.slice(startIndex, endIndex);
-          container.innerHTML = buildPageHTML({ ...session, students: chunkStudents });
+          container.innerHTML = buildPageHTML({ ...session, students: chunkStudents }, session.students.length);
           void container.offsetHeight; 
         }
 
@@ -217,14 +217,14 @@ async function renderAndDownloadPDF(sessions: ExamSessionPDFData[], fileNameHint
  * Sinh chuỗi HTML của 1 trang PDF cho 1 lớp thi.
  * Thiết kế bám sát mẫu IT3280_DanhSachDuThi.
  */
-function buildPageHTML(session: ExamSessionPDFData): string {
+function buildPageHTML(session: ExamSessionPDFData, totalStudents: number): string {
   const {
     courseCode, courseName, department, instructor,
     classExamCode, classCodes, examDateFormatted, examRoom,
     examTimeFormatted, examShift, students,
   } = session;
 
-  const siso = students.length;
+  const siso = totalStudents;
   const examRoomDisplay = examRoom ?? '';
   const examShiftDisplay = examShift ?? '';
   const examTimeDisplay = examTimeFormatted ?? '';
