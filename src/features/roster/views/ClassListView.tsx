@@ -5,6 +5,7 @@ import ShellHeader from '../../../layouts/ShellHeader';
 import { Class } from '../../../types/Class';
 import { formatDate, formatTime } from '../utils/roster.utils';
 import { useExportExamPDF } from '../import/hooks/useExportExamPDF';
+import ShareLinkModal from '../share/components/ShareLinkModal';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const GROUP_OPTIONS = [
@@ -41,6 +42,7 @@ export default function ClassListView() {
   const [groupBy, setGroupBy] = useState<GroupBy>('courseCode');
   const { isExporting: isExportingPDF, exportPDF } = useExportExamPDF();
   const [exportingGroupKey, setExportingGroupKey] = useState<string | null>(null);
+  const [shareModalClass, setShareModalClass] = useState<Class | null>(null);
 
   const handleExportGroupPDF = async (groupKey: string, items: Class[]) => {
     const classIds = items.map(c => c.id).filter(Boolean);
@@ -176,6 +178,7 @@ export default function ClassListView() {
                         <th className="text-center">Giờ thi</th>
                         <th className="text-center">Kíp thi</th>
                         <th>GV giảng dạy</th>
+                        <th className="text-center">Chia sẻ</th>
                         <th className="text-center">Sĩ số</th>
                       </tr>
                     </thead>
@@ -211,6 +214,23 @@ export default function ClassListView() {
                             <td style={{ maxWidth: '180px' }}>
                               <span className="text-truncate d-block" title={cls.instructor}>{cls.instructor || '—'}</span>
                             </td>
+                            <td className="text-center" onClick={(e) => e.stopPropagation()}>
+                              <button
+                                type="button"
+                                className="btn btn-sm btn-light border d-inline-flex align-items-center justify-content-center"
+                                style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '12px', minWidth: '85px' }}
+                                onClick={() => setShareModalClass(cls)}
+                                title="Thiết lập chia sẻ sổ ảnh"
+                              >
+                                {!cls.shareLink || !cls.shareLink.isActive ? (
+                                  <span className="text-muted">—</span>
+                                ) : cls.shareLink.requireLogin ? (
+                                  <span className="text-warning-emphasis fw-medium">Đăng nhập</span>
+                                ) : (
+                                  <span className="text-success fw-medium">Công khai</span>
+                                )}
+                              </button>
+                            </td>
                             <td className="text-center fw-semibold">{cls.studentCount ?? 0}</td>
                           </tr>
                         );
@@ -223,6 +243,15 @@ export default function ClassListView() {
           </div>
         )}
       </div>
+
+      <ShareLinkModal
+        isOpen={!!shareModalClass}
+        selectedClass={shareModalClass}
+        onClose={() => {
+          setShareModalClass(null);
+          refetchClasses();
+        }}
+      />
     </>
   );
 }

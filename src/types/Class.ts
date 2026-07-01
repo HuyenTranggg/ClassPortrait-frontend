@@ -23,6 +23,7 @@ export interface Class {
   isFallback?: boolean; // Đánh dấu lớp fallback (nhận diện theo mã lớp học)
   createdAt: Date; // Thời gian tạo lớp
   studentCount?: number; // Sĩ số sinh viên của lớp
+  shareLink?: { isActive: boolean; requireLogin: boolean }; // Trạng thái link chia sẻ
 }
 
 
