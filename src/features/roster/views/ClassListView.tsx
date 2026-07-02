@@ -211,8 +211,8 @@ export default function ClassListView() {
                             <td className="text-center">{cls.examRoom || '—'}</td>
                             <td className="text-center font-monospace">{formatTime(cls.examTime)}</td>
                             <td className="text-center">{examShift || '—'}</td>
-                            <td style={{ maxWidth: '180px' }}>
-                              <span className="text-truncate d-block" title={cls.instructor}>{cls.instructor || '—'}</span>
+                            <td style={{ maxWidth: '180px', wordWrap: 'break-word' }}>
+                              <span>{cls.instructor || '—'}</span>
                             </td>
                             <td className="text-center" onClick={(e) => e.stopPropagation()}>
                               <button

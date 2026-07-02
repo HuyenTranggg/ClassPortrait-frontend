@@ -235,10 +235,10 @@ function buildPageHTML(session: ExamSessionPDFData, totalStudents: number): stri
     return `
     <tr style="${bgColor}">
       <td style="border:1px solid #000;padding:1px 4px;text-align:center;width:5%">${s.order}</td>
-      <td style="border:1px solid #000;padding:1px 4px;width:12%">${escHtml(s.mssv)}</td>
-      <td style="border:1px solid #000;padding:1px 4px;width:27%;overflow:hidden">${escHtml(s.fullName)}</td>
+      <td style="border:1px solid #000;padding:1px 4px;width:12%;word-wrap:break-word">${escHtml(s.mssv)}</td>
+      <td style="border:1px solid #000;padding:1px 4px;width:27%;word-wrap:break-word">${escHtml(s.fullName)}</td>
       <td style="border:1px solid #000;padding:1px 4px;text-align:center;width:12%">${escHtml(s.dob ?? '')}</td>
-      <td style="border:1px solid #000;padding:1px 4px;width:29%">${escHtml(s.className ?? s.classCode)}</td>
+      <td style="border:1px solid #000;padding:1px 4px;width:29%;word-wrap:break-word">${escHtml(s.className ?? s.classCode)}</td>
       <td style="border:1px solid #000;padding:1px 4px;width:15%"></td>
     </tr>
   `}).join('');
@@ -255,59 +255,74 @@ function buildPageHTML(session: ExamSessionPDFData, totalStudents: number): stri
     ">
       <!-- ═══ HEADER ═══ -->
       <div style="margin-bottom:12px">
-        <div style="display:flex; align-items:baseline;">
-          <div style="width:48%; font-size:13px; font-weight:bold; text-transform:uppercase;">
+        <div style="display:flex; align-items:flex-start;">
+          <div style="width:48%; font-size:13px; font-weight:bold; text-transform:uppercase; word-wrap:break-word; padding-right:8px;">
             Đại học Bách Khoa Hà Nội
           </div>
-          <div style="flex:1; text-align:center; font-size:17px; font-weight:bold; text-transform:uppercase; letter-spacing:0.5px;">
+          <div style="flex:1; text-align:center; font-size:17px; font-weight:bold; text-transform:uppercase; letter-spacing:0.5px; word-wrap:break-word;">
             Danh sách thí sinh dự thi
           </div>
         </div>
-        <div style="display:flex; align-items:baseline; margin-top:4px;">
-          <div style="width:48%; font-size:13px; font-weight:bold; text-transform:uppercase;">
+        <div style="display:flex; align-items:flex-start; margin-top:4px;">
+          <div style="width:48%; font-size:13px; font-weight:bold; text-transform:uppercase; word-wrap:break-word; padding-right:8px;">
             ${escHtml(department)}
           </div>
-          <div style="flex:1; text-align:center; font-size:13px;">
+          <div style="flex:1; text-align:center; font-size:13px; word-wrap:break-word;">
             <strong>Học phần: ${escHtml((courseName || '').toUpperCase())}${courseCode ? ` (${escHtml(courseCode)})` : ''}</strong>
           </div>
         </div>
       </div>
 
       <!-- ═══ META ═══ -->
-      <table style="width:100%; font-size:13px; margin-bottom:6px; border-collapse:collapse; white-space:nowrap;">
+      <table style="width:100%; font-size:13px; margin-bottom:6px; border-collapse:collapse; table-layout:fixed;">
         <tr>
-          <td style="width:25%; padding: 3px 0;">
-            Ngày Thi:&nbsp;&nbsp;&nbsp;${escHtml(examDateDisplay)}
-          </td>
-          <td style="width:40%; padding: 3px 0;">
-            <div style="display:flex; align-items:flex-end; width:95%;">
-              <span style="white-space:nowrap;">GV:&nbsp;</span>
-              <span style="font-style:italic; white-space:nowrap;">${escHtml(instructor)}</span>
-              <span style="flex:1; border-bottom:1.5px dotted #000; margin-left:4px; margin-bottom:3px; min-width:20px;"></span>
+          <td style="width:25%; padding: 3px 0; vertical-align: top;">
+            <div style="word-wrap: break-word;">
+              Ngày Thi:&nbsp;&nbsp;&nbsp;${escHtml(examDateDisplay)}
             </div>
           </td>
-          <td style="width:15%; padding: 3px 0; text-align:right; padding-right:16px;">
-            Sĩ số: &nbsp;&nbsp;<strong>${siso}</strong>
+          <td style="width:40%; padding: 3px 0; vertical-align: top;">
+            <div style="width:95%; line-height: 1.4;">
+              <span style="white-space:nowrap;">GV:&nbsp;</span>
+              <span style="font-style:italic;">${escHtml(instructor)}</span>
+            </div>
           </td>
-          <td style="width:20%; padding: 3px 0; text-align:right;">
-            Phòng thi:&nbsp;&nbsp;<span style="background:#000;color:#fff;font-weight:bold;padding:1px 0;font-size:13px;display:inline-block;width:95px;text-align:center;">${escHtml(examRoomDisplay)}</span>
+          <td style="width:15%; padding: 3px 0; padding-right:16px; vertical-align: top;">
+            <div style="display:flex; justify-content:flex-end; align-items:center;">
+              <span style="white-space:nowrap;">Sĩ số:</span>
+              <strong style="margin-left:8px; min-width: 45px; text-align:left;">${siso}</strong>
+            </div>
+          </td>
+          <td style="width:20%; padding: 3px 0; vertical-align: top;">
+            <div style="display:flex; justify-content:flex-end; align-items:center;">
+              <span style="white-space:nowrap;">Phòng thi:</span>
+              <span style="background:#000;color:#fff;font-weight:bold;padding:1px 0;font-size:13px;display:inline-block;width:95px;text-align:center;margin-left:8px;">${escHtml(examRoomDisplay)}</span>
+            </div>
           </td>
         </tr>
         <tr>
-          <td style="padding: 3px 0 5px 0;">
-            Mã lớp học:&nbsp;<strong>${escHtml(classCodes.join(', ') || classExamCode || '')}</strong>
+          <td style="padding: 3px 0 5px 0; vertical-align: top;">
+            <div style="word-wrap: break-word;">
+              Mã lớp học:&nbsp;<strong>${escHtml(classCodes.join(', ') || classExamCode || '')}</strong>
+            </div>
           </td>
-          <td style="padding: 3px 0 5px 0;">
+          <td style="padding: 3px 0 5px 0; vertical-align: top;">
             <div style="display:flex; align-items:flex-end; width:95%;">
               <span style="white-space:nowrap;">Giám thị:&nbsp;</span>
               <span style="flex:1; border-bottom:1.5px dotted #000; margin-left:4px; margin-bottom:3px; min-width:20px;"></span>
             </div>
           </td>
-          <td style="padding: 3px 0 5px 0; text-align:right; padding-right:16px;">
-            Kíp thi: &nbsp;&nbsp;&nbsp;<strong>${escHtml(examShiftDisplay)}</strong>
+          <td style="padding: 3px 0 5px 0; padding-right:16px; vertical-align: top;">
+            <div style="display:flex; justify-content:flex-end; align-items:center;">
+              <span style="white-space:nowrap;">Kíp thi:</span>
+              <strong style="margin-left:8px; min-width: 45px; text-align:left;">${escHtml(examShiftDisplay)}</strong>
+            </div>
           </td>
-          <td style="padding: 3px 0 5px 0; text-align:right;">
-            Giờ thi:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="background:#000;color:#fff;font-weight:bold;padding:1px 0;font-size:13px;display:inline-block;width:95px;text-align:center;">${escHtml(examTimeDisplay)}</span>
+          <td style="padding: 3px 0 5px 0; vertical-align: top;">
+            <div style="display:flex; justify-content:flex-end; align-items:center;">
+              <span style="white-space:nowrap;">Giờ thi:</span>
+              <span style="background:#000;color:#fff;font-weight:bold;padding:1px 0;font-size:13px;display:inline-block;width:95px;text-align:center;margin-left:8px;">${escHtml(examTimeDisplay)}</span>
+            </div>
           </td>
         </tr>
       </table>
