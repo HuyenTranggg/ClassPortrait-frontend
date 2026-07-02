@@ -16,6 +16,8 @@ const GROUP_OPTIONS = [
 
 type GroupBy = typeof GROUP_OPTIONS[number]['value'];
 
+type SortConfig = { key: keyof Class | 'classCodes', direction: 'asc' | 'desc' } | null;
+
 
 function getGroupKey(cls: Class, groupBy: GroupBy): string {
   if (groupBy === 'courseCode') return cls.courseCode ? `${cls.courseCode}${cls.courseName ? ' – ' + cls.courseName : ''}` : '(Chưa có mã HP)';
@@ -45,6 +47,38 @@ export default function ClassListView() {
   const { invigilators, updateInvigilator } = useInvigilators();
   const [exportingGroupKey, setExportingGroupKey] = useState<string | null>(null);
   const [shareModalClass, setShareModalClass] = useState<Class | null>(null);
+  const [sortConfig, setSortConfig] = useState<SortConfig>(null);
+
+  const handleSort = (key: keyof Class | 'classCodes') => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const renderSortableHeader = (label: string, key: keyof Class | 'classCodes', className = '', alignCenter = false) => {
+    const isSorted = sortConfig?.key === key;
+    return (
+      <th 
+        className={`${className} sortable-header`}
+        style={{ cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}
+        onClick={() => handleSort(key)}
+        title={`Sắp xếp theo ${label}`}
+      >
+        <div className={`d-flex align-items-center gap-1 ${alignCenter ? 'justify-content-center' : ''}`}>
+          {label}
+          <span className="text-primary d-flex align-items-center" style={{ opacity: isSorted ? 1 : 0.4, fontSize: '0.9rem' }}>
+            {isSorted ? (
+              sortConfig.direction === 'asc' ? <i className="bi bi-arrow-up"></i> : <i className="bi bi-arrow-down"></i>
+            ) : (
+              <i className="bi bi-arrow-down-up" style={{ fontSize: '0.8rem' }}></i>
+            )}
+          </span>
+        </div>
+      </th>
+    );
+  };
 
   const handleExportGroupPDF = async (groupKey: string, items: Class[]) => {
     const classIds = items.map(c => c.id).filter(Boolean);
@@ -173,10 +207,10 @@ export default function ClassListView() {
                         <th className="text-center" style={{ whiteSpace: 'nowrap' }}>Học kỳ</th>
                         <th>Mã HP</th>
                         <th>Môn học</th>
-                        <th>Mã lớp học</th>
+                        {renderSortableHeader('Mã lớp học', 'classCodes')}
                         <th className="text-center">Mã lớp thi</th>
-                        <th className="text-center" style={{ whiteSpace: 'nowrap' }}>Ngày thi</th>
-                        <th className="text-center">Phòng thi</th>
+                        {renderSortableHeader('Ngày thi', 'examDate', 'text-center', true)}
+                        {renderSortableHeader('Phòng thi', 'examRoom', 'text-center', true)}
                         <th className="text-center" style={{ whiteSpace: 'nowrap' }}>Giờ thi</th>
                         <th className="text-center" style={{ whiteSpace: 'nowrap' }}>Kíp thi</th>
                         <th style={{ minWidth: '140px' }}>GV giảng dạy</th>
@@ -186,7 +220,26 @@ export default function ClassListView() {
                       </tr>
                     </thead>
                     <tbody>
-                      {items.map((cls) => {
+                      {(() => {
+                        const sortedItems = [...items].sort((a, b) => {
+                          if (!sortConfig) return 0;
+                          const { key, direction } = sortConfig;
+                          let valA: any = a[key as keyof Class];
+                          let valB: any = b[key as keyof Class];
+                          
+                          if (key === 'classCodes') {
+                            valA = (a.classCodes || []).join(', ');
+                            valB = (b.classCodes || []).join(', ');
+                          }
+
+                          const strA = String(valA ?? '').trim();
+                          const strB = String(valB ?? '').trim();
+
+                          const cmp = strA.localeCompare(strB, 'vi', { sensitivity: 'base' });
+                          return direction === 'asc' ? cmp : -cmp;
+                        });
+
+                        return sortedItems.map((cls) => {
                         const classCodes = cls.classCodes && cls.classCodes.length > 0
                           ? cls.classCodes
                           : cls.classCode ? [cls.classCode] : [];
@@ -247,7 +300,7 @@ export default function ClassListView() {
                             <td className="text-center fw-semibold">{cls.studentCount ?? 0}</td>
                           </tr>
                         );
-                      })}
+                      })})()}
                     </tbody>
                   </table>
                 </div>
