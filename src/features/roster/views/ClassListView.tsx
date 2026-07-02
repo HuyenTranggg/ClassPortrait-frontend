@@ -169,7 +169,7 @@ export default function ClassListView() {
                 <div className="table-responsive">
                   <table className="table table-hover mb-0 align-middle" style={{ fontSize: '0.875rem' }}>
                     <thead className="table-light">
-                      <tr>
+                      <tr className="align-middle">
                         <th className="text-center" style={{ whiteSpace: 'nowrap' }}>Học kỳ</th>
                         <th>Mã HP</th>
                         <th>Môn học</th>
