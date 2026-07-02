@@ -104,7 +104,13 @@ export function StepThree(props: {
     );
   }
 
-  const canSubmit = !!state.manualMssvColumn && !!state.manualNameColumn && !isLoading;
+  const canSubmit =
+    !!state.manualMssvColumn &&
+    !!state.manualNameColumn &&
+    !!state.manualSemesterColumn &&
+    !!state.manualCourseCodeColumn &&
+    !!state.manualCourseNameColumn &&
+    !isLoading;
 
   return (
     <>
@@ -120,18 +126,20 @@ export function StepThree(props: {
         </select>
       </div>
 
-      <h5 className="import-section-title">CHỈ ĐỊNH CỘT</h5>
-      <div className="manual-mapping-container detected-mapping-card">
-
+      <h5 className="import-section-title">CHỈ ĐỊNH CỘT BẮT BUỘC</h5>
+      <div className="manual-mapping-container detected-mapping-card mb-4">
         <ColSelect id="mssv-column-select" label="Cột mã số sinh viên (MSSV)" value={state.manualMssvColumn} columns={cols} onChange={props.onManualMssvChange} required />
         <ColSelect id="name-column-select" label="Cột họ và tên" value={state.manualNameColumn} columns={cols} onChange={props.onManualNameChange} required />
         <ColSelect id="semester-column-select" label="Cột học kỳ" value={state.manualSemesterColumn} columns={cols} onChange={props.onManualSemesterChange} required />
-        <ColSelect id="department-column-select" label="Cột đơn vị giảng dạy" value={state.manualDepartmentColumn} columns={cols} onChange={props.onManualDepartmentChange} required />
-        <ColSelect id="classcode-column-select" label="Cột mã lớp" value={state.manualClassCodeColumn} columns={cols} onChange={props.onManualClassCodeChange} required />
         <ColSelect id="coursecode-column-select" label="Cột mã học phần" value={state.manualCourseCodeColumn} columns={cols} onChange={props.onManualCourseCodeChange} required />
         <ColSelect id="coursename-column-select" label="Cột tên học phần" value={state.manualCourseNameColumn} columns={cols} onChange={props.onManualCourseNameChange} required />
-        <ColSelect id="instructor-column-select" label="Cột giảng viên" value={state.manualInstructorColumn} columns={cols} onChange={props.onManualInstructorChange} required />
+      </div>
 
+      <h5 className="import-section-title">CHỈ ĐỊNH CỘT TÙY CHỌN</h5>
+      <div className="manual-mapping-container detected-mapping-card">
+        <ColSelect id="department-column-select" label="Cột đơn vị giảng dạy" value={state.manualDepartmentColumn} columns={cols} onChange={props.onManualDepartmentChange} />
+        <ColSelect id="classcode-column-select" label="Cột mã lớp" value={state.manualClassCodeColumn} columns={cols} onChange={props.onManualClassCodeChange} />
+        <ColSelect id="instructor-column-select" label="Cột giảng viên" value={state.manualInstructorColumn} columns={cols} onChange={props.onManualInstructorChange} />
         <ColSelect id="classexamcode-column-select" label="Cột mã lớp thi" value={state.manualClassExamCodeColumn} columns={cols} onChange={props.onManualClassExamCodeChange} />
         <ColSelect id="examdate-column-select" label="Cột ngày thi" value={state.manualExamDateColumn} columns={cols} onChange={props.onManualExamDateChange} />
         <ColSelect id="examroom-column-select" label="Cột phòng thi" value={state.manualExamRoomColumn} columns={cols} onChange={props.onManualExamRoomChange} />

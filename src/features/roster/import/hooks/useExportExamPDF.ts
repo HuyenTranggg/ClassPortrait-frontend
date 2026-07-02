@@ -43,8 +43,16 @@ export function useExportExamPDF(): UseExportExamPDFResult {
         return;
       }
 
-      // 2. Render từng trang PDF
-      await renderAndDownloadPDF(sessionDataList, fileNameHint);
+      // 2. Tách sub-session theo mã lớp học (mỗi classCode = 1 trang PDF riêng)
+      //    Mục đích: sau thi, bó danh sách theo lớp để nộp ban đào tạo
+      //    Không ảnh hưởng DB: 1 phòng = 1 lớp thi, chỉ tách khi in PDF
+      const splitSessions = splitSessionsByClassCode(sessionDataList);
+
+      // 3. Sắp xếp theo đúng thứ tự của thầy: MaHP → MaLopHoc → MaKip → PhongThi
+      const sortedSessions = sortSessionsForPDF(splitSessions);
+
+      // 4. Render từng trang PDF
+      await renderAndDownloadPDF(sortedSessions, fileNameHint);
     } catch (err: any) {
       console.error('[useExportExamPDF] Error:', err);
       setExportError(err?.message || 'Có lỗi xảy ra khi xuất PDF.');
@@ -57,6 +65,108 @@ export function useExportExamPDF(): UseExportExamPDFResult {
 }
 
 // ─── Private helpers ──────────────────────────────────────────────────────────
+
+/**
+ * Trích xuất số thứ tự kíp thi từ chuỗi (ví dụ: "Kíp 2" → 2, "3" → 3).
+ * Trả về Infinity nếu không có số, để đẩy các session không có kíp xuống cuối.
+ */
+function extractShiftNumber(shift: string | undefined): number {
+  if (!shift) return Infinity;
+  const match = shift.match(/\d+/);
+  return match ? parseInt(match[0], 10) : Infinity;
+}
+
+/**
+ * Tách 1 session có nhiều mã lớp học thành nhiều sub-sessions.
+ * Mục đích: mỗi mã lớp học = 1 trang PDF riêng (Force New Page).
+ * Sinh viên không có mã lớp (SV bù) được gom vào 1 trang riêng ở cuối phòng đó.
+ *
+ * Logic:
+ *   - Nếu session chỉ có 1 classCode (hoặc không có) → giữ nguyên
+ *   - Nếu session có nhiều classCodes → tách thành N sub-sessions
+ *   - SV không có classCode trong 1 session đa-lớp → 1 sub-session riêng (cuối)
+ */
+function splitSessionsByClassCode(sessions: ExamSessionPDFData[]): ExamSessionPDFData[] {
+  const result: ExamSessionPDFData[] = [];
+
+  for (const session of sessions) {
+    // Phân nhóm SV theo classCode
+    const groupedByCode = new Map<string, ExamCandidateStudent[]>();
+    const noCodeStudents: ExamCandidateStudent[] = [];
+
+    for (const student of session.students) {
+      const code = student.classCode?.trim() || '';
+      if (!code) {
+        noCodeStudents.push(student);
+      } else {
+        if (!groupedByCode.has(code)) groupedByCode.set(code, []);
+        groupedByCode.get(code)!.push(student);
+      }
+    }
+
+    const hasMultipleCodes = groupedByCode.size > 1 || (groupedByCode.size === 1 && noCodeStudents.length > 0);
+
+    if (!hasMultipleCodes) {
+      // Chỉ có 1 nhóm (hoặc không có classCode) → giữ nguyên, không tách
+      result.push(session);
+      continue;
+    }
+
+    // Tạo 1 sub-session cho mỗi classCode (sắp xếp mã lớp tăng dần)
+    const sortedCodes = Array.from(groupedByCode.keys()).sort((a, b) =>
+      a.localeCompare(b, 'vi', { sensitivity: 'base' })
+    );
+    for (const code of sortedCodes) {
+      const students = groupedByCode.get(code)!;
+      const renumbered = students.map((s, idx) => ({ ...s, order: idx + 1 }));
+      result.push({
+        ...session,
+        classCodes: [code],
+        students: renumbered,
+      });
+    }
+
+    // SV không có mã lớp → 1 sub-session riêng ở cuối
+    if (noCodeStudents.length > 0) {
+      const renumbered = noCodeStudents.map((s, idx) => ({ ...s, order: idx + 1 }));
+      result.push({
+        ...session,
+        classCodes: [],   // Không có mã lớp → hiển thị trống
+        students: renumbered,
+      });
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Sắp xếp danh sách lớp thi theo thứ tự của thầy (Access Report):
+ *   1. Mã học phần (courseCode)  → tăng dần
+ *   2. Mã lớp học (classCode)    → tăng dần
+ *   3. Kíp thi (examShift)       → tăng dần (theo số)
+ *   4. Phòng thi (examRoom)      → tăng dần
+ */
+function sortSessionsForPDF(sessions: ExamSessionPDFData[]): ExamSessionPDFData[] {
+  return [...sessions].sort((a, b) => {
+    // 1. Mã học phần
+    const cmp1 = (a.courseCode ?? '').localeCompare(b.courseCode ?? '', 'vi', { sensitivity: 'base' });
+    if (cmp1 !== 0) return cmp1;
+
+    // 2. Mã lớp học (dùng classCode đầu tiên trong mảng)
+    const aCode = a.classCodes[0] ?? '';
+    const bCode = b.classCodes[0] ?? '';
+    const cmp2 = aCode.localeCompare(bCode, 'vi', { sensitivity: 'base' });
+    if (cmp2 !== 0) return cmp2;
+
+    // 3. Kíp thi (sort theo số để "Kíp 2" < "Kíp 10")
+    const shiftDiff = extractShiftNumber(a.examShift) - extractShiftNumber(b.examShift);
+    if (shiftDiff !== 0) return shiftDiff;
+
+    // 4. Phòng thi
+    return (a.examRoom ?? '').localeCompare(b.examRoom ?? '', 'vi', { sensitivity: 'base' });
+  });
+}
 
 /**
  * Fetch thông tin lớp và sinh viên cho tất cả classIds.
@@ -252,7 +362,7 @@ function buildPageHTML(session: ExamSessionPDFData, totalStudents: number): stri
       <td style="border:1px solid #000;padding:1px 4px;width:12%;word-wrap:break-word">${escHtml(s.mssv)}</td>
       <td style="border:1px solid #000;padding:1px 4px;width:27%;word-wrap:break-word">${escHtml(s.fullName)}</td>
       <td style="border:1px solid #000;padding:1px 4px;text-align:center;width:12%">${escHtml(s.dob ?? '')}</td>
-      <td style="border:1px solid #000;padding:1px 4px;width:29%;word-wrap:break-word">${escHtml(s.className ?? s.classCode)}</td>
+      <td style="border:1px solid #000;padding:1px 4px;width:29%;word-wrap:break-word">${escHtml(s.className ?? '')}</td>
       <td style="border:1px solid #000;padding:1px 4px;width:15%"></td>
     </tr>
   `}).join('');
@@ -317,7 +427,7 @@ function buildPageHTML(session: ExamSessionPDFData, totalStudents: number): stri
         <tr>
           <td style="padding: 3px 0 5px 0; vertical-align: top;">
             <div style="word-wrap: break-word;">
-              Mã lớp học:&nbsp;<strong>${escHtml(classCodes.join(', ') || classExamCode || '')}</strong>
+              Mã lớp học:&nbsp;<strong>${escHtml(classCodes.join(', ') || '')}</strong>
             </div>
           </td>
           <td style="padding: 3px 0 5px 0; vertical-align: top;">

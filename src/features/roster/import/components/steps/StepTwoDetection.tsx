@@ -21,15 +21,15 @@ export function StepTwo(props: {
     { label: 'Cột mã số sinh viên (MSSV)', value: state.autoMssvColumn },
     { label: 'Cột họ và tên', value: state.autoNameColumn },
     { label: 'Cột học kỳ', value: state.autoSemesterColumn },
-    { label: 'Cột đơn vị giảng dạy', value: state.autoDepartmentColumn },
-    { label: 'Cột mã lớp', value: state.autoClassCodeColumn },
     { label: 'Cột mã học phần', value: state.autoCourseCodeColumn },
     { label: 'Cột tên học phần', value: state.autoCourseNameColumn },
-    { label: 'Cột giảng viên', value: state.autoInstructorColumn },
   ];
 
   // Các trường tùy chọn – chỉ hiển thị nếu nhận diện được
   const optionalFields: { label: string; value: string }[] = [
+    { label: 'Cột đơn vị giảng dạy', value: state.autoDepartmentColumn },
+    { label: 'Cột mã lớp', value: state.autoClassCodeColumn },
+    { label: 'Cột giảng viên', value: state.autoInstructorColumn },
     { label: 'Cột mã lớp thi', value: state.autoClassExamCodeColumn },
     { label: 'Cột ngày thi', value: state.autoExamDateColumn },
     { label: 'Cột phòng thi', value: state.autoExamRoomColumn },
@@ -51,7 +51,7 @@ export function StepTwo(props: {
           <p>
             {state.isAutoDetected
               ? `Cột MSSV: ${state.autoMssvColumn} - Cột Họ và tên: ${state.autoNameColumn}`
-              : 'Hệ thống chưa xác định chính xác cột MSSV hoặc Họ và tên.'}
+              : 'Hệ thống chưa xác định đầy đủ 5 cột bắt buộc (MSSV, Họ tên, Học kỳ, Mã HP, Tên HP).'}
           </p>
         </div>
         <button type="button" className="btn btn-outline-secondary" onClick={props.onManualMode}>Chỉnh lại thủ công</button>

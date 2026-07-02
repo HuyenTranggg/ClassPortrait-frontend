@@ -104,7 +104,10 @@ export const useImportButtonController = ({ onImportSuccess }: ImportButtonProps
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
   const [lastImportedClassIds, setLastImportedClassIds] = useState<string[]>([]);
 
-  const isAutoDetected = useMemo(() => Boolean(autoMssvColumn && autoNameColumn), [autoMssvColumn, autoNameColumn]);
+  const isAutoDetected = useMemo(
+    () => Boolean(autoMssvColumn && autoNameColumn && autoSemesterColumn && autoCourseCodeColumn && autoCourseNameColumn),
+    [autoMssvColumn, autoNameColumn, autoSemesterColumn, autoCourseCodeColumn, autoCourseNameColumn]
+  );
 
   const setAllAutoColumns = (parsed: ReturnType<typeof parseExcelFile> extends Promise<infer T> ? T : never) => {
     setAutoMssvColumn(parsed.mssvColumn || '');
@@ -204,23 +207,41 @@ export const useImportButtonController = ({ onImportSuccess }: ImportButtonProps
 
   // Build extra column options for API calls
   const buildExtraColumnOptions = (mappingMode: MappingMode) => {
-    if (mappingMode !== 'manual') return {};
+    if (mappingMode === 'manual') {
+      return {
+        semesterColumn: manualSemesterColumn,
+        departmentColumn: manualDepartmentColumn,
+        classCodeColumn: manualClassCodeColumn,
+        courseCodeColumn: manualCourseCodeColumn,
+        courseNameColumn: manualCourseNameColumn,
+        classNameColumn: manualClassNameColumn,
+        classExamCodeColumn: manualClassExamCodeColumn,
+        examDateColumn: manualExamDateColumn,
+        examRoomColumn: manualExamRoomColumn,
+        examTimeColumn: manualExamTimeColumn,
+        examShiftColumn: manualExamShiftColumn,
+        instructorColumn: manualInstructorColumn,
+        dobColumn: manualDobColumn,
+        genderColumn: manualGenderColumn,
+        emailColumn: manualEmailColumn,
+      };
+    }
     return {
-      semesterColumn: manualSemesterColumn,
-      departmentColumn: manualDepartmentColumn,
-      classCodeColumn: manualClassCodeColumn,
-      courseCodeColumn: manualCourseCodeColumn,
-      courseNameColumn: manualCourseNameColumn,
-      classNameColumn: manualClassNameColumn,
-      classExamCodeColumn: manualClassExamCodeColumn,
-      examDateColumn: manualExamDateColumn,
-      examRoomColumn: manualExamRoomColumn,
-      examTimeColumn: manualExamTimeColumn,
-      examShiftColumn: manualExamShiftColumn,
-      instructorColumn: manualInstructorColumn,
-      dobColumn: manualDobColumn,
-      genderColumn: manualGenderColumn,
-      emailColumn: manualEmailColumn,
+      semesterColumn: autoSemesterColumn,
+      departmentColumn: autoDepartmentColumn,
+      classCodeColumn: autoClassCodeColumn,
+      courseCodeColumn: autoCourseCodeColumn,
+      courseNameColumn: autoCourseNameColumn,
+      classNameColumn: autoClassNameColumn,
+      classExamCodeColumn: autoClassExamCodeColumn,
+      examDateColumn: autoExamDateColumn,
+      examRoomColumn: autoExamRoomColumn,
+      examTimeColumn: autoExamTimeColumn,
+      examShiftColumn: autoExamShiftColumn,
+      instructorColumn: autoInstructorColumn,
+      dobColumn: autoDobColumn,
+      genderColumn: autoGenderColumn,
+      emailColumn: autoEmailColumn,
     };
   };
 
@@ -229,9 +250,12 @@ export const useImportButtonController = ({ onImportSuccess }: ImportButtonProps
     const usingSheet = selectedSource === 'gsheet';
     const mssvColumn = mappingMode === 'manual' ? manualMssvColumn.trim() : autoMssvColumn;
     const nameColumn = mappingMode === 'manual' ? manualNameColumn.trim() : autoNameColumn;
+    const semesterColumn = mappingMode === 'manual' ? manualSemesterColumn.trim() : autoSemesterColumn;
+    const courseCodeColumn = mappingMode === 'manual' ? manualCourseCodeColumn.trim() : autoCourseCodeColumn;
+    const courseNameColumn = mappingMode === 'manual' ? manualCourseNameColumn.trim() : autoCourseNameColumn;
 
-    if (!mssvColumn || !nameColumn) {
-      setMessage({ type: 'error', text: 'Cần chọn đầy đủ cột MSSV và cột Họ và tên.' });
+    if (!mssvColumn || !nameColumn || !semesterColumn || !courseCodeColumn || !courseNameColumn) {
+      setMessage({ type: 'error', text: 'Vui lòng chọn đầy đủ 5 cột bắt buộc (MSSV, Họ tên, Học kỳ, Mã HP, Tên HP).' });
       return;
     }
 
@@ -283,9 +307,12 @@ export const useImportButtonController = ({ onImportSuccess }: ImportButtonProps
 
     const mssvColumn = mappingMode === 'manual' ? manualMssvColumn.trim() : autoMssvColumn;
     const nameColumn = mappingMode === 'manual' ? manualNameColumn.trim() : autoNameColumn;
+    const semesterColumn = mappingMode === 'manual' ? manualSemesterColumn.trim() : autoSemesterColumn;
+    const courseCodeColumn = mappingMode === 'manual' ? manualCourseCodeColumn.trim() : autoCourseCodeColumn;
+    const courseNameColumn = mappingMode === 'manual' ? manualCourseNameColumn.trim() : autoCourseNameColumn;
 
-    if (!mssvColumn || !nameColumn) {
-      setMessage({ type: 'error', text: 'Cần chọn đầy đủ cột MSSV và cột Họ và tên.' });
+    if (!mssvColumn || !nameColumn || !semesterColumn || !courseCodeColumn || !courseNameColumn) {
+      setMessage({ type: 'error', text: 'Vui lòng chọn đầy đủ 5 cột bắt buộc (MSSV, Họ tên, Học kỳ, Mã HP, Tên HP).' });
       return;
     }
 
