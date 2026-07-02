@@ -20,6 +20,7 @@ export interface ExamSessionPDFData {
   semester: string;
   department: string;
   instructor: string;
+  invigilator?: string;
   classExamCode?: string;   // Mã lớp thi (nếu có)
   classCodes: string[];     // Các mã lớp tín chỉ của lớp thi này
   // Ngày/giờ thi (đã format sẵn)

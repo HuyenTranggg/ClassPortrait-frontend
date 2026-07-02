@@ -16,6 +16,7 @@ import { PrintHeaderModal, usePrintHeaderController } from '../print';
 import { FaceVerificationScanner } from '../attendance/components/ai/FaceVerificationScanner';
 import { useFaceModels } from '../attendance/hooks/ai/useFaceModels';
 import { ManualCallingBar } from '../attendance/components/ManualCallingBar';
+import { useInvigilators } from '../hooks/useInvigilators';
 
 const formatAttendanceTime = (value: string): string => {
   const date = new Date(value);
@@ -31,6 +32,8 @@ function RosterView() {
   const { classId } = useParams<{ classId: string }>();
   const [isShareModalOpen, setShareModalOpen] = useState(false);
   const [isAiModeOpen, setAiModeOpen] = useState(false);
+  
+  const { invigilators } = useInvigilators();
   
   // Tải trước và khởi động ấm mô hình AI ngay khi vào trang sổ ảnh để tránh bị trễ/đen camera khi quét
   useFaceModels();
@@ -127,7 +130,8 @@ function RosterView() {
     navigate(location.pathname, { replace: true, state: {} });
   }, [loading, selectedClass, location.state, isAttendanceMode, students.length, handleStartAttendance, navigate, location.pathname]);
 
-  const rosterMeta = buildRosterMeta(selectedClass, students);
+  const currentInvigilator = selectedClass ? invigilators[selectedClass.id] : undefined;
+  const rosterMeta = buildRosterMeta(selectedClass, students, currentInvigilator);
   const printMeta = buildPrintMeta(selectedClass, filteredStudents);
   const {
     isModalOpen: isPrintHeaderModalOpen,

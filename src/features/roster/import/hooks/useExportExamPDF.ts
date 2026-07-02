@@ -105,12 +105,26 @@ function buildSessionData(classInfo: Class, students: Student[]): ExamSessionPDF
     };
   });
 
+  let invigilator: string | undefined;
+  try {
+    const stored = localStorage.getItem('ClassPortrait_Invigilators');
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (classInfo.id && parsed[classInfo.id]) {
+        invigilator = parsed[classInfo.id];
+      }
+    }
+  } catch (e) {
+    console.error('Error reading invigilator from localStorage', e);
+  }
+
   return {
     courseCode: classInfo.courseCode ?? '',
     courseName: classInfo.courseName ?? '',
     semester: classInfo.semester ?? '',
     department: classInfo.department ?? '',
     instructor: classInfo.instructor ?? '',
+    invigilator,
     classExamCode: classInfo.classExamCode,
     classCodes: Array.from(classCodesSet).sort(),
     examDateFormatted: classInfo.examDate ? formatExamDateVi(classInfo.examDate) : undefined,
@@ -219,7 +233,7 @@ async function renderAndDownloadPDF(sessions: ExamSessionPDFData[], fileNameHint
  */
 function buildPageHTML(session: ExamSessionPDFData, totalStudents: number): string {
   const {
-    courseCode, courseName, department, instructor,
+    courseCode, courseName, department, instructor, invigilator,
     classExamCode, classCodes, examDateFormatted, examRoom,
     examTimeFormatted, examShift, students,
   } = session;
@@ -309,7 +323,10 @@ function buildPageHTML(session: ExamSessionPDFData, totalStudents: number): stri
           <td style="padding: 3px 0 5px 0; vertical-align: top;">
             <div style="display:flex; align-items:flex-end; width:95%;">
               <span style="white-space:nowrap;">Giám thị:&nbsp;</span>
-              <span style="flex:1; border-bottom:1.5px dotted #000; margin-left:4px; margin-bottom:3px; min-width:20px;"></span>
+              ${invigilator 
+                ? `<span style="font-weight:bold;">${escHtml(invigilator)}</span>`
+                : `<span style="flex:1; border-bottom:1.5px dotted #000; margin-left:4px; margin-bottom:3px; min-width:20px;"></span>`
+              }
             </div>
           </td>
           <td style="padding: 3px 0 5px 0; padding-right:16px; vertical-align: top;">

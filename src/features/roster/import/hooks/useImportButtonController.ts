@@ -206,21 +206,21 @@ export const useImportButtonController = ({ onImportSuccess }: ImportButtonProps
   const buildExtraColumnOptions = (mappingMode: MappingMode) => {
     if (mappingMode !== 'manual') return {};
     return {
-      semesterColumn: manualSemesterColumn || undefined,
-      departmentColumn: manualDepartmentColumn || undefined,
-      classCodeColumn: manualClassCodeColumn || undefined,
-      courseCodeColumn: manualCourseCodeColumn || undefined,
-      courseNameColumn: manualCourseNameColumn || undefined,
-      classNameColumn: manualClassNameColumn || undefined,
-      classExamCodeColumn: manualClassExamCodeColumn || undefined,
-      examDateColumn: manualExamDateColumn || undefined,
-      examRoomColumn: manualExamRoomColumn || undefined,
-      examTimeColumn: manualExamTimeColumn || undefined,
-      examShiftColumn: manualExamShiftColumn || undefined,
-      instructorColumn: manualInstructorColumn || undefined,
-      dobColumn: manualDobColumn || undefined,
-      genderColumn: manualGenderColumn || undefined,
-      emailColumn: manualEmailColumn || undefined,
+      semesterColumn: manualSemesterColumn,
+      departmentColumn: manualDepartmentColumn,
+      classCodeColumn: manualClassCodeColumn,
+      courseCodeColumn: manualCourseCodeColumn,
+      courseNameColumn: manualCourseNameColumn,
+      classNameColumn: manualClassNameColumn,
+      classExamCodeColumn: manualClassExamCodeColumn,
+      examDateColumn: manualExamDateColumn,
+      examRoomColumn: manualExamRoomColumn,
+      examTimeColumn: manualExamTimeColumn,
+      examShiftColumn: manualExamShiftColumn,
+      instructorColumn: manualInstructorColumn,
+      dobColumn: manualDobColumn,
+      genderColumn: manualGenderColumn,
+      emailColumn: manualEmailColumn,
     };
   };
 

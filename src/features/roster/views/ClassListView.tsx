@@ -6,6 +6,7 @@ import { Class } from '../../../types/Class';
 import { formatDate, formatTime } from '../utils/roster.utils';
 import { useExportExamPDF } from '../import/hooks/useExportExamPDF';
 import ShareLinkModal from '../share/components/ShareLinkModal';
+import { useInvigilators } from '../hooks/useInvigilators';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const GROUP_OPTIONS = [
@@ -41,6 +42,7 @@ export default function ClassListView() {
   const [searchQuery, setSearchQuery] = useState('');
   const [groupBy, setGroupBy] = useState<GroupBy>('courseCode');
   const { isExporting: isExportingPDF, exportPDF } = useExportExamPDF();
+  const { invigilators, updateInvigilator } = useInvigilators();
   const [exportingGroupKey, setExportingGroupKey] = useState<string | null>(null);
   const [shareModalClass, setShareModalClass] = useState<Class | null>(null);
 
@@ -168,18 +170,19 @@ export default function ClassListView() {
                   <table className="table table-hover mb-0 align-middle" style={{ fontSize: '0.875rem' }}>
                     <thead className="table-light">
                       <tr>
-                        <th className="text-center">Học kỳ</th>
+                        <th className="text-center" style={{ whiteSpace: 'nowrap' }}>Học kỳ</th>
                         <th>Mã HP</th>
                         <th>Môn học</th>
                         <th>Mã lớp học</th>
                         <th className="text-center">Mã lớp thi</th>
-                        <th className="text-center">Ngày thi</th>
+                        <th className="text-center" style={{ whiteSpace: 'nowrap' }}>Ngày thi</th>
                         <th className="text-center">Phòng thi</th>
-                        <th className="text-center">Giờ thi</th>
-                        <th className="text-center">Kíp thi</th>
-                        <th>GV giảng dạy</th>
-                        <th className="text-center">Chia sẻ</th>
-                        <th className="text-center">Sĩ số</th>
+                        <th className="text-center" style={{ whiteSpace: 'nowrap' }}>Giờ thi</th>
+                        <th className="text-center" style={{ whiteSpace: 'nowrap' }}>Kíp thi</th>
+                        <th style={{ minWidth: '140px' }}>GV giảng dạy</th>
+                        <th style={{ minWidth: '100px' }}>Giám thị</th>
+                        <th className="text-center" style={{ whiteSpace: 'nowrap' }}>Chia sẻ</th>
+                        <th className="text-center" style={{ whiteSpace: 'nowrap' }}>Sĩ số</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -211,14 +214,24 @@ export default function ClassListView() {
                             <td className="text-center">{cls.examRoom || '—'}</td>
                             <td className="text-center font-monospace">{formatTime(cls.examTime)}</td>
                             <td className="text-center">{examShift || '—'}</td>
-                            <td style={{ maxWidth: '180px', wordWrap: 'break-word' }}>
+                            <td style={{ maxWidth: '160px', wordWrap: 'break-word' }}>
                               <span>{cls.instructor || '—'}</span>
+                            </td>
+                            <td onClick={(e) => e.stopPropagation()}>
+                              <input
+                                type="text"
+                                className="form-control"
+                                placeholder="Nhập tên..."
+                                value={invigilators[cls.id] || ''}
+                                onChange={(e) => updateInvigilator(cls.id, e.target.value)}
+                                style={{ minWidth: '85px', width: '100%', fontSize: '0.75rem', padding: '0.2rem 0.4rem', height: '26px' }}
+                              />
                             </td>
                             <td className="text-center" onClick={(e) => e.stopPropagation()}>
                               <button
                                 type="button"
                                 className="btn btn-sm btn-light border d-inline-flex align-items-center justify-content-center"
-                                style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '12px', minWidth: '85px' }}
+                                style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '12px' }}
                                 onClick={() => setShareModalClass(cls)}
                                 title="Thiết lập chia sẻ sổ ảnh"
                               >

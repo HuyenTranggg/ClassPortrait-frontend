@@ -70,7 +70,7 @@ export const formatTime = (value?: string | null): string => {
   return str;
 };
 
-export const buildRosterMeta = (selectedClass: Class | null, students: Student[]): RosterMeta => {
+export const buildRosterMeta = (selectedClass: Class | null, students: Student[], invigilator?: string): RosterMeta => {
   return {
     courseLabel: selectedClass
       ? [selectedClass.courseCode, selectedClass.courseName].filter(Boolean).join(' - ') || 'Chưa có dữ liệu học phần'
@@ -85,6 +85,7 @@ export const buildRosterMeta = (selectedClass: Class | null, students: Student[]
     examTime: formatTime(selectedClass?.examTime),
     examShift: selectedClass?.examShift || selectedClass?.shift || '—',
     instructor: selectedClass?.instructor || '—',
+    invigilator: invigilator,
     studentCountLabel: selectedClass ? `${students.length}` : '0',
   };
 };

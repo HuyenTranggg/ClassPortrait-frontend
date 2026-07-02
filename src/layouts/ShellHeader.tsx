@@ -70,6 +70,9 @@ function ShellHeader({
             <div className="roster-meta-item" role="listitem"><span>Giờ thi:</span><strong>{rosterMeta.examTime}</strong></div>
             <div className="roster-meta-item" role="listitem"><span>Kíp thi:</span><strong>{rosterMeta.examShift}</strong></div>
             <div className="roster-meta-item" role="listitem"><span>GV giảng dạy:</span><strong>{rosterMeta.instructor}</strong></div>
+            {rosterMeta.invigilator && (
+              <div className="roster-meta-item" role="listitem"><span>Giám thị:</span><strong>{rosterMeta.invigilator}</strong></div>
+            )}
             <div className="roster-meta-item" role="listitem"><span>Sĩ số:</span><strong>{rosterMeta.studentCountLabel}</strong></div>
           </div>
         )}
