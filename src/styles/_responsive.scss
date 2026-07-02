@@ -1,12 +1,10 @@
 // ===== RESPONSIVE DESIGN =====
 
 @media (max-width: 1199px) {
-  .landing-shell,
   .app-shell {
     grid-template-columns: 1fr;
   }
 
-  .landing-sidebar,
   .app-sidebar {
     border-right: 0;
     border-bottom: 1px solid $shell-border;
@@ -15,14 +13,8 @@
     overflow-y: visible;
   }
 
-  .landing-main,
   .app-main {
     padding: 0 18px 24px;
-  }
-
-  .landing-hero {
-    min-height: auto;
-    padding-top: 28px;
   }
 
   .workspace-overview {
@@ -46,7 +38,6 @@
 }
 
 @media (max-width: 767px) {
-  .landing-topbar,
   .shell-header {
     flex-direction: column;
     align-items: flex-start;
@@ -113,14 +104,12 @@
     }
   }
 
-  .btn-hero,
-  .btn-login-submit,
-  .btn-login-top {
+  .btn-login-submit {
     width: 100%;
     min-width: 0;
   }
 
-  .login-modal-card {
+  .login-card {
     padding: 28px 20px 22px;
   }
 }

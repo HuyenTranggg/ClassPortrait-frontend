@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { Navigate, Route, Routes, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import './App.scss';
 import AppLayout from './layouts/AppLayout';
@@ -8,19 +8,8 @@ import TeacherDashboardView from './features/roster/dashboard/views/TeacherDashb
 import ImportHistoryView from './features/roster/import/views/ImportHistoryView';
 import ShareLinksView from './features/roster/share/views/ShareLinksView';
 import { LandingPage } from './features/landing';
-import { LoginModal, useAuth } from './features/auth';
+import { useAuth } from './features/auth';
 import { SharedClassPage } from './features/share-public';
-
-const loginMessages: Record<string, string> = {
-  default: 'hệ thống',
-  'Sổ ảnh': 'sổ ảnh',
-  'Lịch sử import': 'lịch sử import',
-  'Chia sẻ': 'chức năng chia sẻ',
-  'Cài đặt': 'cài đặt',
-  'Import nhanh': 'chức năng import nhanh',
-  'Ảnh tự động': 'chức năng ảnh tự động',
-  'In chuẩn format': 'chức năng in chuẩn format',
-};
 
 interface ProtectedRouteProps {
   isAuthenticated: boolean;
@@ -57,22 +46,7 @@ function SharedClassRoute() {
  */
 function App() {
   const { isAuthenticated, login } = useAuth();
-  const location = useLocation();
   const navigate = useNavigate();
-  const [isLoginOpen, setIsLoginOpen] = useState(false);
-  const [loginContext, setLoginContext] = useState('default');
-  const isSharedRoute = location.pathname.startsWith('/classes/shared/');
-
-  const loginContextLabel = useMemo(() => loginMessages[loginContext] || loginMessages.default, [loginContext]);
-
-  const openLogin = (context = 'default') => {
-    setLoginContext(context);
-    setIsLoginOpen(true);
-  };
-
-  const closeLogin = () => {
-    setIsLoginOpen(false);
-  };
 
   const handleLogin = async ({ email, password }: { email: string; password: string }) => {
     const isValidHustEmail = /.+@hust\.edu\.vn$/i.test(email);
@@ -105,7 +79,6 @@ function App() {
       throw new Error('Đăng nhập thất bại. Vui lòng thử lại.');
     }
 
-    setIsLoginOpen(false);
     navigate('/classes', { replace: true });
   };
 
@@ -120,7 +93,7 @@ function App() {
             isAuthenticated ? (
               <Navigate to="/classes" replace />
             ) : (
-              <LandingPage onLoginClick={() => openLogin()} onFeatureClick={openLogin} />
+              <LandingPage onSubmit={handleLogin} />
             )
           }
         />
@@ -135,15 +108,6 @@ function App() {
 
         <Route path="*" element={<Navigate to={isAuthenticated ? '/classes' : '/'} replace />} />
       </Routes>
-
-      {!isSharedRoute && (
-        <LoginModal
-          isOpen={isLoginOpen}
-          contextLabel={loginContextLabel}
-          onClose={closeLogin}
-          onSubmit={handleLogin}
-        />
-      )}
     </>
   );
 }
