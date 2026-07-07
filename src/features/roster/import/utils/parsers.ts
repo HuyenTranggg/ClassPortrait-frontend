@@ -97,7 +97,7 @@ export const parseExcelFile = async (file: File): Promise<ParsedExcelInfo> => {
   const courseCodeColumn = findColumnByKeywords(columns, ['mã học phần', 'mã hp', 'ma hoc phan', 'ma hp', 'course code', 'courseid']);
   const courseNameColumn = findColumnByKeywords(columns, ['tên học phần', 'tên hp', 'ten hoc phan', 'ten hp', 'môn học', 'mon hoc', 'course name']);
   const classNameColumn = findColumnByKeywords(columns, ['tên lớp', 'ten lop', 'class name']);
-  const classExamCodeColumn = findColumnByKeywords(columns, ['mã lớp thi', 'ma lop thi', 'class exam code', 'exam code', 'examid']);
+  const classExamCodeColumn = findColumnByKeywords(columns, ['mã lớp thi', 'ma lop thi', 'class exam code', 'exam code', 'examid', 'lớp thi', 'lop thi']);
   const examDateColumn = findColumnByKeywords(columns, ['ngày thi', 'ngay thi', 'exam date', 'date']);
   const examRoomColumn = findColumnByKeywords(columns, ['phòng thi', 'phong thi', 'exam room', 'room']);
   const examTimeColumn = findColumnByKeywords(columns, ['thời gian thi', 'thoi gian thi', 'giờ thi', 'gio thi', 'exam time', 'time']);
