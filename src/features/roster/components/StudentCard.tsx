@@ -65,6 +65,7 @@ function StudentCard({
     >
       <div className="student-card-image-wrap">
         <img
+          key={effectiveSrc}
           src={effectiveSrc}
           className="card-img-top"
           alt={`Ảnh của sinh viên ${mssv}`}

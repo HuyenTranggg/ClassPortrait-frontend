@@ -28,8 +28,19 @@ export const PAGINATION_CONFIG = {
 /**
  * Student Photo Configuration
  */
+// SVG "No Photo" xám tự chứa (data-URI), đồng bộ với placeholder do backend sinh ra.
+// Dùng làm fallback khi không tải được ảnh, không phụ thuộc dịch vụ ngoài.
+const NO_PHOTO_PLACEHOLDER =
+  'data:image/svg+xml;charset=utf-8,' +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240">' +
+      '<rect width="240" height="240" fill="#6c757d"/>' +
+      '<text x="120" y="120" text-anchor="middle" font-size="20" font-family="Arial, sans-serif" fill="#ffffff">No Photo</text>' +
+      '</svg>',
+  );
+
 export const PHOTO_CONFIG = {
-  PLACEHOLDER_URL: 'https://via.placeholder.com/250x250/e9ecef/6c757d?text=No+Photo',
+  PLACEHOLDER_URL: NO_PHOTO_PLACEHOLDER,
   DEFAULT_HEIGHT: 250,
   DEFAULT_WIDTH: 250,
 } as const;
