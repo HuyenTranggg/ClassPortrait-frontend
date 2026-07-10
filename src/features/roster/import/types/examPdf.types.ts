@@ -10,6 +10,7 @@ export interface ExamCandidateStudent {
   dob?: string;         // Ngày sinh đã format (dd/mm/yyyy)
   classCode: string;    // Mã lớp tín chỉ (dùng cho header "Mã lớp học" – backup)
   className?: string;   // Tên lớp sinh viên – dùng cho cột "Lớp" trong bảng (e.g. "*Việt Nhật K69 -4C")
+  instructor?: string;  // Giảng viên của mã lớp học này
 }
 
 /** Thông tin một lớp thi kèm danh sách sinh viên – dùng để render 1 trang PDF */
@@ -20,6 +21,7 @@ export interface ExamSessionPDFData {
   semester: string;
   department: string;
   instructor: string;
+  instructors?: Record<string, string>; // Map classCode → instructor (GV riêng từng mã lớp)
   invigilator?: string;
   classExamCode?: string;   // Mã lớp thi (nếu có)
   classCodes: string[];     // Các mã lớp tín chỉ của lớp thi này

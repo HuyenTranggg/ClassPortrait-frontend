@@ -12,6 +12,7 @@ export interface Student {
   // Thông tin học vụ
   classCode?: string;       // Mã lớp tín chỉ (lớp quản lý)
   className?: string;       // Tên lớp quản lý
+  instructor?: string;      // Giảng viên của mã lớp học này
   gender?: string;          // Giới tính
   dob?: string | Date;      // Ngày sinh
   email?: string;           // Email

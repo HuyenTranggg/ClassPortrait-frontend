@@ -267,8 +267,19 @@ export default function ClassListView() {
                             <td className="text-center">{cls.examRoom || '—'}</td>
                             <td className="text-center font-monospace">{formatTime(cls.examTime)}</td>
                             <td className="text-center">{examShift || '—'}</td>
-                            <td style={{ maxWidth: '160px', wordWrap: 'break-word' }}>
-                              <span>{cls.instructor || '—'}</span>
+                            <td style={{ maxWidth: '200px', wordWrap: 'break-word' }}>
+                              {cls.instructors && Object.keys(cls.instructors).length > 1 && new Set(Object.values(cls.instructors)).size > 1 ? (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                  {Object.entries(cls.instructors).map(([code, gv]) => (
+                                    <span key={code}>
+                                      <span className="text-muted" style={{ fontWeight: 500 }}>{code}:</span>{' '}
+                                      {gv}
+                                    </span>
+                                  ))}
+                                </div>
+                              ) : (
+                                <span>{cls.instructor || '—'}</span>
+                              )}
                             </td>
                             <td onClick={(e) => e.stopPropagation()}>
                               <input

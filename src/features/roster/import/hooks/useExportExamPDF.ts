@@ -119,8 +119,14 @@ function splitSessionsByClassCode(sessions: ExamSessionPDFData[]): ExamSessionPD
     for (const code of sortedCodes) {
       const students = groupedByCode.get(code)!;
       const renumbered = students.map((s, idx) => ({ ...s, order: idx + 1 }));
+      // Lấy instructor theo thứ tự: instructors map của lớp (từ DB), rồi student.instructor, rồi session.instructor
+      const subInstructor =
+        session.instructors?.[code] ??
+        renumbered[0]?.instructor ??
+        session.instructor;
       result.push({
         ...session,
+        instructor: subInstructor,
         classCodes: [code],
         students: renumbered,
       });
@@ -212,6 +218,7 @@ function buildSessionData(classInfo: Class, students: Student[]): ExamSessionPDF
       dob: s.dob ? formatDob(s.dob) : undefined,
       classCode: code,
       className: s.className ?? undefined,
+      instructor: s.instructor ?? undefined,
     };
   });
 
@@ -234,6 +241,7 @@ function buildSessionData(classInfo: Class, students: Student[]): ExamSessionPDF
     semester: classInfo.semester ?? '',
     department: classInfo.department ?? '',
     instructor: classInfo.instructor ?? '',
+    instructors: (classInfo as any).instructors ?? undefined,
     invigilator,
     classExamCode: classInfo.classExamCode,
     classCodes: Array.from(classCodesSet).sort(),
