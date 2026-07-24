@@ -23,12 +23,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await authService.login(credentials);
     setIsAuthenticated(true);
     setUserEmail(credentials.email);
+    localStorage.removeItem('classListScrollPosition');
   }, []);
 
   const logout = useCallback(() => {
     authService.logout();
     setIsAuthenticated(false);
     setUserEmail(null);
+    localStorage.removeItem('classListScrollPosition');
   }, []);
 
   // Lắng nghe 401 từ axios interceptor — xử lý tại đây thay vì App
@@ -37,6 +39,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       authService.logout();
       setIsAuthenticated(false);
       setUserEmail(null);
+      localStorage.removeItem('classListScrollPosition');
     };
 
     window.addEventListener('auth:unauthorized', handleUnauthorized as EventListener);
