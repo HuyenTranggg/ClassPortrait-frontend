@@ -15,6 +15,10 @@
   display: none;
 }
 
+// ─────────────────────────────────────────────
+// SIDEBAR EDGE TOGGLE (Desktop only)
+// ─────────────────────────────────────────────
+
 .sidebar-edge-toggle {
   position: fixed;
   top: 50%;
@@ -67,6 +71,10 @@
   }
 }
 
+// ─────────────────────────────────────────────
+// SIDEBAR BASE
+// ─────────────────────────────────────────────
+
 .landing-sidebar,
 .app-sidebar {
   padding: 18px 14px 12px;
@@ -82,6 +90,10 @@
   height: 100vh;
   overflow-y: auto;
 }
+
+// ─────────────────────────────────────────────
+// BRAND BLOCK
+// ─────────────────────────────────────────────
 
 .brand-block {
   display: flex;
@@ -121,6 +133,10 @@
   font-size: 1.06rem;
   font-weight: 700;
 }
+
+// ─────────────────────────────────────────────
+// NAV LINKS
+// ─────────────────────────────────────────────
 
 .sidebar-nav {
   display: grid;
@@ -163,6 +179,10 @@
     background: #fff1f2;
   }
 }
+
+// ─────────────────────────────────────────────
+// SIDEBAR FOOTER
+// ─────────────────────────────────────────────
 
 .sidebar-footer {
   margin-top: auto;
@@ -246,4 +266,223 @@
   height: 34px;
   border-radius: 50%;
   background: #e3e9f0;
+}
+
+// ─────────────────────────────────────────────
+// MOBILE CLOSE BUTTON (chỉ hiện trên mobile)
+// ─────────────────────────────────────────────
+
+.sidebar-mobile-close {
+  display: none;
+  border: 0;
+  background: transparent;
+  color: $text-muted-strong;
+  font-size: 1.4rem;
+  padding: 0;
+  margin-bottom: 8px;
+  align-self: flex-end;
+  cursor: pointer;
+  line-height: 1;
+
+  &:hover {
+    color: $text-strong;
+  }
+}
+
+// ─────────────────────────────────────────────
+// MOBILE NAV TOGGLE (hamburger button)
+// ─────────────────────────────────────────────
+
+.mobile-nav-toggle {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  border: 0;
+  background: transparent;
+  padding: 10px 0;
+  cursor: pointer;
+  align-self: flex-start;
+
+  &:hover .mobile-nav-toggle-bar {
+    background: $accent-strong;
+  }
+}
+
+.mobile-nav-toggle-bar {
+  width: 24px;
+  height: 2px;
+  background: $text-strong;
+  border-radius: 2px;
+  display: block;
+  transition: background 0.2s ease;
+}
+
+// ─────────────────────────────────────────────
+// MOBILE OVERLAY BACKDROP
+// ─────────────────────────────────────────────
+
+.mobile-sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 99;
+  animation: overlayFadeIn 0.2s ease-out;
+}
+
+@keyframes overlayFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+// ─────────────────────────────────────────────
+// TABLET (768px – 1023px)
+// ─────────────────────────────────────────────
+
+@media (max-width: 1023px) {
+  .app-shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .app-sidebar {
+    position: static;
+    height: auto;
+    overflow-y: visible;
+    border-right: 0;
+    border-bottom: 1px solid $shell-border;
+  }
+
+  .sidebar-edge-toggle {
+    display: none;
+  }
+
+  // Trên tablet: hiện sidebar như top-nav strip ngang
+  .app-sidebar {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 10px 16px;
+    gap: 8px;
+
+    .brand-block {
+      border-bottom: 0;
+      padding-bottom: 0;
+      flex-shrink: 0;
+    }
+
+    .sidebar-nav {
+      display: flex;
+      flex-direction: row;
+      gap: 4px;
+      margin-top: 0;
+      flex: 1;
+    }
+
+    .sidebar-link {
+      padding: 6px 10px;
+      border-radius: 8px;
+
+      small {
+        display: none; // Ẩn description trên tablet
+      }
+    }
+
+    .sidebar-footer {
+      margin-top: 0;
+      padding-top: 0;
+      border-top: 0;
+      min-height: auto;
+      border-left: 1px solid $shell-border;
+      padding-left: 12px;
+      flex-shrink: 0;
+
+      .sidebar-user-meta {
+        display: none; // Ẩn user meta trên tablet
+      }
+    }
+  }
+
+  // Ẩn sidebar-mobile-close trên tablet
+  .sidebar-mobile-close {
+    display: none !important;
+  }
+}
+
+// ─────────────────────────────────────────────
+// MOBILE (≤ 767px)
+// ─────────────────────────────────────────────
+
+@media (max-width: 767px) {
+  // Hiện hamburger button
+  .mobile-nav-toggle {
+    display: flex;
+  }
+
+  // Hiện overlay khi menu mở
+  .mobile-sidebar-overlay {
+    display: block;
+  }
+
+  // Sidebar trở thành drawer từ bên trái
+  .app-sidebar {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    width: min(280px, 80vw);
+    height: 100vh !important;
+    overflow-y: auto !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    flex-wrap: nowrap !important;
+    padding: 16px 14px !important;
+    border-right: 1px solid $shell-border !important;
+    border-bottom: 0 !important;
+    z-index: 100;
+    transform: translateX(-100%);
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: none;
+
+    &.is-mobile-open {
+      transform: translateX(0);
+      box-shadow: 4px 0 24px rgba(0, 0, 0, 0.18);
+    }
+
+    .brand-block {
+      border-bottom: 1px solid $shell-border !important;
+      padding-bottom: 14px !important;
+    }
+
+    .sidebar-nav {
+      flex-direction: column !important;
+      margin-top: 14px !important;
+      gap: 8px !important;
+    }
+
+    .sidebar-link small {
+      display: block !important;
+    }
+
+    .sidebar-footer {
+      margin-top: auto !important;
+      padding-top: 10px !important;
+      border-top: 1px solid $shell-border !important;
+      border-left: 0 !important;
+      padding-left: 0 !important;
+      min-height: 52px !important;
+
+      .sidebar-user-meta {
+        display: block !important;
+      }
+    }
+  }
+
+  // Hiện nút đóng trong sidebar
+  .sidebar-mobile-close {
+    display: flex !important;
+  }
+
+  // App main không bị shift
+  .app-main {
+    padding: 0 12px 24px;
+  }
 }

@@ -43,12 +43,44 @@
   text-transform: uppercase;
 }
 
+.roster-meta-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+}
+
 .roster-meta {
   margin-top: 6px;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 0;
+}
+
+// Nút "Xem thêm / Thu gọn": mặc định ẩn (desktop hiện full, không cần nút).
+// Chỉ hiện trên điện thoại qua media query bên dưới.
+.roster-meta-toggle {
+  display: none;
+  margin-top: 6px;
+  align-items: center;
+  padding: 0;
+  border: none;
+  background: none;
+  color: $accent-strong;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  // Ẩn khi in: bản in luôn cần đầy đủ thông tin, không có nút bấm
+  @media print {
+    display: none;
+  }
 }
 
 .roster-meta-item {
@@ -231,4 +263,202 @@
 
 .gallery-panel {
   padding: 10px 12px 24px;
+}
+
+// ─────────────────────────────────────────────
+// TABLET (768px – 1023px)
+// ─────────────────────────────────────────────
+
+@media (max-width: 1023px) {
+  .shell-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 0 10px;
+  }
+
+  .shell-actions {
+    align-self: stretch;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .workspace-toolbar {
+    .form-select {
+      width: min(100%, 260px);
+    }
+
+    .workspace-search-input {
+      width: min(100%, 200px);
+    }
+  }
+}
+
+// ─────────────────────────────────────────────
+// MOBILE (≤ 767px)
+// ─────────────────────────────────────────────
+
+@media (max-width: 767px) {
+  .app-main {
+    padding: 0 10px 24px;
+  }
+
+  // Header compact hơn
+  .shell-header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 8px 0 6px;
+    gap: 8px;
+    min-height: auto;
+  }
+
+  .shell-header h1 {
+    font-size: clamp(0.95rem, 3.5vw, 1.15rem);
+  }
+
+  .roster-school {
+    font-size: 0.82rem;
+    letter-spacing: 0.06em;
+    margin-bottom: 4px;
+  }
+
+  // Meta info: xếp nhiều thông tin trên cùng một dòng (wrap), gọn hơn.
+  .roster-meta {
+    margin-top: 4px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 10px;
+    align-items: center;
+  }
+
+  .roster-meta-item {
+    width: auto;
+    font-size: 0.76rem;
+    align-items: center;
+    gap: 3px;
+
+    // Bỏ dấu gạch '|' ngăn cách để dòng gọn hơn trên điện thoại
+    &:not(:last-child)::after {
+      display: none;
+    }
+  }
+
+  // Trên điện thoại: mặc định ẩn các thông tin phụ, chỉ hiện khi mở rộng.
+  .roster-meta-item--secondary {
+    display: none;
+  }
+
+  .roster-meta-wrapper.is-expanded .roster-meta-item--secondary {
+    display: flex;
+  }
+
+  // Hiện nút mở rộng/thu gọn trên điện thoại
+  .roster-meta-toggle {
+    display: inline-flex;
+  }
+
+  .shell-actions {
+    align-self: stretch;
+    flex-wrap: wrap;
+    gap: 6px;
+
+    .btn-share,
+    .btn-accent,
+    .import-container,
+    .import-container .btn {
+      flex: 1;
+      min-width: 0;
+      justify-content: center;
+      font-size: 0.88rem;
+    }
+
+    // Attendance mode: buttons flex
+    .btn-outline-secondary,
+    .btn-outline-primary,
+    .btn-primary {
+      flex: 1;
+      min-width: 0;
+      font-size: 0.88rem;
+    }
+
+    // Auto-call switch takes full row
+    .d-flex.align-items-center.gap-2 {
+      width: 100%;
+    }
+  }
+
+  // Toolbar compact
+  .workspace-toolbar {
+    gap: 6px;
+    flex-wrap: wrap;
+
+    .layout-select {
+      // Chỉ cần hiện text ngắn, không cần full width
+      width: 120px;
+      flex-shrink: 0;
+    }
+
+    .workspace-search-input {
+      flex: 1;
+      min-width: 120px;
+    }
+
+    .btn-print {
+      // Chỉ hiện icon trên mobile
+      font-size: 0.85rem;
+      padding: 0 10px;
+    }
+
+    .workspace-student-count {
+      width: 100%;
+      margin-left: 0;
+      text-align: right;
+      font-size: 0.85rem;
+      color: $text-muted-strong;
+    }
+  }
+
+  .gallery-panel {
+    padding: 6px 6px 20px;
+  }
+
+  .state-panel,
+  .empty-state-card {
+    padding: 36px 16px;
+  }
+}
+
+// ─────────────────────────────────────────────
+// MOBILE PORTRAIT (≤ 479px)
+// ─────────────────────────────────────────────
+
+@media (max-width: 479px) {
+  .app-main {
+    padding: 0 8px 16px;
+  }
+
+  .shell-header {
+    padding: 6px 0 4px;
+    gap: 6px;
+  }
+
+  .roster-school {
+    font-size: 0.78rem;
+  }
+
+  .workspace-toolbar {
+    gap: 5px;
+
+    .layout-select {
+      width: 100px;
+    }
+
+    .btn-print {
+      padding: 0 8px;
+    }
+  }
+
+  .gallery-panel {
+    padding: 4px 4px 16px;
+  }
 }

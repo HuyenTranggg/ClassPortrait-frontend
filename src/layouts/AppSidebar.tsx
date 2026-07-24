@@ -6,6 +6,8 @@ interface AppSidebarProps {
   lecturerDisplayName: string;
   onToggleSidebar: () => void;
   onLogout: () => void;
+  mobileMenuOpen?: boolean;
+  onCloseMobileMenu?: () => void;
 }
 
 function AppSidebar({
@@ -13,9 +15,12 @@ function AppSidebar({
   lecturerDisplayName,
   onToggleSidebar,
   onLogout,
+  mobileMenuOpen = false,
+  onCloseMobileMenu,
 }: AppSidebarProps) {
   return (
     <>
+      {/* Desktop edge toggle – chỉ hiện trên desktop */}
       <button
         type="button"
         className="sidebar-edge-toggle no-print"
@@ -30,7 +35,17 @@ function AppSidebar({
         />
       </button>
 
-      <aside className="app-sidebar no-print">
+      <aside className={`app-sidebar no-print ${mobileMenuOpen ? 'is-mobile-open' : ''}`}>
+        {/* Close button – chỉ hiện trên mobile */}
+        <button
+          type="button"
+          className="sidebar-mobile-close"
+          onClick={onCloseMobileMenu}
+          aria-label="Đóng menu"
+        >
+          <i className="bi bi-x-lg" aria-hidden="true" />
+        </button>
+
         <div className="brand-block">
           <div className="brand-mark">S</div>
           <div>

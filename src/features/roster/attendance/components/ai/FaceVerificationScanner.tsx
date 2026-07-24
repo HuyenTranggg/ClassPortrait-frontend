@@ -320,19 +320,19 @@ export const FaceVerificationScanner: React.FC<FaceVerificationScannerProps> = (
         aria-modal="true"
         aria-labelledby="aiScannerModalTitle"
       >
-        <div className="modal-dialog modal-xl modal-dialog-centered" style={{ maxWidth: '1050px' }}>
-          <div className="modal-content bg-white text-dark border shadow-lg">
+        <div className="modal-dialog modal-xl modal-dialog-centered ai-scanner-dialog" style={{ maxWidth: '1050px' }}>
+          <div className="modal-content bg-white text-dark border shadow-lg ai-scanner-modal">
 
             {/* Header */}
-            <div className="modal-header border-bottom align-items-center bg-white px-3 py-2">
-              <div className="d-flex align-items-center gap-3 flex-grow-1">
+            <div className="modal-header border-bottom align-items-center bg-white px-3 py-2 ai-scanner-header">
+              <div className="d-flex align-items-center gap-3 flex-grow-1 ai-scanner-header-left">
                 <h5 className="modal-title text-dark mb-0 d-flex align-items-center fw-bold" id="aiScannerModalTitle" style={{ fontSize: '1.05rem' }}>
                   <i className="bi bi-person-bounding-box me-2 text-primary" />
                   Quét Mặt
                 </h5>
 
                 {/* Ô tìm kiếm nhanh tích hợp trên Header */}
-                <div className="position-relative" style={{ width: '220px' }}>
+                <div className="position-relative ai-scanner-search" style={{ width: '220px' }}>
                   <i className="bi bi-search position-absolute text-muted" style={{ left: '12px', top: '50%', transform: 'translateY(-50%)', fontSize: '0.85rem' }} />
                   <input
                     type="text"
@@ -387,8 +387,8 @@ export const FaceVerificationScanner: React.FC<FaceVerificationScannerProps> = (
               </div>
 
               {/* Nhóm điều khiển Tự động & Nút Đóng */}
-              <div className="d-flex align-items-center gap-3">
-                <div className="d-flex align-items-center gap-2">
+              <div className="d-flex align-items-center gap-3 ai-scanner-header-right">
+                <div className="d-flex align-items-center gap-2 ai-scanner-threshold">
                   <label
                     className="form-label mb-0 text-dark fw-medium"
                     htmlFor="faceDistanceThreshold"

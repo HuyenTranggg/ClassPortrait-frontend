@@ -126,6 +126,13 @@
 .student-card.is-attendance-mode {
   cursor: pointer;
   border-color: #93c5fd;
+  // Loại bỏ delay 300ms khi tap trên mobile
+  touch-action: manipulation;
+
+  &:active {
+    transform: scale(0.97);
+    transition: transform 0.1s ease;
+  }
 }
 
 .student-card-image-wrap {
@@ -260,11 +267,31 @@
 
   .attendance-summary-actions {
     margin-left: 0;
+    width: 100%;
+
+    .btn {
+      flex: 1;
+    }
   }
 
   .attendance-summary-filter {
     min-width: 0;
-    width: min(100%, 180px);
+    width: 100%;
+
+    .form-select {
+      width: 100%;
+    }
+  }
+
+  .attendance-summary-meta {
+    width: 100%;
+    font-size: 0.88rem;
+  }
+
+  .attendance-summary-stats {
+    width: 100%;
+    gap: 6px 12px;
+    font-size: 0.9rem;
   }
 
   .attendance-toast-wrap {
@@ -276,5 +303,109 @@
 
   .attendance-stats-grid {
     grid-template-columns: 1fr;
+  }
+
+  .attendance-modal-card {
+    padding: 14px;
+    max-height: 92vh;
+  }
+
+  .attendance-modal-actions {
+    flex-direction: column;
+
+    .btn {
+      width: 100%;
+    }
+  }
+}
+
+// Mobile portrait (≤ 479px)
+@media (max-width: 479px) {
+  .roster-controls-combined {
+    padding: 6px;
+    border-radius: 10px;
+  }
+
+  .attendance-summary-row {
+    gap: 8px;
+  }
+
+  .attendance-mode-hint {
+    font-size: 0.82rem;
+    padding: 8px 10px;
+  }
+
+  .attendance-modal-card {
+    border-radius: 10px;
+    padding: 12px;
+  }
+
+  .attendance-modal-card h2 {
+    font-size: 1.1rem;
+  }
+}
+
+// ─────────────────────────────────────────────
+// AI FACE SCANNER MODAL — responsive
+// Mặc định (desktop) giữ nguyên bố cục Bootstrap gốc.
+// Dưới 992px (khi 2 cột camera/thông tin đã stack) thì cho header
+// tự xuống dòng để các nút không tràn ra ngoài trên điện thoại.
+// ─────────────────────────────────────────────
+@media (max-width: 991px) {
+  .ai-scanner-header {
+    // Cho phép 2 nhóm (trái/phải) xuống dòng thay vì ép nằm ngang
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+
+  .ai-scanner-header-left {
+    // Tiêu đề + ô tìm kiếm chiếm trọn một dòng riêng
+    flex-wrap: wrap;
+    width: 100%;
+    gap: 8px 12px !important;
+  }
+
+  .ai-scanner-search {
+    // Bỏ chiều rộng cứng 220px, để ô tìm kiếm co giãn theo màn hình
+    width: 100% !important;
+    flex: 1 1 180px;
+    min-width: 160px;
+  }
+
+  .ai-scanner-header-right {
+    // Nhóm điều khiển (ngưỡng, tự động, gọi tên, đóng) tự wrap gọn gàng
+    flex-wrap: wrap;
+    width: 100%;
+    justify-content: flex-start;
+    gap: 10px 14px !important;
+  }
+}
+
+@media (max-width: 767px) {
+  // Dialog chiếm gần trọn màn hình, sát mép để tận dụng không gian
+  .ai-scanner-dialog {
+    max-width: 100% !important;
+    margin: 8px;
+  }
+
+  .ai-scanner-header {
+    padding: 10px 12px;
+  }
+
+  // Nút đóng đẩy về góc phải, tách khỏi cụm control
+  .ai-scanner-header-right {
+    .btn-close {
+      margin-left: auto;
+    }
+  }
+
+  // Ngưỡng pass: label + select nằm gọn trên một dòng, không tràn
+  .ai-scanner-threshold {
+    flex: 1 1 100%;
+
+    .form-select {
+      width: auto !important;
+      flex: 1 1 auto;
+    }
   }
 }

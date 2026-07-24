@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import ImportButton from '../features/roster/import/components/ImportButton';
 import { ActiveView, RosterMeta } from '../features/roster/types';
 
@@ -41,6 +41,11 @@ function ShellHeader({
   hideShareAction = false,
   hideAttendanceAction = false,
 }: ShellHeaderProps) {
+  // Thu gọn khối thông tin lớp thi: mặc định đóng để ưu tiên không gian cho
+  // danh sách sinh viên, đặc biệt trên điện thoại (giám thị gọi tên thủ công).
+  // Chỉ vài dòng cốt lõi (Môn học, Phòng/Ngày/Giờ thi) luôn hiển thị.
+  const [isMetaExpanded, setMetaExpanded] = useState(false);
+
   const title =
     activeView === 'class-list'
       ? 'DANH SÁCH LỚP THI'
@@ -59,21 +64,41 @@ function ShellHeader({
         <h1>{title}</h1>
 
         {activeView === 'roster' && (
-          <div className="roster-meta" role="list" aria-label="Thông tin lớp học">
-            <div className="roster-meta-item" role="listitem"><span>Học kỳ:</span><strong>{rosterMeta.semesterLabel}</strong></div>
-            <div className="roster-meta-item" role="listitem"><span>Mã HP:</span><strong>{rosterMeta.courseCode}</strong></div>
-            <div className="roster-meta-item" role="listitem"><span>Môn học:</span><strong>{rosterMeta.courseName}</strong></div>
-            <div className="roster-meta-item" role="listitem"><span>Mã lớp học:</span><strong>{rosterMeta.classCodeLabel}</strong></div>
-            <div className="roster-meta-item" role="listitem"><span>Mã lớp thi:</span><strong>{rosterMeta.classExamCode}</strong></div>
-            <div className="roster-meta-item" role="listitem"><span>Ngày thi:</span><strong>{rosterMeta.examDate}</strong></div>
-            <div className="roster-meta-item" role="listitem"><span>Phòng thi:</span><strong>{rosterMeta.examRoom}</strong></div>
-            <div className="roster-meta-item" role="listitem"><span>Giờ thi:</span><strong>{rosterMeta.examTime}</strong></div>
-            <div className="roster-meta-item" role="listitem"><span>Kíp thi:</span><strong>{rosterMeta.examShift}</strong></div>
-            <div className="roster-meta-item" role="listitem"><span>GV giảng dạy:</span><strong>{rosterMeta.instructor}</strong></div>
-            {rosterMeta.invigilator && (
-              <div className="roster-meta-item" role="listitem"><span>Giám thị:</span><strong>{rosterMeta.invigilator}</strong></div>
-            )}
-            <div className="roster-meta-item" role="listitem"><span>Sĩ số:</span><strong>{rosterMeta.studentCountLabel}</strong></div>
+          <div className={`roster-meta-wrapper${isMetaExpanded ? ' is-expanded' : ''}`}>
+            <div className="roster-meta" role="list" aria-label="Thông tin lớp học">
+              {/* Cốt lõi: luôn hiển thị (kể cả khi thu gọn trên điện thoại) */}
+              <div className="roster-meta-item" role="listitem"><span>Môn học:</span><strong>{rosterMeta.courseName}</strong></div>
+              <div className="roster-meta-item" role="listitem"><span>Phòng thi:</span><strong>{rosterMeta.examRoom}</strong></div>
+              <div className="roster-meta-item" role="listitem"><span>Ngày thi:</span><strong>{rosterMeta.examDate}</strong></div>
+              <div className="roster-meta-item" role="listitem"><span>Giờ thi:</span><strong>{rosterMeta.examTime}</strong></div>
+              <div className="roster-meta-item" role="listitem"><span>Sĩ số:</span><strong>{rosterMeta.studentCountLabel}</strong></div>
+
+              {/* Phụ: desktop luôn hiện; điện thoại chỉ hiện khi bấm "Xem thêm".
+                  Luôn render trong DOM, việc ẩn/hiện do CSS quyết định theo breakpoint. */}
+              <div className="roster-meta-item roster-meta-item--secondary" role="listitem"><span>Học kỳ:</span><strong>{rosterMeta.semesterLabel}</strong></div>
+              <div className="roster-meta-item roster-meta-item--secondary" role="listitem"><span>Mã HP:</span><strong>{rosterMeta.courseCode}</strong></div>
+              <div className="roster-meta-item roster-meta-item--secondary" role="listitem"><span>Mã lớp học:</span><strong>{rosterMeta.classCodeLabel}</strong></div>
+              <div className="roster-meta-item roster-meta-item--secondary" role="listitem"><span>Mã lớp thi:</span><strong>{rosterMeta.classExamCode}</strong></div>
+              <div className="roster-meta-item roster-meta-item--secondary" role="listitem"><span>Kíp thi:</span><strong>{rosterMeta.examShift}</strong></div>
+              <div className="roster-meta-item roster-meta-item--secondary" role="listitem"><span>GV giảng dạy:</span><strong>{rosterMeta.instructor}</strong></div>
+              {rosterMeta.invigilator && (
+                <div className="roster-meta-item roster-meta-item--secondary" role="listitem"><span>Giám thị:</span><strong>{rosterMeta.invigilator}</strong></div>
+              )}
+            </div>
+
+            {/* Nút mở rộng: chỉ hiển thị trên điện thoại (CSS ẩn ở desktop) */}
+            <button
+              type="button"
+              className="roster-meta-toggle"
+              onClick={() => setMetaExpanded((prev) => !prev)}
+              aria-expanded={isMetaExpanded}
+            >
+              {isMetaExpanded ? (
+                <><i className="bi bi-chevron-up me-1" />Thu gọn</>
+              ) : (
+                <><i className="bi bi-chevron-down me-1" />Xem thêm</>
+              )}
+            </button>
           </div>
         )}
 
