@@ -486,3 +486,66 @@
     padding: 0 12px 24px;
   }
 }
+
+// ─────────────────────────────────────────────
+// SIDEBAR SUB-NAVIGATION
+// ─────────────────────────────────────────────
+
+.sidebar-group {
+  margin-top: 4px;
+}
+
+.sidebar-group-title {
+  padding: 9px 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  border-radius: 12px;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background: #f9fafb;
+  }
+  
+  .sidebar-group-title-text {
+    span {
+      display: block;
+      font-weight: 600;
+      font-size: 0.94rem;
+      color: $text-strong;
+    }
+    
+    small {
+      display: block;
+      margin-top: 2px;
+      color: $text-muted-strong;
+      font-size: 0.82rem;
+      line-height: 1.35;
+    }
+  }
+
+  i {
+    color: $text-muted-strong;
+    font-size: 0.9rem;
+    transition: transform 0.2s ease;
+  }
+}
+
+.sidebar-sub-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-left: 8px;
+  margin-top: 4px;
+}
+
+.sidebar-sublink {
+  position: relative;
+  padding-left: 16px;
+
+  span {
+    font-weight: 500;
+    font-size: 0.88rem;
+  }
+}

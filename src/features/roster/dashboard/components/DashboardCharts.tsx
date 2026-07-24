@@ -47,17 +47,17 @@ export function PhotoHealthChart({ photoHealth }: PhotoHealthChartProps) {
   }
 
   return (
-    <ResponsiveContainer width="100%" height={200}>
-      <PieChart>
+    <ResponsiveContainer width="100%" height={240}>
+      <PieChart margin={{ bottom: 10 }}>
         <Pie
           data={data}
           cx="50%"
-          cy="50%"
-          innerRadius={55}
-          outerRadius={80}
+          cy="45%"
+          innerRadius={50}
+          outerRadius={75}
           paddingAngle={3}
           dataKey="value"
-          label={({ name, percent }) => `${name}: ${Math.round((percent ?? 0) * 100)}%`}
+          label={({ percent }) => ((percent ?? 0) > 0 ? `${Math.round((percent ?? 0) * 100)}%` : '')}
           labelLine={false}
         >
           {data.map((entry) => (
@@ -65,7 +65,7 @@ export function PhotoHealthChart({ photoHealth }: PhotoHealthChartProps) {
           ))}
         </Pie>
         <Tooltip formatter={(value) => [`${value} SV`, '']} />
-        <Legend />
+        <Legend verticalAlign="bottom" />
       </PieChart>
     </ResponsiveContainer>
   );

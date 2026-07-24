@@ -4,7 +4,10 @@ import './App.scss';
 import AppLayout from './layouts/AppLayout';
 import RosterView from './features/roster/views/RosterView';
 import ClassListView from './features/roster/views/ClassListView';
-import TeacherDashboardView from './features/roster/dashboard/views/TeacherDashboardView';
+import TeacherDashboardLayout from './features/roster/dashboard/views/TeacherDashboardLayout';
+import UpcomingExamsView from './features/roster/dashboard/views/UpcomingExamsView';
+import RoomGanttView from './features/roster/dashboard/views/RoomGanttView';
+import MonitoringView from './features/roster/dashboard/views/MonitoringView';
 import ImportHistoryView from './features/roster/import/views/ImportHistoryView';
 import ShareLinksView from './features/roster/share/views/ShareLinksView';
 import { LandingPage } from './features/landing';
@@ -101,7 +104,12 @@ function App() {
         <Route element={<ProtectedRoute isAuthenticated={isAuthenticated}><AppLayout /></ProtectedRoute>}>
           <Route path="/classes" element={<ClassListView />} />
           <Route path="/classes/:classId" element={<RosterView />} />
-          <Route path="/dashboard" element={<TeacherDashboardView />} />
+          <Route path="/dashboard" element={<TeacherDashboardLayout />}>
+            <Route index element={<Navigate to="upcoming" replace />} />
+            <Route path="upcoming" element={<UpcomingExamsView />} />
+            <Route path="gantt" element={<RoomGanttView />} />
+            <Route path="monitoring" element={<MonitoringView />} />
+          </Route>
           <Route path="/import-history" element={<ImportHistoryView />} />
           <Route path="/share" element={<ShareLinksView />} />
         </Route>
