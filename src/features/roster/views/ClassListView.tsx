@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useClasses } from '../hooks/useClasses';
 import ShellHeader from '../../../layouts/ShellHeader';
@@ -56,6 +56,35 @@ export default function ClassListView() {
     }
     setSortConfig({ key, direction });
   };
+
+  // Lưu vị trí cuộn trang liên tục (vì React Router có thể reset scroll về 0 trước khi unmount)
+  useEffect(() => {
+    let timeoutId: any;
+    const handleScroll = () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        localStorage.setItem('classListScrollPosition', window.scrollY.toString());
+      }, 100);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, []);
+
+  // Khôi phục vị trí sau khi data đã load và render xong
+  useEffect(() => {
+    if (!loading && classes.length > 0) {
+      const savedPosition = localStorage.getItem('classListScrollPosition');
+      if (savedPosition) {
+        setTimeout(() => {
+          window.scrollTo({ top: parseInt(savedPosition, 10), behavior: 'auto' });
+        }, 150); // delay một chút đảm bảo render xong DOM các item trong danh sách
+      }
+    }
+  }, [loading, classes.length]);
 
   const renderSortableHeader = (label: string, key: keyof Class | 'classCodes', className = '', alignCenter = false) => {
     const isSorted = sortConfig?.key === key;
