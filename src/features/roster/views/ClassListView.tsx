@@ -208,11 +208,11 @@ export default function ClassListView() {
                         <th>Mã HP</th>
                         <th>Môn học</th>
                         {renderSortableHeader('Mã lớp học', 'classCodes')}
-                        <th className="text-center">Mã lớp thi</th>
+                        {renderSortableHeader('Mã lớp thi', 'classExamCode', 'text-center', true)}
                         {renderSortableHeader('Ngày thi', 'examDate', 'text-center', true)}
                         {renderSortableHeader('Phòng thi', 'examRoom', 'text-center', true)}
                         <th className="text-center" style={{ whiteSpace: 'nowrap' }}>Giờ thi</th>
-                        <th className="text-center" style={{ whiteSpace: 'nowrap' }}>Kíp thi</th>
+                        {renderSortableHeader('Kíp thi', 'examShift', 'text-center', true)}
                         <th style={{ minWidth: '140px' }}>GV giảng dạy</th>
                         <th style={{ minWidth: '100px' }}>Giám thị</th>
                         <th className="text-center" style={{ whiteSpace: 'nowrap' }}>Chia sẻ</th>
@@ -230,12 +230,15 @@ export default function ClassListView() {
                           if (key === 'classCodes') {
                             valA = (a.classCodes || []).join(', ');
                             valB = (b.classCodes || []).join(', ');
+                          } else if (key === 'examShift') {
+                            valA = a.examShift ?? a.shift;
+                            valB = b.examShift ?? b.shift;
                           }
 
                           const strA = String(valA ?? '').trim();
                           const strB = String(valB ?? '').trim();
 
-                          const cmp = strA.localeCompare(strB, 'vi', { sensitivity: 'base' });
+                          const cmp = strA.localeCompare(strB, 'vi', { sensitivity: 'base', numeric: true });
                           return direction === 'asc' ? cmp : -cmp;
                         });
 
