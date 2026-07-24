@@ -20,3 +20,23 @@
 @import './features/roster/dashboard/styles/dashboard';
 @import './features/roster/attendance/styles/attendance';
 @import './features/roster/print/styles/print-header';
+
+
+
+.shell-actions .btn-save-attendance,
+.shell-actions .btn-save-attendance:disabled,
+.shell-actions .btn-save-attendance span,
+.shell-actions .btn-save-attendance:disabled span {
+  background: #0d6efd !important;
+  border-color: #0d6efd !important;
+  color: #fff !important;
+  font-size: 1rem !important;
+  font-weight: 400 !important;
+}
+
+.shell-actions .autocall-switch .form-check-label,
+.shell-actions .autocall-text {
+  color: #000 !important;
+  font-size: 1rem !important;
+  font-weight: 400 !important;
+}

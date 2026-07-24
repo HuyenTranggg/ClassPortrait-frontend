@@ -84,21 +84,20 @@ function ShellHeader({
               {rosterMeta.invigilator && (
                 <div className="roster-meta-item roster-meta-item--secondary" role="listitem"><span>Giám thị:</span><strong>{rosterMeta.invigilator}</strong></div>
               )}
+              {/* Nút mở rộng: chỉ hiển thị trên điện thoại (CSS ẩn ở desktop) */}
+              <button
+                type="button"
+                className="roster-meta-toggle ms-1"
+                onClick={() => setMetaExpanded((prev) => !prev)}
+                aria-expanded={isMetaExpanded}
+              >
+                {isMetaExpanded ? (
+                  <><i className="bi bi-chevron-up me-1" />Thu gọn</>
+                ) : (
+                  <><i className="bi bi-chevron-down me-1" />Xem thêm</>
+                )}
+              </button>
             </div>
-
-            {/* Nút mở rộng: chỉ hiển thị trên điện thoại (CSS ẩn ở desktop) */}
-            <button
-              type="button"
-              className="roster-meta-toggle"
-              onClick={() => setMetaExpanded((prev) => !prev)}
-              aria-expanded={isMetaExpanded}
-            >
-              {isMetaExpanded ? (
-                <><i className="bi bi-chevron-up me-1" />Thu gọn</>
-              ) : (
-                <><i className="bi bi-chevron-down me-1" />Xem thêm</>
-              )}
-            </button>
           </div>
         )}
 
@@ -126,7 +125,7 @@ function ShellHeader({
 
               {/* Switch Tự động gọi tên */}
               {onToggleAutoCall && (
-                <div className="d-flex align-items-center gap-2">
+                <div className="d-flex align-items-center gap-2 autocall-switch">
                   <div className="form-check form-switch mb-0">
                     <input
                       className="form-check-input"
@@ -136,16 +135,17 @@ function ShellHeader({
                       onChange={(e) => onToggleAutoCall(e.target.checked)}
                       disabled={isAttendanceBusy}
                     />
-                    <label className="form-check-label d-flex align-items-center gap-1" htmlFor="shellAutoCallSwitch" style={{ cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}>
+                    <label className="form-check-label d-flex align-items-center gap-1" htmlFor="shellAutoCallSwitch" title="Tự động gọi tên" style={{ cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}>
                       <i className="bi bi-mic" />
-                      Tự động gọi tên
+                      <span className="autocall-text">Tự động gọi tên</span>
                     </label>
                   </div>
                 </div>
               )}
 
-              <button type="button" className="btn btn-primary" onClick={onSaveAttendance} disabled={isAttendanceBusy || !selectedClassExists}>
-                Lưu kết quả
+              <button type="button" className="btn btn-primary btn-save-attendance" onClick={onSaveAttendance} disabled={isAttendanceBusy || !selectedClassExists}>
+                <span className="save-label-full">Lưu kết quả</span>
+                <span className="save-label-short">Lưu</span>
               </button>
             </>
           ) : (
