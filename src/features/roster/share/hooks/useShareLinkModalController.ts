@@ -30,7 +30,7 @@ export const useShareLinkModalController = ({
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [shareLink, setShareLink] = useState<ShareLink | null>(null);
-  const [expiresInDays, setExpiresInDays] = useState('7');
+  const [expiresInDays, setExpiresInDays] = useState('21');
   const [expiresAtInput, setExpiresAtInput] = useState('');
   const [requireLogin, setRequireLogin] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -85,7 +85,7 @@ export const useShareLinkModalController = ({
   useEffect(() => {
     if (!isOpen) {
       setShareLink(null);
-      setExpiresInDays('7');
+      setExpiresInDays('21');
       setExpiresAtInput('');
       setRequireLogin(false);
       setMessage(null);

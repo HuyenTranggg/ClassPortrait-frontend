@@ -1,11 +1,13 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 
 interface AppSidebarProps {
   sidebarCollapsed: boolean;
   lecturerDisplayName: string;
   onToggleSidebar: () => void;
   onLogout: () => void;
+  mobileMenuOpen?: boolean;
+  onCloseMobileMenu?: () => void;
 }
 
 function AppSidebar({
@@ -13,9 +15,21 @@ function AppSidebar({
   lecturerDisplayName,
   onToggleSidebar,
   onLogout,
+  mobileMenuOpen = false,
+  onCloseMobileMenu,
 }: AppSidebarProps) {
+  const location = useLocation();
+  const [dashboardExpanded, setDashboardExpanded] = useState(location.pathname.startsWith('/dashboard'));
+
+  useEffect(() => {
+    if (location.pathname.startsWith('/dashboard')) {
+      setDashboardExpanded(true);
+    }
+  }, [location.pathname]);
+
   return (
     <>
+      {/* Desktop edge toggle – chỉ hiện trên desktop */}
       <button
         type="button"
         className="sidebar-edge-toggle no-print"
@@ -30,7 +44,17 @@ function AppSidebar({
         />
       </button>
 
-      <aside className="app-sidebar no-print">
+      <aside className={`app-sidebar no-print ${mobileMenuOpen ? 'is-mobile-open' : ''}`}>
+        {/* Close button – chỉ hiện trên mobile */}
+        <button
+          type="button"
+          className="sidebar-mobile-close"
+          onClick={onCloseMobileMenu}
+          aria-label="Đóng menu"
+        >
+          <i className="bi bi-x-lg" aria-hidden="true" />
+        </button>
+
         <div className="brand-block">
           <div className="brand-mark">S</div>
           <div>
@@ -63,13 +87,42 @@ function AppSidebar({
             <small>Quản lý link chia sẻ theo từng lớp</small>
           </NavLink>
 
-          <NavLink
-            to="/dashboard"
-            className={({ isActive }) => `sidebar-link ${isActive ? 'is-active' : ''}`}
-          >
-            <span>Dashboard</span>
-            <small>Tổng hợp nhanh theo lớp phụ trách</small>
-          </NavLink>
+          <div className="sidebar-group">
+            <div 
+              className="sidebar-group-title"
+              onClick={() => setDashboardExpanded(!dashboardExpanded)}
+              role="button"
+              tabIndex={0}
+            >
+              <div className="sidebar-group-title-text">
+                <span>Dashboard</span>
+                <small>Tổng hợp nhanh theo lớp phụ trách</small>
+              </div>
+              <i className={`bi bi-chevron-${dashboardExpanded ? 'down' : 'right'}`} aria-hidden="true"></i>
+            </div>
+            {dashboardExpanded && (
+              <div className="sidebar-sub-nav">
+                <NavLink
+                  to="/dashboard/upcoming"
+                  className={({ isActive }) => `sidebar-link sidebar-sublink ${isActive ? 'is-active' : ''}`}
+                >
+                  <span>Lịch sắp tới</span>
+                </NavLink>
+                <NavLink
+                  to="/dashboard/gantt"
+                  className={({ isActive }) => `sidebar-link sidebar-sublink ${isActive ? 'is-active' : ''}`}
+                >
+                  <span>Sơ đồ Gantt sử dụng phòng</span>
+                </NavLink>
+                <NavLink
+                  to="/dashboard/monitoring"
+                  className={({ isActive }) => `sidebar-link sidebar-sublink ${isActive ? 'is-active' : ''}`}
+                >
+                  <span>Giám sát & Điều phối kỳ thi</span>
+                </NavLink>
+              </div>
+            )}
+          </div>
         </nav>
 
         <div className="sidebar-footer">

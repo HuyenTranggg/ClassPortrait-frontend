@@ -1,35 +1,39 @@
 // ===== RESPONSIVE DESIGN =====
 
-@media (max-width: 1199px) {
-  .landing-shell,
-  .app-shell {
-    grid-template-columns: 1fr;
+// ─────────────────────────────────────────────
+// DESKTOP – Giữ nguyên layout đã chọn (≥ 1200px)
+// ─────────────────────────────────────────────
+
+@media (min-width: 1200px) {
+  body[data-layout="4"] .student-gallery {
+    @include data-layout-columns(4);
   }
 
-  .landing-sidebar,
-  .app-sidebar {
-    border-right: 0;
-    border-bottom: 1px solid $shell-border;
-    position: static;
-    height: auto;
-    overflow-y: visible;
+  body[data-layout="5"] .student-gallery {
+    @include data-layout-columns(5);
   }
 
-  .landing-main,
-  .app-main {
-    padding: 0 18px 24px;
+  body[data-layout="6"] .student-gallery {
+    @include data-layout-columns(6);
   }
+}
 
-  .landing-hero {
-    min-height: auto;
-    padding-top: 28px;
+// ─────────────────────────────────────────────
+// LAPTOP (992px – 1199px) – 4 cột
+// ─────────────────────────────────────────────
+
+@media (min-width: 992px) and (max-width: 1199px) {
+  .student-gallery {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: $gap-laptop;
   }
+}
 
-  .workspace-overview {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+// ─────────────────────────────────────────────
+// TABLET (≤ 1023px) – Layout adjustments
+// ─────────────────────────────────────────────
 
+@media (max-width: 1023px) {
   .workspace-panel {
     position: static;
     top: auto;
@@ -40,176 +44,64 @@
     top: auto;
   }
 
-  .sidebar-edge-toggle {
-    display: none;
+  // Đảm bảo workspace-overview stack tốt
+  .workspace-overview {
+    flex-wrap: wrap;
   }
 }
 
+// ─────────────────────────────────────────────
+// MOBILE (≤ 767px) – General fixes
+// ─────────────────────────────────────────────
+
 @media (max-width: 767px) {
-  .landing-topbar,
-  .shell-header {
+  // History page
+  .history-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+
+    .history-filter-group {
+      min-width: 0;
+      width: 100%;
+    }
+  }
+
+  .history-pagination {
     flex-direction: column;
     align-items: flex-start;
-    padding: 16px 0;
+    gap: 8px;
   }
 
-  .roster-school {
-    font-size: 0.98rem;
-    letter-spacing: 0.08em;
-  }
-
-  .roster-meta {
-    gap: 8px 0;
-  }
-
-  .roster-meta-item {
-    width: 100%;
-    flex-wrap: wrap;
-    gap: 6px;
-    font-size: 1rem;
-
-    &:not(:last-child)::after {
-      display: none;
-    }
-  }
-
-  .shell-actions {
-    width: 100%;
-    padding-top: 0;
-
-    .btn-share,
-    .import-container,
-    .import-container .btn {
-      width: 100%;
-      min-width: 0;
-    }
-  }
-
-  .hero-copy {
-    text-align: left;
-    margin: 0;
-  }
-
-  .hero-actions {
-    justify-content: flex-start;
-  }
-
-  .workspace-toolbar {
-    .form-select,
-    .btn,
-    .btn-group {
-      width: 100%;
-    }
-
-    .layout-select {
-      width: 100%;
-    }
-
-    .workspace-student-count {
-      width: 100%;
-      margin-left: 0;
-      text-align: right;
-      font-size: 1rem;
-    }
-  }
-
-  .btn-hero,
-  .btn-login-submit,
-  .btn-login-top {
+  // Login card
+  .btn-login-submit {
     width: 100%;
     min-width: 0;
   }
 
-  .login-modal-card {
-    padding: 28px 20px 22px;
+  .login-card {
+    padding: 28px 16px 22px;
+  }
+
+  // Workspace overview stack
+  .workspace-overview {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 
-// Desktop - giữ nguyên layout đã chọn
-@media (min-width: 1200px) {
-  body[data-layout="4"] .student-gallery {
-    @include data-layout-columns(4);
-  }
-  
-  body[data-layout="5"] .student-gallery {
-    @include data-layout-columns(5);
+// ─────────────────────────────────────────────
+// SMALL MOBILE (< 480px)
+// ─────────────────────────────────────────────
+
+@media (max-width: 479px) {
+  // History table: horizontal scroll
+  .history-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
-  body[data-layout="6"] .student-gallery {
-    @include data-layout-columns(6);
-  }
-}
-
-// Laptop (992px - 1199px) - 4 ảnh/hàng
-@media (min-width: 992px) and (max-width: 1199px) {
-  .student-gallery {
-    grid-template-columns: repeat(4, 1fr) !important;
-    gap: $gap-laptop;
-  }
-}
-
-// Tablet (768px - 991px) - 3 ảnh/hàng
-@media (min-width: 768px) and (max-width: 991px) {
-  .student-gallery {
-    @include data-layout-columns(3);
-    gap: $gap-tablet;
-  }
-  
-  .student-card {
-    max-width: $card-max-width-tablet;
-
-    img {
-      height: $card-img-height-tablet;
-    }
-  }
-}
-
-// Mobile (576px - 767px) - 2 ảnh/hàng
-@media (min-width: 576px) and (max-width: 767px) {
-  .student-gallery {
-    @include data-layout-columns(2);
-    gap: $gap-mobile;
-    padding: 15px;
-  }
-  
-  .student-card {
-    max-width: $card-max-width-mobile;
-
-    img {
-      height: $card-img-height-mobile;
-    }
-  }
-  
-  h1.display-4 {
-    font-size: 2.2rem;
-  }
-}
-
-// Small Mobile (<576px) - 2 ảnh/hàng
-@media (max-width: 575px) {
-  .student-gallery {
-    @include data-layout-columns(2);
-    gap: $gap-small-mobile;
-    padding: $gap-small-mobile;
-  }
-  
-  .student-card {
-    max-width: $card-max-width-small;
-
-    img {
-      height: $card-img-height-small;
-    }
-  }
-  
-  .card-body {
-    padding: $card-body-padding-small;
-  }
-  
-  .card-title {
-    font-size: 0.9rem;
-  }
-  
-  h1.display-4 {
-    font-size: 1.8rem;
+  .history-table {
+    min-width: 640px;
   }
 }

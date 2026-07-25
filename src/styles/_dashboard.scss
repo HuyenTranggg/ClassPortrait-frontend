@@ -981,3 +981,182 @@
   align-items: center;
   flex-wrap: nowrap;
 }
+
+// ─────────────────────────────────────────────
+// DASHBOARD RESPONSIVE
+// ─────────────────────────────────────────────
+
+// Tablet (768px – 1023px)
+@media (max-width: 1023px) {
+  .dash-page {
+    padding: 16px;
+    gap: 24px;
+  }
+
+  .dash-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .dash-timeline-date {
+    position: static;
+    top: auto;
+    width: 90px;
+    flex-shrink: 0;
+  }
+
+  .dash-h-card-title {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .h-title-divider {
+    display: none;
+  }
+}
+
+// Mobile (≤ 767px)
+@media (max-width: 767px) {
+  .dash-page {
+    padding: 12px;
+    gap: 20px;
+  }
+
+  .dash-section-title {
+    font-size: 1.1rem;
+  }
+
+  .dash-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .dash-kpi-card {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .dash-kpi-value {
+    font-size: 1.4rem;
+  }
+
+  .dash-kpi-icon {
+    font-size: 1.3rem;
+    width: 32px;
+  }
+
+  // Timeline: stack vertically
+  .dash-timeline-group {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .dash-timeline-date {
+    position: static;
+    top: auto;
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+  }
+
+  // Horizontal exam card: stack vertically on mobile
+  .dash-exam-h-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .dash-h-card-date {
+    width: 100%;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 12px;
+
+    .h-date-day {
+      font-size: 0.88rem;
+    }
+  }
+
+  .dash-h-card-divider {
+    display: none;
+  }
+
+  .dash-h-card-content {
+    width: 100%;
+  }
+
+  .dash-h-card-title {
+    flex-wrap: wrap;
+    gap: 4px;
+
+    .h-course-name {
+      white-space: normal;
+      font-size: 0.95rem;
+    }
+
+    .h-course-code {
+      font-size: 0.82rem;
+    }
+  }
+
+  .h-title-divider {
+    display: none;
+  }
+
+  .dash-h-card-meta {
+    gap: 10px;
+    flex-wrap: wrap;
+
+    .h-meta-item {
+      font-size: 0.8rem;
+    }
+  }
+
+  .dash-h-card-status {
+    margin-left: 0;
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  // Charts and bottom grid: single column
+  .dash-charts-grid,
+  .dash-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+
+  // Filters
+  .dash-filters-container {
+    padding: 14px;
+  }
+
+  .dash-rate-value {
+    font-size: 2.2rem;
+  }
+
+  // Matrix & Gantt: keep horizontal scroll
+  .dash-matrix-wrapper,
+  .dash-gantt-wrapper {
+    padding: 8px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .dash-matrix-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .dash-matrix-title {
+    font-size: 1.1rem;
+  }
+
+  // Datepicker popover: left-aligned on mobile
+  .exam-datepicker-popover {
+    right: auto;
+    left: 0;
+    width: calc(100vw - 24px);
+    max-width: 320px;
+  }
+}

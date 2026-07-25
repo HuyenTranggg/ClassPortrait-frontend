@@ -52,7 +52,7 @@ function WorkspaceToolbar({
           aria-label="Tìm sinh viên theo MSSV hoặc tên"
         />
 
-        <span className="workspace-student-count">{studentsCount} sinh viên</span>
+        <span className="workspace-student-count d-none d-md-inline">{studentsCount} sinh viên</span>
       </div>
     </section>
   );

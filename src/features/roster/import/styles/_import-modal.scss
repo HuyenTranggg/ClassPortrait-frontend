@@ -233,6 +233,39 @@
   border-radius: 12px;
   padding: 8px 14px;
   background: $white;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.manual-mapping-container {
+  max-height: 200px;
+  overflow-y: auto;
+  padding-right: 8px;
+  margin-bottom: 16px;
+}
+
+.manual-mapping-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 12px;
+
+  label {
+    flex: 0 0 40%;
+    margin-bottom: 0;
+    font-size: 17px !important;
+    font-weight: 500;
+    color: #1e293b;
+  }
+
+  .form-select {
+    flex: 1;
+    min-height: 40px;
+    border-radius: 8px;
+    font-size: 17px !important;
+    font-weight: 400;
+  }
 }
 
 .detected-mapping-row {
@@ -241,17 +274,19 @@
   align-items: center;
   gap: 10px;
   padding: 8px 0;
-  font-size: 16px !important;
-  color: #000 !important;
 
-  span {
-    color: #000 !important;
-    font-weight: 400;
+  > span {
+    font-size: 17px !important;
   }
 
-  strong {
-    color: #000 !important;
-    font-weight: 600;
+  > span:first-child {
+    font-weight: 500;
+    color: #1e293b;
+  }
+
+  > span:last-child {
+    font-weight: 400;
+    color: #000;
   }
 }
 
@@ -261,8 +296,8 @@
   label {
     display: block;
     margin-bottom: 7px;
-    font-size: 0.9rem;
-    font-weight: 600;
+    font-size: 17px !important;
+    font-weight: 500;
     color: $text-strong;
   }
 

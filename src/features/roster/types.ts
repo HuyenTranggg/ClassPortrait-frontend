@@ -14,6 +14,7 @@ export interface RosterMeta {
   examTime: string;
   examShift: string;
   instructor: string;
+  invigilator?: string;
   studentCountLabel: string;
 }
 

@@ -1,10 +1,12 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useClasses } from '../hooks/useClasses';
 import ShellHeader from '../../../layouts/ShellHeader';
 import { Class } from '../../../types/Class';
 import { formatDate, formatTime } from '../utils/roster.utils';
 import { useExportExamPDF } from '../import/hooks/useExportExamPDF';
+import ShareLinkModal from '../share/components/ShareLinkModal';
+import { useInvigilators } from '../hooks/useInvigilators';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const GROUP_OPTIONS = [
@@ -13,6 +15,8 @@ const GROUP_OPTIONS = [
 ] as const;
 
 type GroupBy = typeof GROUP_OPTIONS[number]['value'];
+
+type SortConfig = { key: keyof Class | 'classCodes', direction: 'asc' | 'desc' } | null;
 
 
 function getGroupKey(cls: Class, groupBy: GroupBy): string {
@@ -40,7 +44,70 @@ export default function ClassListView() {
   const [searchQuery, setSearchQuery] = useState('');
   const [groupBy, setGroupBy] = useState<GroupBy>('courseCode');
   const { isExporting: isExportingPDF, exportPDF } = useExportExamPDF();
+  const { invigilators, updateInvigilator } = useInvigilators();
   const [exportingGroupKey, setExportingGroupKey] = useState<string | null>(null);
+  const [shareModalClass, setShareModalClass] = useState<Class | null>(null);
+  const [sortConfig, setSortConfig] = useState<SortConfig>(null);
+
+  const handleSort = (key: keyof Class | 'classCodes') => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  // Lưu vị trí cuộn trang liên tục (vì React Router có thể reset scroll về 0 trước khi unmount)
+  useEffect(() => {
+    let timeoutId: any;
+    const handleScroll = () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        localStorage.setItem('classListScrollPosition', window.scrollY.toString());
+      }, 100);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, []);
+
+  // Khôi phục vị trí sau khi data đã load và render xong
+  useEffect(() => {
+    if (!loading && classes.length > 0) {
+      const savedPosition = localStorage.getItem('classListScrollPosition');
+      if (savedPosition) {
+        setTimeout(() => {
+          window.scrollTo({ top: parseInt(savedPosition, 10), behavior: 'auto' });
+        }, 150); // delay một chút đảm bảo render xong DOM các item trong danh sách
+      }
+    }
+  }, [loading, classes.length]);
+
+  const renderSortableHeader = (label: string, key: keyof Class | 'classCodes', className = '', alignCenter = false) => {
+    const isSorted = sortConfig?.key === key;
+    return (
+      <th 
+        className={`${className} sortable-header`}
+        style={{ cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}
+        onClick={() => handleSort(key)}
+        title={`Sắp xếp theo ${label}`}
+      >
+        <div className={`d-flex align-items-center gap-1 ${alignCenter ? 'justify-content-center' : ''}`}>
+          {label}
+          <span className="text-primary d-flex align-items-center" style={{ opacity: isSorted ? 1 : 0.4, fontSize: '0.9rem' }}>
+            {isSorted ? (
+              sortConfig.direction === 'asc' ? <i className="bi bi-arrow-up"></i> : <i className="bi bi-arrow-down"></i>
+            ) : (
+              <i className="bi bi-arrow-down-up" style={{ fontSize: '0.8rem' }}></i>
+            )}
+          </span>
+        </div>
+      </th>
+    );
+  };
 
   const handleExportGroupPDF = async (groupKey: string, items: Class[]) => {
     const classIds = items.map(c => c.id).filter(Boolean);
@@ -48,7 +115,7 @@ export default function ClassListView() {
     setExportingGroupKey(groupKey);
     try {
       const firstName = items[0];
-      const fileName = `DanhSachDuThi_${(firstName?.courseCode ?? 'HP').replace(/[^a-zA-Z0-9]/g, '_')}_HK${(firstName?.semester ?? '').replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+      const fileName = `${(firstName?.courseCode ?? 'HP').replace(/[^a-zA-Z0-9]/g, '_')}_DanhSachDuThi.pdf`;
       await exportPDF(classIds, fileName);
     } finally {
       setExportingGroupKey(null);
@@ -165,22 +232,46 @@ export default function ClassListView() {
                 <div className="table-responsive">
                   <table className="table table-hover mb-0 align-middle" style={{ fontSize: '0.875rem' }}>
                     <thead className="table-light">
-                      <tr>
-                        <th className="text-center">Học kỳ</th>
+                      <tr className="align-middle">
+                        <th className="text-center" style={{ whiteSpace: 'nowrap' }}>Học kỳ</th>
                         <th>Mã HP</th>
                         <th>Môn học</th>
-                        <th>Mã lớp học</th>
-                        <th className="text-center">Mã lớp thi</th>
-                        <th className="text-center">Ngày thi</th>
-                        <th className="text-center">Phòng thi</th>
-                        <th className="text-center">Giờ thi</th>
-                        <th className="text-center">Kíp thi</th>
-                        <th>GV giảng dạy</th>
-                        <th className="text-center">Sĩ số</th>
+                        {renderSortableHeader('Mã lớp học', 'classCodes')}
+                        {renderSortableHeader('Mã lớp thi', 'classExamCode', 'text-center', true)}
+                        {renderSortableHeader('Ngày thi', 'examDate', 'text-center', true)}
+                        {renderSortableHeader('Phòng thi', 'examRoom', 'text-center', true)}
+                        <th className="text-center" style={{ whiteSpace: 'nowrap' }}>Giờ thi</th>
+                        {renderSortableHeader('Kíp thi', 'examShift', 'text-center', true)}
+                        <th style={{ minWidth: '140px' }}>GV giảng dạy</th>
+                        <th style={{ minWidth: '100px' }}>Giám thị</th>
+                        <th className="text-center" style={{ whiteSpace: 'nowrap' }}>Chia sẻ</th>
+                        <th className="text-center" style={{ whiteSpace: 'nowrap' }}>Sĩ số</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {items.map((cls) => {
+                      {(() => {
+                        const sortedItems = [...items].sort((a, b) => {
+                          if (!sortConfig) return 0;
+                          const { key, direction } = sortConfig;
+                          let valA: any = a[key as keyof Class];
+                          let valB: any = b[key as keyof Class];
+                          
+                          if (key === 'classCodes') {
+                            valA = (a.classCodes || []).join(', ');
+                            valB = (b.classCodes || []).join(', ');
+                          } else if (key === 'examShift') {
+                            valA = a.examShift ?? a.shift;
+                            valB = b.examShift ?? b.shift;
+                          }
+
+                          const strA = String(valA ?? '').trim();
+                          const strB = String(valB ?? '').trim();
+
+                          const cmp = strA.localeCompare(strB, 'vi', { sensitivity: 'base', numeric: true });
+                          return direction === 'asc' ? cmp : -cmp;
+                        });
+
+                        return sortedItems.map((cls) => {
                         const classCodes = cls.classCodes && cls.classCodes.length > 0
                           ? cls.classCodes
                           : cls.classCode ? [cls.classCode] : [];
@@ -208,13 +299,51 @@ export default function ClassListView() {
                             <td className="text-center">{cls.examRoom || '—'}</td>
                             <td className="text-center font-monospace">{formatTime(cls.examTime)}</td>
                             <td className="text-center">{examShift || '—'}</td>
-                            <td style={{ maxWidth: '180px' }}>
-                              <span className="text-truncate d-block" title={cls.instructor}>{cls.instructor || '—'}</span>
+                            <td style={{ maxWidth: '200px', wordWrap: 'break-word' }}>
+                              {cls.instructors && Object.keys(cls.instructors).length > 1 && new Set(Object.values(cls.instructors)).size > 1 ? (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                  {Object.entries(cls.instructors).map(([code, gv]) => (
+                                    <span key={code}>
+                                      <span className="text-muted" style={{ fontWeight: 500 }}>{code}:</span>{' '}
+                                      {gv}
+                                    </span>
+                                  ))}
+                                </div>
+                              ) : (
+                                <span>{cls.instructor || '—'}</span>
+                              )}
+                            </td>
+                            <td onClick={(e) => e.stopPropagation()}>
+                              <input
+                                type="text"
+                                className="form-control"
+                                placeholder="Nhập tên..."
+                                value={invigilators[cls.id] || ''}
+                                onChange={(e) => updateInvigilator(cls.id, e.target.value)}
+                                style={{ minWidth: '85px', width: '100%', fontSize: '0.75rem', padding: '0.2rem 0.4rem', height: '26px' }}
+                              />
+                            </td>
+                            <td className="text-center" onClick={(e) => e.stopPropagation()}>
+                              <button
+                                type="button"
+                                className="btn btn-sm btn-light border d-inline-flex align-items-center justify-content-center"
+                                style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '12px' }}
+                                onClick={() => setShareModalClass(cls)}
+                                title="Thiết lập chia sẻ sổ ảnh"
+                              >
+                                {!cls.shareLink || !cls.shareLink.isActive ? (
+                                  <span className="text-muted">—</span>
+                                ) : cls.shareLink.requireLogin ? (
+                                  <span className="text-warning-emphasis fw-medium">Đăng nhập</span>
+                                ) : (
+                                  <span className="text-success fw-medium">Công khai</span>
+                                )}
+                              </button>
                             </td>
                             <td className="text-center fw-semibold">{cls.studentCount ?? 0}</td>
                           </tr>
                         );
-                      })}
+                      })})()}
                     </tbody>
                   </table>
                 </div>
@@ -223,6 +352,15 @@ export default function ClassListView() {
           </div>
         )}
       </div>
+
+      <ShareLinkModal
+        isOpen={!!shareModalClass}
+        selectedClass={shareModalClass}
+        onClose={() => {
+          setShareModalClass(null);
+          refetchClasses();
+        }}
+      />
     </>
   );
 }

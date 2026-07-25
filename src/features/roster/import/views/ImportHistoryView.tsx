@@ -172,7 +172,7 @@ function ImportHistoryView() {
     if (classIds.length === 0) return;
     setExportingHistoryId(item.id);
     try {
-      const fileName = `DanhSachDuThi_${item.sourceName?.replace(/[^a-zA-Z0-9]/g, '_') ?? 'import'}.pdf`;
+      const fileName = `${item.sourceName?.replace(/[^a-zA-Z0-9]/g, '_') ?? 'import'}_DanhSachDuThi.pdf`;
       await exportPDF(classIds, fileName);
     } finally {
       setExportingHistoryId(null);

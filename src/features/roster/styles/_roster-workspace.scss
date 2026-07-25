@@ -43,12 +43,43 @@
   text-transform: uppercase;
 }
 
+.roster-meta-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+}
+
 .roster-meta {
   margin-top: 6px;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 0;
+}
+
+// Nút "Xem thêm / Thu gọn": mặc định ẩn (desktop hiện full, không cần nút).
+// Chỉ hiện trên điện thoại qua media query bên dưới.
+.roster-meta-toggle {
+  display: none;
+  align-items: center;
+  padding: 0;
+  border: none;
+  background: none;
+  color: $accent-strong;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  // Ẩn khi in: bản in luôn cần đầy đủ thông tin, không có nút bấm
+  @media print {
+    display: none;
+  }
 }
 
 .roster-meta-item {
@@ -86,6 +117,52 @@
   gap: 6px;
   padding-top: 0;
   align-self: center;
+
+  // Mặc định (desktop): nút Lưu hiện chữ đầy đủ "Lưu kết quả",
+  // ẩn nhãn ngắn "Lưu". Trên mobile sẽ đảo lại (xem media query bên dưới).
+  .save-label-short {
+    display: none;
+  }
+
+  // Đồng bộ cỡ chữ cả cụm nút điểm danh về cùng 1 giá trị (bằng Hủy/Quét).
+  .btn-outline-secondary,
+  .btn-outline-primary,
+  .btn-save-attendance,
+  .autocall-switch .form-check-label,
+  .autocall-text {
+    font-size: 1rem !important;
+    font-weight: 400 !important;
+    line-height: 1.5;
+  }
+
+  // "Tự động gọi tên": chữ màu đen
+  .autocall-switch .form-check-label {
+    color: #000 !important;
+  }
+
+  // "Lưu kết quả": nền xanh + chữ trắng; hover chuyển nền đỏ, chữ vẫn trắng.
+  // Override riêng nút này (không đụng .btn-primary chung ở _buttons.scss).
+  .btn-save-attendance {
+    background: #0d6efd !important;
+    border-color: #0d6efd !important;
+    color: #fff !important;
+
+    &:hover,
+    &:focus,
+    &:active {
+      background: #{$accent-strong} !important;
+      border-color: #{$accent-dark} !important;
+      color: #fff !important;
+    }
+
+    &:disabled,
+    &.disabled {
+      background: #0d6efd !important;
+      border-color: #0d6efd !important;
+      color: #fff !important;
+      opacity: 0.65;
+    }
+  }
 
   .btn-share {
     min-width: 90px;
@@ -231,4 +308,246 @@
 
 .gallery-panel {
   padding: 10px 12px 24px;
+}
+
+// ─────────────────────────────────────────────
+// TABLET (768px – 1023px)
+// ─────────────────────────────────────────────
+
+@media (max-width: 1023px) {
+  .shell-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 0 10px;
+  }
+
+  .shell-actions {
+    align-self: stretch;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .workspace-toolbar {
+    .form-select {
+      width: min(100%, 260px);
+    }
+
+    .workspace-search-input {
+      width: min(100%, 200px);
+    }
+  }
+}
+
+// ─────────────────────────────────────────────
+// MOBILE (≤ 767px)
+// ─────────────────────────────────────────────
+
+@media (max-width: 767px) {
+  .app-main {
+    padding: 0 10px 24px;
+  }
+
+  // Header compact hơn
+  .shell-header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 8px 0 6px;
+    gap: 8px;
+    min-height: auto;
+  }
+
+  .shell-header h1 {
+    font-size: clamp(0.95rem, 3.5vw, 1.15rem);
+  }
+
+  .roster-school {
+    font-size: 0.82rem;
+    letter-spacing: 0.06em;
+    margin-bottom: 4px;
+  }
+
+  // Meta info: xếp nhiều thông tin trên cùng một dòng (wrap), gọn hơn.
+  .roster-meta {
+    margin-top: 4px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 10px;
+    align-items: center;
+  }
+
+  .roster-meta-item {
+    width: auto;
+    font-size: 0.76rem;
+    align-items: center;
+    gap: 3px;
+
+    // Bỏ dấu gạch '|' ngăn cách để dòng gọn hơn trên điện thoại
+    &:not(:last-child)::after {
+      display: none;
+    }
+  }
+
+  // Trên điện thoại: mặc định ẩn các thông tin phụ, chỉ hiện khi mở rộng.
+  .roster-meta-item--secondary {
+    display: none;
+  }
+
+  .roster-meta-wrapper.is-expanded .roster-meta-item--secondary {
+    display: flex;
+  }
+
+  // Hiện nút mở rộng/thu gọn trên điện thoại
+  .roster-meta-toggle {
+    display: inline-flex;
+  }
+
+  // Trên điện thoại:
+  //   Dòng 1: Hủy · Lưu · (icon) Tự động gọi tên
+  //   Dòng 2: Quét Điểm danh Tự động (full-width)
+  // Dùng flex-wrap + order để sắp lại mà không đổi thứ tự trong DOM.
+  .shell-actions {
+    align-self: stretch;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 8px;
+
+    .btn {
+      min-height: 42px;
+      padding: 0 10px;
+      font-size: 0.9rem;
+      white-space: nowrap;
+    }
+
+    // Hủy (order 1) và Lưu (order 2) chia sẻ dòng đầu, cùng kích cỡ
+    .btn-outline-secondary {
+      order: 1;
+      flex: 1 1 0;
+      min-width: 0;
+    }
+
+    .btn-save-attendance {
+      order: 2;
+      flex: 1 1 0;
+      min-width: 0;
+
+      // Trên mobile: hiện "Lưu", ẩn "Lưu kết quả"
+      .save-label-full { display: none; }
+      .save-label-short { display: inline; }
+    }
+
+    // Switch Tự động gọi tên (order 3): chỉ icon mic, gọn ở cuối dòng đầu
+    .autocall-switch {
+      order: 3;
+      flex: 0 0 auto;
+      min-height: 42px;
+      display: flex;
+      align-items: center;
+
+      .autocall-text {
+        display: none; // ẩn chữ, chỉ giữ icon mic
+      }
+
+      .bi-mic {
+        font-size: 1.25rem;
+      }
+    }
+
+    // Nút Quét (order 4): xuống dòng riêng, chiếm trọn chiều rộng
+    .btn-ai {
+      order: 4;
+      flex: 1 1 100%;
+      justify-content: center;
+    }
+  }
+
+  // Toolbar compact: Lưới + In sổ ảnh + Tìm kiếm cùng một hàng.
+  // Mọi control cao 40px cho đồng đều với cụm nút phía trên.
+  .workspace-toolbar {
+    gap: 8px;
+    flex-wrap: wrap;
+
+    .form-select,
+    .btn-print,
+    .workspace-search-input {
+      min-height: 40px;
+    }
+
+    .layout-select {
+      // Dropdown lưới: gọn tối đa, không co giãn
+      width: auto;
+      flex: 0 0 auto;
+      min-width: 0;
+      padding-left: 8px;
+      padding-right: 24px;
+      font-size: 0.82rem;
+    }
+
+    .btn-print {
+      flex: 0 0 auto;
+      font-size: 0.82rem;
+      padding: 0 8px;
+      white-space: nowrap;
+    }
+
+    .workspace-search-input {
+      // Ô tìm kiếm nằm cùng hàng, co giãn chiếm phần còn lại.
+      // min-width:0 cho phép co nhỏ để không bị đẩy xuống dòng.
+      flex: 1 1 0;
+      min-width: 0;
+      font-size: 0.82rem;
+    }
+
+    .workspace-student-count {
+      width: 100%;
+      margin-left: 0;
+      text-align: right;
+      font-size: 0.85rem;
+      color: $text-muted-strong;
+    }
+  }
+
+  .gallery-panel {
+    padding: 6px 6px 20px;
+  }
+
+  .state-panel,
+  .empty-state-card {
+    padding: 36px 16px;
+  }
+}
+
+// ─────────────────────────────────────────────
+// MOBILE PORTRAIT (≤ 479px)
+// ─────────────────────────────────────────────
+
+@media (max-width: 479px) {
+  .app-main {
+    padding: 0 8px 16px;
+  }
+
+  .shell-header {
+    padding: 6px 0 4px;
+    gap: 6px;
+  }
+
+  .roster-school {
+    font-size: 0.78rem;
+  }
+
+  .workspace-toolbar {
+    gap: 5px;
+
+    .layout-select {
+      width: 100px;
+    }
+
+    .btn-print {
+      padding: 0 8px;
+    }
+  }
+
+  .gallery-panel {
+    padding: 4px 4px 16px;
+  }
 }

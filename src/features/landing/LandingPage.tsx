@@ -1,69 +1,71 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 interface LandingPageProps {
-  onLoginClick: () => void;
-  onFeatureClick: (feature: string) => void;
+  onSubmit: (credentials: { email: string; password: string }) => Promise<void>;
 }
 
-const quickActions = [
-  { key: 'gallery', label: 'Sổ ảnh', description: 'Tạo và xem sổ ảnh theo từng lớp' },
-  { key: 'history', label: 'Lịch sử import', description: 'Xem lại các đợt nhập dữ liệu' },
-  { key: 'share', label: 'Chia sẻ', description: 'Chuẩn bị chia sẻ cho cán bộ phụ trách' },
-  { key: 'settings', label: 'Cài đặt', description: 'Tùy chỉnh layout, in ấn và dữ liệu' },
-];
+function LandingPage({ onSubmit }: LandingPageProps) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-function LandingPage({ onLoginClick, onFeatureClick }: LandingPageProps) {
+  const handleFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!email.trim() || !password.trim()) {
+      setError('Vui lòng nhập đầy đủ email và mật khẩu.');
+      return;
+    }
+
+    setSubmitting(true);
+    setError(null);
+
+    try {
+      await onSubmit({ email: email.trim(), password });
+    } catch (submitError: any) {
+      setError(submitError?.message || 'Đăng nhập thất bại. Vui lòng thử lại.');
+      setSubmitting(false); // only reset on error
+    }
+  };
+
   return (
-    <div className="landing-shell">
-      <aside className="landing-sidebar">
-        <div className="brand-block">
-          <div className="brand-mark">S</div>
-          <div>
-            <strong>Sổ ảnh</strong>
-            <span>Thi sinh dự thi</span>
-          </div>
-        </div>
+    <div className="login-page-layout">
+      <div className="login-card">
+        <div className="login-badge">S</div>
+        <h2>Đăng nhập</h2>
+        <p className="login-subtitle">Dùng tài khoản HUST để truy cập hệ thống Sổ Ảnh.</p>
 
-        <nav className="sidebar-nav">
-          {quickActions.map((action) => (
-            <button
-              key={action.key}
-              type="button"
-              className={`sidebar-link ${action.key === 'gallery' ? 'is-active' : ''}`}
-              onClick={() => onFeatureClick(action.label)}
-            >
-              <span>{action.label}</span>
-              <small>{action.description}</small>
-            </button>
-          ))}
-        </nav>
+        <form className="login-form" onSubmit={handleFormSubmit}>
+          <label>
+            <span>Email HUST</span>
+            <input
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder="name@hust.edu.vn"
+              autoComplete="email"
+            />
+          </label>
 
-      </aside>
+          <label>
+            <span>Mật khẩu</span>
+            <input
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="Nhập mật khẩu"
+              autoComplete="current-password"
+            />
+          </label>
 
-      <main className="landing-main">
-        <header className="landing-topbar">
-          <span>Sổ ảnh thí sinh dự thi</span>
-          <button type="button" className="btn btn-primary btn-login-top" onClick={onLoginClick}>
-            Đăng nhập
+          {error && <div className="login-error">{error}</div>}
+
+          <button type="submit" className="btn btn-primary btn-login-submit" disabled={submitting}>
+            {submitting ? 'Đang đăng nhập...' : 'Đăng nhập'}
           </button>
-        </header>
-
-        <section className="landing-hero">
-          <div className="hero-copy">
-            <h1>Sổ ảnh thí sinh dự thi</h1>
-            <p className="hero-description">
-              Import danh sách, tự động lấy ảnh theo MSSV và tạo sổ ảnh thân thiện để kiểm tra, in ấn và chia sẻ nhanh.
-            </p>
-
-            <div className="hero-actions">
-              <button type="button" className="btn btn-primary btn-hero" onClick={onLoginClick}>
-                Đăng nhập để bắt đầu
-              </button>
-            </div>
-          </div>
-          
-        </section>
-      </main>
+        </form>
+      </div>
     </div>
   );
 }

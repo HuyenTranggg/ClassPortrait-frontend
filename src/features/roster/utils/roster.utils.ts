@@ -70,7 +70,14 @@ export const formatTime = (value?: string | null): string => {
   return str;
 };
 
-export const buildRosterMeta = (selectedClass: Class | null, students: Student[]): RosterMeta => {
+export const buildRosterMeta = (selectedClass: Class | null, students: Student[], invigilator?: string): RosterMeta => {
+  let displayInstructor = selectedClass?.instructor || '—';
+  if (selectedClass?.instructors && Object.keys(selectedClass.instructors).length > 1 && new Set(Object.values(selectedClass.instructors)).size > 1) {
+    displayInstructor = Object.entries(selectedClass.instructors)
+      .map(([code, gv]) => `${code}: ${gv}`)
+      .join(' / ');
+  }
+
   return {
     courseLabel: selectedClass
       ? [selectedClass.courseCode, selectedClass.courseName].filter(Boolean).join(' - ') || 'Chưa có dữ liệu học phần'
@@ -84,7 +91,8 @@ export const buildRosterMeta = (selectedClass: Class | null, students: Student[]
     examRoom: selectedClass?.examRoom || '—',
     examTime: formatTime(selectedClass?.examTime),
     examShift: selectedClass?.examShift || selectedClass?.shift || '—',
-    instructor: selectedClass?.instructor || '—',
+    instructor: displayInstructor,
+    invigilator: invigilator,
     studentCountLabel: selectedClass ? `${students.length}` : '0',
   };
 };
@@ -93,11 +101,18 @@ export const buildRosterMeta = (selectedClass: Class | null, students: Student[]
 export const buildPrintMeta = (selectedClass: Class | null, students: Student[]): PrintMeta => {
   const selectedClassMeta = selectedClass as any;
 
+  let displayInstructor = String(selectedClassMeta?.instructor || '').trim();
+  if (selectedClass?.instructors && Object.keys(selectedClass.instructors).length > 1 && new Set(Object.values(selectedClass.instructors)).size > 1) {
+    displayInstructor = Object.entries(selectedClass.instructors)
+      .map(([code, gv]) => `${code}: ${gv}`)
+      .join(' / ');
+  }
+
   return {
     printCourseLabel: [selectedClass?.courseCode, selectedClass?.courseName].filter(Boolean).join(' - '),
     printDepartment: String(selectedClassMeta?.department || '').trim(),
     printExamDate: String(selectedClassMeta?.examDate || selectedClassMeta?.date || '').trim(),
-    printInstructor: String(selectedClassMeta?.instructor || '').trim(),
+    printInstructor: displayInstructor,
     printProctor: String(selectedClassMeta?.proctor || selectedClassMeta?.invigilator || '').trim(),
     printExamRoom: String(selectedClassMeta?.examRoom || selectedClassMeta?.room || '').trim(),
     printExamShift: String(selectedClassMeta?.shift || selectedClassMeta?.examShift || '').trim(),

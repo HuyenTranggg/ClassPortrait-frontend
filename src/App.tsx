@@ -1,26 +1,18 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { Navigate, Route, Routes, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import './App.scss';
 import AppLayout from './layouts/AppLayout';
 import RosterView from './features/roster/views/RosterView';
 import ClassListView from './features/roster/views/ClassListView';
-import TeacherDashboardView from './features/roster/dashboard/views/TeacherDashboardView';
+import TeacherDashboardLayout from './features/roster/dashboard/views/TeacherDashboardLayout';
+import UpcomingExamsView from './features/roster/dashboard/views/UpcomingExamsView';
+import RoomGanttView from './features/roster/dashboard/views/RoomGanttView';
+import MonitoringView from './features/roster/dashboard/views/MonitoringView';
 import ImportHistoryView from './features/roster/import/views/ImportHistoryView';
 import ShareLinksView from './features/roster/share/views/ShareLinksView';
 import { LandingPage } from './features/landing';
-import { LoginModal, useAuth } from './features/auth';
+import { useAuth } from './features/auth';
 import { SharedClassPage } from './features/share-public';
-
-const loginMessages: Record<string, string> = {
-  default: 'hệ thống',
-  'Sổ ảnh': 'sổ ảnh',
-  'Lịch sử import': 'lịch sử import',
-  'Chia sẻ': 'chức năng chia sẻ',
-  'Cài đặt': 'cài đặt',
-  'Import nhanh': 'chức năng import nhanh',
-  'Ảnh tự động': 'chức năng ảnh tự động',
-  'In chuẩn format': 'chức năng in chuẩn format',
-};
 
 interface ProtectedRouteProps {
   isAuthenticated: boolean;
@@ -57,22 +49,7 @@ function SharedClassRoute() {
  */
 function App() {
   const { isAuthenticated, login } = useAuth();
-  const location = useLocation();
   const navigate = useNavigate();
-  const [isLoginOpen, setIsLoginOpen] = useState(false);
-  const [loginContext, setLoginContext] = useState('default');
-  const isSharedRoute = location.pathname.startsWith('/classes/shared/');
-
-  const loginContextLabel = useMemo(() => loginMessages[loginContext] || loginMessages.default, [loginContext]);
-
-  const openLogin = (context = 'default') => {
-    setLoginContext(context);
-    setIsLoginOpen(true);
-  };
-
-  const closeLogin = () => {
-    setIsLoginOpen(false);
-  };
 
   const handleLogin = async ({ email, password }: { email: string; password: string }) => {
     const isValidHustEmail = /.+@hust\.edu\.vn$/i.test(email);
@@ -105,7 +82,6 @@ function App() {
       throw new Error('Đăng nhập thất bại. Vui lòng thử lại.');
     }
 
-    setIsLoginOpen(false);
     navigate('/classes', { replace: true });
   };
 
@@ -120,7 +96,7 @@ function App() {
             isAuthenticated ? (
               <Navigate to="/classes" replace />
             ) : (
-              <LandingPage onLoginClick={() => openLogin()} onFeatureClick={openLogin} />
+              <LandingPage onSubmit={handleLogin} />
             )
           }
         />
@@ -128,22 +104,18 @@ function App() {
         <Route element={<ProtectedRoute isAuthenticated={isAuthenticated}><AppLayout /></ProtectedRoute>}>
           <Route path="/classes" element={<ClassListView />} />
           <Route path="/classes/:classId" element={<RosterView />} />
-          <Route path="/dashboard" element={<TeacherDashboardView />} />
+          <Route path="/dashboard" element={<TeacherDashboardLayout />}>
+            <Route index element={<Navigate to="upcoming" replace />} />
+            <Route path="upcoming" element={<UpcomingExamsView />} />
+            <Route path="gantt" element={<RoomGanttView />} />
+            <Route path="monitoring" element={<MonitoringView />} />
+          </Route>
           <Route path="/import-history" element={<ImportHistoryView />} />
           <Route path="/share" element={<ShareLinksView />} />
         </Route>
 
         <Route path="*" element={<Navigate to={isAuthenticated ? '/classes' : '/'} replace />} />
       </Routes>
-
-      {!isSharedRoute && (
-        <LoginModal
-          isOpen={isLoginOpen}
-          contextLabel={loginContextLabel}
-          onClose={closeLogin}
-          onSubmit={handleLogin}
-        />
-      )}
     </>
   );
 }
